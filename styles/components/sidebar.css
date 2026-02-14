@@ -1,0 +1,53 @@
+/* Shadcn Sidebar Component Overrides */
+/* These styles ensure shadcn sidebar components work correctly with the Fire design system */
+
+@layer components {
+
+  /* Ensure sidebar menu lists have proper spacing */
+  [data-sidebar="menu"],
+  [data-sidebar="menu-sub"] {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure proper gap between menu items */
+  [data-sidebar="menu"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    /* gap-1 */
+  }
+
+  /* Ensure menu items display correctly */
+  [data-sidebar="menu-item"] {
+    position: relative !important;
+  }
+
+  /* Ensure menu buttons have proper padding and spacing */
+  [data-sidebar="menu-button"] {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    /* gap-2 */
+    width: 100% !important;
+  }
+
+  /* Ensure sidebar content scrolls properly */
+  [data-sidebar="content"] {
+    overflow-y: auto !important;
+  }
+
+  /* Ensure sidebar header and footer have proper padding */
+  [data-sidebar="header"],
+  [data-sidebar="footer"] {
+    padding: 0.5rem !important;
+    /* p-2 */
+  }
+
+  /* Ensure sidebar group has proper spacing */
+  [data-sidebar="group"] {
+    padding: 0.5rem !important;
+    /* p-2 */
+  }
+}
