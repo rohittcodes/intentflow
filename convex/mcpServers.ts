@@ -127,7 +127,7 @@ export const testConnection = action({
   args: {
     id: v.id("mcpServers"),
   },
-  handler: async ({ runMutation, runQuery }, { id }) => {
+  handler: async ({ runMutation, runQuery }, { id }): Promise<any> => {
     const server = await runQuery(api.mcpServers.getMCPServer, { id });
 
     if (!server) {
@@ -140,18 +140,18 @@ export const testConnection = action({
       return {
         serverId: id,
         needsTest: true,
-        server
+        server,
       };
     } catch (error) {
       await runMutation(api.mcpServers.updateMCPServer, {
         id,
         connectionStatus: "error",
         lastTested: new Date().toISOString(),
-        lastError: error instanceof Error ? error.message : "Unknown error"
+        lastError: error instanceof Error ? error.message : "Unknown error",
       });
       throw error;
     }
-  }
+  },
 });
 
 // Toggle MCP enabled status

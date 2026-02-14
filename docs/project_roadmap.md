@@ -43,20 +43,21 @@
 ## Phase 3: The Backend Executor (LangGraph + Convex)
 - [x] 18. Convex Action `runWorkflow` (The "Worker"). <!-- id: 17 -->
 - [x] 19. `buildLangGraph(json)` compiler. <!-- id: 18 -->
-- [ ] 20. **[REFACTOR]** Universal MCP: Remove hardcoded Firecrawl. <!-- id: 19 -->
-    - [ ] Implement generic MCP Client in Convex (Discovery & Execution).
-    - [ ] Dynamic Tool creation from discovered MCP resources.
-    - [ ] Update `ToolNode` execution to use generic MCP client.
-- [ ] 21. Variable Parsing: Support `{{global_state}}` injection. <!-- id: 20 -->
-- [ ] 22. Test Run: "Start -> LLM (with MCP Tool) -> End" via API. <!-- id: 21 -->
+- [x] 20. **[REFACTOR]** Universal MCP: Remove hardcoded Firecrawl. <!-- id: 19 -->
+    - [x] Implement generic MCP Client in Convex (Discovery & Execution).
+    - [x] Dynamic Tool creation from discovered MCP resources.
+    - [x] Update `ToolNode` execution to use generic MCP client.
+- [x] 21. Variable Parsing: Support `{{global_state}}` injection. <!-- id: 20 -->
+- [x] 22. Test Run: "Start -> LLM (with MCP Tool) -> End" via API. <!-- id: 21 -->
 
 ## Phase 4: Agentic Features & Events
 - [x] 23. **Conditional Edges**: Implement Router Logic (`if/else`). <!-- id: 22 -->
-- [ ] 24. **The Loop**: Enable Backward Edges in LangGraph. <!-- id: 23 -->
-- [ ] 25. **Recursion Limit**: Prevent infinite billing (Max 50 steps). <!-- id: 24 -->
-- [ ] 26. **Code Interpreter**: Integration with `e2b` or Sandboxed Eval. <!-- id: 25 -->
-- [ ] 27. **Webhook Trigger**: `POST /api/webhook/:id` -> Triggers Workflow. <!-- id: 26 -->
-- [ ] 28. **Schedule Trigger**: Convex Cron -> Triggers Workflow. <!-- id: 27 -->
+- [x] 24. **The Loop**: Enable Backward Edges in LangGraph. <!-- id: 23 -->
+- [x] 25. **Recursion Limit**: Prevent infinite billing (Max 50 steps). <!-- id: 24 -->
+- [x] 26. **Code Interpreter**: Integration with `e2b` or Sandboxed Eval. <!-- id: 25 -->
+- [x] 27. **Webhook Trigger**: `POST /api/webhook/:id` -> Triggers Workflow. <!-- id: 26 -->
+- [x] 28. **Schedule Trigger**: Convex Cron -> Triggers Workflow. <!-- id: 27 -->
+
 
 ## Phase 5: Enterprise RAG (Knowledge)
 - [ ] 29. **Schema**: Create `documents` table (Embedding, Namespace, Metadata). <!-- id: 28 -->

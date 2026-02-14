@@ -50,8 +50,7 @@ export async function executeDataNode(
 
     // Re-throw with more context
     throw new Error(
-      `Node ${node.id} execution failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
+      `Node ${node.id} execution failed: ${error instanceof Error ? error.message : 'Unknown error'
       }`
     );
   }
@@ -317,8 +316,7 @@ async function executeSetState(data: any, state: WorkflowState): Promise<any> {
   } catch (error) {
     // Provide context about what failed
     throw new Error(
-      `Failed to set state variable '${key}': ${
-        error instanceof Error ? error.message : 'Unknown error'
+      `Failed to set state variable '${key}': ${error instanceof Error ? error.message : 'Unknown error'
       }`
     );
   }

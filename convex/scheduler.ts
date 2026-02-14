@@ -52,7 +52,12 @@ export const runDueSchedules = internalAction({
               action: (a: any, args: any) => ctx.runAction(a, args),
             };
 
-            const executor = new LangGraphExecutor(workflow, undefined, {}, clientAdapter);
+            const executor = new LangGraphExecutor(
+              { ...workflow, id: workflow._id } as any,
+              undefined,
+              {},
+              clientAdapter
+            );
             const threadId = `schedule_${schedule._id}_${now.getTime()}`;
 
             await executor.execute({

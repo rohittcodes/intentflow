@@ -1,6 +1,10 @@
 import { WorkflowNode, WorkflowState } from '../types';
 import { substituteVariables } from '../variable-substitution';
 import { resolveMCPServers, migrateMCPData } from '@/lib/mcp/resolver';
+import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
+import { ChatOpenAI } from '@langchain/openai';
+import { GenericMCPClient } from '@/lib/mcp/client';
 
 /**
  * Execute Agent Node - Calls LLM with instructions and tools
@@ -121,7 +125,6 @@ export async function executeAgentNode(
 
     if (provider === 'anthropic' && apiKeys?.anthropic) {
       // Use native Anthropic SDK for MCP support
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: apiKeys.anthropic });
 
       if (hasMcpTools) {
@@ -204,7 +207,6 @@ export async function executeAgentNode(
 
       if (hasMcpTools) {
         // Use native OpenAI SDK for function calling
-        const OpenAI = (await import('openai')).default;
         const client = new OpenAI({ apiKey: apiKeys.openai });
 
         // Convert MCP tools to OpenAI function format
@@ -266,7 +268,6 @@ export async function executeAgentNode(
                 }
 
                 console.log(`🔌 Agent connecting to MCP server for tool ${call.function.name}: ${serverUrl}`);
-                const { GenericMCPClient } = await import('@/lib/mcp/client');
 
                 const headers = mcpServer.headers || {};
                 if (mcpServer.accessToken) {
@@ -347,7 +348,6 @@ export async function executeAgentNode(
         }
       } else {
         // Regular OpenAI call without MCP tools
-        const { ChatOpenAI } = await import('@langchain/openai');
         const model = new ChatOpenAI({
           apiKey: apiKeys.openai,
           model: modelName,
@@ -362,7 +362,6 @@ export async function executeAgentNode(
 
       if (hasMcpTools) {
         // Use Groq Responses API for MCP support
-        const OpenAI = (await import('openai')).default;
         const client = new OpenAI({
           apiKey: apiKeys.groq,
           baseURL: 'https://api.groq.com/openai/v1',
@@ -397,7 +396,6 @@ export async function executeAgentNode(
           }));
       } else {
         // Regular Groq chat completions for non-MCP calls
-        const { ChatOpenAI } = await import('@langchain/openai');
         const model = new ChatOpenAI({
           apiKey: apiKeys.groq,
           model: modelName,

@@ -1,4 +1,5 @@
 import { WorkflowNode, WorkflowState } from '../types';
+import CodeInterpreter from '@e2b/code-interpreter';
 
 /**
  * Execute Code Node - Supports JavaScript and Python
@@ -38,9 +39,6 @@ export async function executeCodeNode(
 }
 
 async function executeE2B(code: string, language: string, state: WorkflowState, apiKey: string) {
-  // Lazy load E2B to avoid build issues if not installed
-  const CodeInterpreter = (await import('@e2b/code-interpreter')).default;
-
   const sandbox = await CodeInterpreter.create({ apiKey });
 
   try {

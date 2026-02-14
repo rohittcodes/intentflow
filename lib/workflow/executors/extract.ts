@@ -1,5 +1,6 @@
 import { WorkflowNode, WorkflowState } from '../types';
 import { substituteVariables } from '../variable-substitution';
+import OpenAI from 'openai';
 
 /**
  * Execute Extract Node - Uses LLM with JSON schema to extract structured data
@@ -25,7 +26,6 @@ export async function executeExtractNode(
     }
 
     // Server-side execution only
-    const OpenAI = (await import('openai')).default;
     const client = new OpenAI({ apiKey: apiKeys?.openai });
 
     // Build full prompt with context
