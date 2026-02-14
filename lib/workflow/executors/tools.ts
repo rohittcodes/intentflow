@@ -1,4 +1,3 @@
-import 'server-only';
 import { WorkflowNode, WorkflowState } from '../types';
 
 /**

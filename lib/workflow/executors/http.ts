@@ -60,7 +60,7 @@ export async function executeHTTPNode(
     return {
       status: response.status,
       statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
+      headers: Object.fromEntries((response.headers as any).entries()),
       data: responseData,
       url,
       method,

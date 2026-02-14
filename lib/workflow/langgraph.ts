@@ -10,7 +10,6 @@
  * Server-side only - should not be imported in client code
  */
 
-import 'server-only';
 import { StateGraph, Annotation, START, END, MemorySaver, Command, Send, interrupt, isInterrupted } from "@langchain/langgraph";
 import { BaseCheckpointSaver } from "@langchain/langgraph-checkpoint";
 import { ConvexHttpClient } from "convex/browser";

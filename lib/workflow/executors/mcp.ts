@@ -218,7 +218,7 @@ export async function executeMCPNode(
     return {
       ...successfulResult,
       results, // Include full results history
-      mcpServers: mcpServers.map(s => s.name),
+      mcpServers: mcpServers.map((s: any) => s.name),
     };
   }
 

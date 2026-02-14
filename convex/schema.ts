@@ -276,6 +276,7 @@ export default defineSchema({
   threads: defineTable({
     userId: v.string(), // Clerk user ID
     workflowId: v.optional(v.id("workflows")), // If linked to a specific workflow
+    extThreadId: v.optional(v.string()), // External thread ID (e.g. from LangGraph)
     title: v.optional(v.string()), // "Chat with Helper Agent"
 
     // Metadata
@@ -287,6 +288,7 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_workflow", ["workflowId"])
+    .index("by_extThreadId", ["extThreadId"])
     .index("by_updated", ["updatedAt"]),
 
   // LangGraph Checkpoints - Persistence for long-running workflows/chats
