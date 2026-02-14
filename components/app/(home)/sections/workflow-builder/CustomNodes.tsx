@@ -18,7 +18,8 @@ import {
   Braces,
   Search,
   Server,
-  Activity
+  Activity,
+  Database
 } from "lucide-react";
 
 // Custom node component with handles for connections
@@ -64,6 +65,7 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
       'guardrails': { icon: Shield, color: 'bg-[#FFEFA4] dark:bg-[#FFDD40]', label: 'Guardrails' },
       'transform': { icon: Braces, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Transform' },
       'extract': { icon: Search, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Extract' },
+      'retriever': { icon: Database, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Retriever' },
       'http': { icon: Server, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Request' },
       'set-state': { icon: Braces, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'State' },
       'start': { icon: Activity, color: 'bg-gray-600', label: 'Trigger' },
@@ -547,4 +549,5 @@ export const nodeTypes = {
   'set-state': CustomNode,
   'guardrails': CustomNode,
   'router': CustomNode,
+  'retriever': CustomNode,
 };

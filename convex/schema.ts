@@ -239,13 +239,33 @@ export default defineSchema({
   documents: defineTable({
     content: v.string(),
     embedding: v.array(v.float64()),
-    namespace: v.string(), // For access control (e.g. "hr-policies")
-    metadata: v.optional(v.any()),
+    namespaceId: v.id("namespaces"), // Reference to the namespace
+    metadata: v.optional(v.any()), // e.g. { fileName: "manual.pdf", page: 12 }
     userId: v.string(),
-  }).vectorIndex("by_embedding", {
-    vectorField: "embedding",
-    dimensions: 1536, // OpenAI default
-  }),
+    createdAt: v.string(),
+  })
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536, // OpenAI default
+      filterFields: ["namespaceId", "userId"],
+    })
+    .index("by_namespace", ["namespaceId"])
+    .index("by_user", ["userId"]),
+
+  // Knowledge Namespaces - Containers for documents
+  namespaces: defineTable({
+    name: v.string(), // "Legal", "Marketing", "HR"
+    description: v.optional(v.string()),
+    userId: v.string(),
+    icon: v.optional(v.string()),
+    color: v.optional(v.string()),
+    documentCount: v.number(),
+    lastIngestedAt: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_name", ["userId", "name"]),
 
   // Webhook Triggers - Map external URLs to workflows
   webhooks: defineTable({
@@ -305,4 +325,21 @@ export default defineSchema({
     .index("by_threadId", ["threadId"])
     .index("by_checkpoint_id", ["checkpoint_id"])
     .index("by_thread_and_checkpoint", ["threadId", "checkpoint_id"]),
+  // Knowledge Connectors - Dynamic data sources
+  connectors: defineTable({
+    userId: v.string(),
+    namespaceId: v.id("namespaces"),
+    name: v.string(), // "My SQL DB", "Docs Website"
+    type: v.string(), // "database", "url", "notion"
+    config: v.any(), // Connection strings, URLs, API keys
+    status: v.string(), // "idle", "syncing", "error"
+    lastSyncAt: v.optional(v.string()),
+    lastError: v.optional(v.string()),
+
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_namespace", ["namespaceId"])
+    .index("by_type", ["type"]),
 });

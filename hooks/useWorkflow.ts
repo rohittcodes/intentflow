@@ -18,6 +18,12 @@ export function useWorkflow(workflowId?: string) {
   const [loading, setLoading] = useState(true);
   const [convexId, setConvexId] = useState<string | null>(null); // Track Convex ID
   const saveToConvexTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const workflowRef = useRef<Workflow | null>(null);
+
+  // Keep workflowRef in sync with state
+  useEffect(() => {
+    workflowRef.current = workflow;
+  }, [workflow]);
 
   // Load workflow from Redis via API
   useEffect(() => {
@@ -173,7 +179,7 @@ export function useWorkflow(workflowId?: string) {
     }
 
     const updated: Workflow = {
-      ...workflow,
+      ...workflowRef.current!,
       ...updates,
       updatedAt: new Date().toISOString(),
     };
@@ -207,38 +213,38 @@ export function useWorkflow(workflowId?: string) {
         console.error('❌ Failed to save workflow to Convex:', error);
       }
     }, 1000); // 1000ms debounce to batch rapid saves
-  }, [workflow, loadWorkflows]);
+  }, [loadWorkflows]); // Removed workflow dependency
 
   // Update nodes
   const updateNodes = useCallback((nodes: WorkflowNode[]) => {
-    if (!workflow) {
+    if (!workflowRef.current) {
       console.warn('⚠️ updateNodes called but no workflow exists');
       return;
     }
 
     console.log('📝 updateNodes called with', nodes.length, 'nodes');
     saveWorkflow({ nodes });
-  }, [workflow, saveWorkflow]);
+  }, [saveWorkflow]); // Removed workflow dependency
 
   // Update edges
   const updateEdges = useCallback((edges: WorkflowEdge[]) => {
-    if (!workflow) return;
+    if (!workflowRef.current) return;
 
     saveWorkflow({ edges });
-  }, [workflow, saveWorkflow]);
+  }, [saveWorkflow]); // Removed workflow dependency
 
   // Update node data
   const updateNodeData = useCallback((nodeId: string, data: any) => {
-    if (!workflow) return;
+    if (!workflowRef.current) return;
 
-    const nodes = workflow.nodes.map(node =>
+    const nodes = workflowRef.current.nodes.map(node =>
       node.id === nodeId
         ? { ...node, data: { ...node.data, ...data } }
         : node
     );
 
     updateNodes(nodes);
-  }, [workflow, updateNodes]);
+  }, [updateNodes]); // Removed workflow dependency
 
   // Delete workflow (move to trash)
   const deleteWorkflow = useCallback(async (id: string) => {

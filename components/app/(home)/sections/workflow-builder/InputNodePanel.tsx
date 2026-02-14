@@ -30,20 +30,24 @@ export default function InputNodePanel({
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const webhookUrl = `${origin}/api/webhook/${workflowId}`;
 
-  // Sync state with node data - fix infinite loop by checking for changes
+  // Sync state with node data - debounced and guarded
   useEffect(() => {
     if (!node?.id) return;
 
-    // Only update if something actually changed to avoid infinite loops
-    if (
-      triggerType !== node.data?.triggerType ||
-      cronExpression !== node.data?.cronExpression
-    ) {
-      updateNodeData(node.id, {
-        triggerType,
-        cronExpression,
-      });
-    }
+    const timeoutId = setTimeout(() => {
+      // Only update if something actually changed to avoid infinite loops
+      if (
+        triggerType !== node.data?.triggerType ||
+        cronExpression !== node.data?.cronExpression
+      ) {
+        updateNodeData(node.id, {
+          triggerType,
+          cronExpression,
+        });
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [triggerType, cronExpression, node?.id, node.data?.triggerType, node.data?.cronExpression, updateNodeData]);
 
   const handleCopy = () => {

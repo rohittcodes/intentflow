@@ -92,28 +92,26 @@ function StyleGuidePageContent() {
             </div>
 
             <HeaderWrapper>
-              <div className="max-w-[900px] mx-auto w-full flex justify-between items-center">
-                <div className="flex gap-24 items-center">
+              <div className="max-w-[1240px] mx-auto w-full flex justify-between items-center px-16 lg:px-24">
+                <div className="flex gap-32 items-center">
                   <HeaderBrandKit />
                 </div>
 
-                <div className="flex gap-8 items-center">
-                  {/* GitHub Template Button */}
-                  <a
+                <div className="flex gap-16 items-center">
+                  {/* Documentation Button */}
+                  <Link
                     className="contents"
-                    href="https://github.com/firecrawl/firecrawl"
-                    target="_blank"
+                    href="/dashboard"
                   >
-                    <ButtonUI variant="secondary">
-                      <GithubIcon />
-                      Use this Template
+                    <ButtonUI variant="secondary" className="px-24 py-12 h-44 text-label-large">
+                      View Workflows
                     </ButtonUI>
-                  </a>
+                  </Link>
 
                   {/* Clerk Auth */}
                   <SignedOut>
                     <SignInButton mode="modal">
-                      <button className="px-16 py-8 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-medium font-medium transition-all active:scale-[0.98]">
+                      <button className="px-24 py-12 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-label-large font-medium transition-all active:scale-[0.98] shadow-md h-44 flex items-center justify-center">
                         Sign In
                       </button>
                     </SignInButton>
@@ -121,14 +119,18 @@ function StyleGuidePageContent() {
 
                   <SignedIn>
                     <Link href="/dashboard">
-                      <button className="bg-heat-100 hover:bg-heat-200 text-white font-medium px-4 py-2 rounded-md transition-all active:scale-[0.98] text-sm shadow-md cursor-pointer mr-2">
+                      <button className="bg-heat-100 w-full hover:bg-heat-200 text-white font-medium px-24 py-14 rounded-8 transition-all active:scale-[0.98] text-label-large shadow-md cursor-pointer mr-8 h-44 flex items-center justify-center">
                         Dashboard
                       </button>
                     </Link>
                     <UserButton
                       appearance={{
                         elements: {
-                          avatarBox: "w-8 h-8",
+                          rootBox: "w-32 h-32",
+                          userButtonTrigger: "w-32 h-32",
+                          avatarBox: "w-32 h-32 border-2 border-border-faint hover:border-heat-100 transition-colors shadow-md",
+                          userButtonAvatarBox: "w-32 h-32",
+                          userButtonAvatarImage: "w-32 h-32",
                         }
                       }}
                       afterSignOutUrl="/"
@@ -158,17 +160,9 @@ function StyleGuidePageContent() {
                   <HomeHeroBadge />
                   <HomeHeroTitle />
 
-                  <p className="text-center text-body-large">
-                    Build intelligent web scraping workflows powered by AI.
-                    <br className="lg-max:hidden" />
-                    Turn any website into structured, agent-ready data.
-                    <Link
-                      className="bg-black-alpha-4 hover:bg-black-alpha-6 lg:ml-4 rounded-6 px-8 lg:px-6 text-label-large lg-max:py-2 h-30 lg:h-24 block lg-max:mt-8 lg-max:mx-auto lg-max:w-max lg:inline-block gap-4 transition-all"
-                      href="https://firecrawl.dev"
-                      target="_blank"
-                    >
-                      AI agent workflows
-                    </Link>
+                  <p className="text-center text-body-large text-black-alpha-64 max-w-[600px] mx-auto">
+                    Design, automate, and deploy intelligent AI agents with a visual workflow builder.
+                    Integrate any data source and build production-ready RAG pipelines in minutes.
                   </p>
                 </motion.div>
               </AnimatePresence>

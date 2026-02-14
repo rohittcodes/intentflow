@@ -24,6 +24,7 @@ import { executeHTTPNode } from './executors/http';
 import { executeExtractNode } from './executors/extract';
 import { executeArcadeNode } from './executors/arcade';
 import { executeGuardrailsNode } from './executors/guardrails';
+import { executeRetrieverNode } from './executors/retriever';
 import { createOrUpdateArcadeAuthRecord } from '../arcade/auth-store';
 
 interface ArcadePendingResponse {
@@ -1030,6 +1031,10 @@ export class LangGraphExecutor {
       case 'user approval':
       case 'approval':
         return await executeLogicNode(node, state);
+
+      case 'retriever':
+      case 'knowledge-retrieval':
+        return await executeRetrieverNode(node, state);
 
       case 'transform':
       case 'data-transform':

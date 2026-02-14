@@ -48,6 +48,7 @@ import {
   Copy,
   Trash2,
   Maximize,
+  Database,
 } from "lucide-react";
 import NodePanel from "./NodePanel";
 import MCPPanel from "./MCPPanel";
@@ -60,6 +61,7 @@ import HTTPNodePanel from "./HTTPNodePanel";
 import ExtractNodePanel from "./ExtractNodePanel";
 import StartNodePanel from "./StartNodePanel";
 import RouterNodePanel from "./RouterNodePanel";
+import RetrieverNodePanel from "./RetrieverNodePanel";
 import WorkflowNameEditor from "./WorkflowNameEditor";
 import SettingsPanel from "./SettingsPanelSimple";
 import ConfirmDialog from "./ConfirmDialog";
@@ -143,6 +145,7 @@ const nodeCategories = [
     nodes: [
       { type: "transform", label: "Transform", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
       { type: "extract", label: "Extract", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Search },
+      { type: "retriever", label: "Retriever", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Database },
       { type: "http", label: "HTTP", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Server },
       { type: "set-state", label: "Set state", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
     ],
@@ -161,6 +164,7 @@ const getNodeColor = (type: string): string => {
     'user-approval': 'bg-gray-400',
     'transform': 'bg-purple-500',
     'extract': 'bg-purple-500',
+    'retriever': 'bg-purple-500',
     'http': 'bg-purple-500',
     'start': 'bg-gray-600',
     'end': 'bg-teal-500',
@@ -775,6 +779,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                 <DataNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
               ) : (selectedNode?.data as any)?.nodeType === 'extract' ? (
                 <ExtractNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onAddMCP={() => { setTargetAgentForMCP(selectedNode); setShowMCPSelector(true); }} />
+              ) : (selectedNode?.data as any)?.nodeType === 'retriever' ? (
+                <RetrieverNodePanel node={selectedNode} nodes={nodes} updateNodeData={handleUpdateNodeData} />
               ) : (selectedNode?.data as any)?.nodeType === 'http' ? (
                 <HTTPNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
               ) : (selectedNode?.data as any)?.nodeType === 'start' ? (

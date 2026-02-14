@@ -32,8 +32,8 @@ export default function DashboardLayout({
       icon: <FileText className="w-20 h-20" />,
     },
     {
-      label: "Datastores",
-      href: "/dashboard/datastores",
+      label: "Knowledge Base",
+      href: "/dashboard/knowledge",
       icon: <Database className="w-20 h-20" />,
     },
     {

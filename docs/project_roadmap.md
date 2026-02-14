@@ -60,15 +60,18 @@
 
 
 ## Phase 5: Enterprise RAG (Knowledge)
-- [ ] 29. **Schema**: Create `documents` table (Embedding, Namespace, Metadata). <!-- id: 28 -->
-- [ ] 30. **Knowledge UI**: File Uploader & Namespace Manager. <!-- id: 29 -->
-- [ ] 31. **Ingestion**: Action to Chunk & Embed. <!-- id: 30 -->
-- [ ] 32. **Retriever Node**: UI to select Namespace. <!-- id: 31 -->
-- [ ] 33. **Retriever Logic**: `ctx.vectorSearch` implementation. <!-- id: 32 -->
-- [ ] 34. **Re-Ranker**: Optional optimization step. <!-- id: 33 -->
+- [x] 29. **Schema**: Create `documents` table (Embedding, Namespace, Metadata). <!-- id: 28 -->
+- [x] 30. **Knowledge UI**: File Uploader & Namespace Manager. <!-- id: 29 -->
+- [x] 31. **Ingestion**: Action to Chunk & Embed. <!-- id: 30 -->
+- [x] 32. **Retriever Node**: UI to select Namespace. <!-- id: 31 -->
+- [x] 33. **Retriever Logic**: `ctx.vectorSearch` implementation. <!-- id: 32 -->
+- [x] 34. **Re-Ranker**: Optional optimization step. <!-- id: 33 -->
 
-## Phase 6: Real-Time & HITL
-- [ ] 35. **Integration**: Supabase/Convex Realtime on `executions` table. <!-- id: 34 -->
+## Phase 6: Real-Time & UX Revamp
+- [x] 35. **Branding Cleanup**: Remove legacy logs & links.
+- [x] 36. **Hero Section**: Revamped with Intentflow identity.
+- [x] 37. **UX Polish**: Improved Profile UI & animations.
+- [ ] 38. **Integration**: Supabase/Convex Realtime on `executions` table. <!-- id: 34 -->
 - [ ] 36. **Frontend**: `useExecutionStream` hook for "Green Light" tracing. <!-- id: 35 -->
 - [ ] 37. **Output Drawer**: Inspect node inputs/outputs. <!-- id: 36 -->
 - [ ] 38. **Human-in-the-Loop (HITL)**: <!-- id: 37 -->
