@@ -30,20 +30,47 @@ export default function GuardrailsNodePanel({
   const [activeTab, setActiveTab] = useState<"checks" | "actions">("checks");
   const [newRule, setNewRule] = useState("");
 
+  // Sync state from node props when node changes
+  useEffect(() => {
+    if (!node?.id) return;
+
+    const nodeData = node.data || {};
+    setConfig({
+      checks: {
+        pii: nodeData.checks?.pii ?? false,
+        moderation: nodeData.checks?.moderation ?? true,
+        jailbreak: nodeData.checks?.jailbreak ?? true,
+        hallucination: nodeData.checks?.hallucination ?? false,
+      },
+      piiEntities: nodeData.piiEntities || [],
+      customRules: nodeData.customRules || [],
+      actionOnViolation: nodeData.actionOnViolation || "block",
+      fallbackResponse: nodeData.fallbackResponse || "I cannot fulfill this request due to safety checks.",
+    });
+  }, [node?.id]);
+
   // Sync changes to parent - stop infinite loop by checking for actual changes
   useEffect(() => {
     if (!node?.id) return;
 
     // Deep compare config with current node data to prevent recursion
     const currentData = {
-      checks: node.data?.checks || {},
+      checks: {
+        pii: node.data?.checks?.pii ?? false,
+        moderation: node.data?.checks?.moderation ?? true,
+        jailbreak: node.data?.checks?.jailbreak ?? true,
+        hallucination: node.data?.checks?.hallucination ?? false,
+      },
       piiEntities: node.data?.piiEntities || [],
       customRules: node.data?.customRules || [],
       actionOnViolation: node.data?.actionOnViolation || "block",
       fallbackResponse: node.data?.fallbackResponse || "I cannot fulfill this request due to safety checks.",
     };
 
-    if (JSON.stringify(config) !== JSON.stringify(currentData)) {
+    const configStr = JSON.stringify(config);
+    const dataStr = JSON.stringify(currentData);
+
+    if (configStr !== dataStr) {
       updateNodeData(node.id, {
         ...node.data,
         ...config,

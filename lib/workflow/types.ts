@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 export interface WorkflowNode {
   id: string;
-  type: 'agent' | 'mcp' | 'if-else' | 'while' | 'user-approval' | 'transform' | 'set-state' | 'end' | 'start' | 'guardrails' | 'arcade' | 'note' | 'router';
+  type: 'agent' | 'mcp' | 'if-else' | 'while' | 'user-approval' | 'transform' | 'set-state' | 'end' | 'start' | 'guardrails' | 'arcade' | 'note' | 'router' | 'data-query' | 'memory';
   position: { x: number; y: number };
   data: NodeData;
 }
@@ -69,6 +69,13 @@ export interface NodeData {
 
   // Note node data
   noteText?: string;
+
+  // Memory node data
+  memoryOperation?: 'store' | 'retrieve' | 'append' | 'clear';
+  memoryKey?: string;
+  memoryValue?: string;
+  memoryScope?: 'thread' | 'user';
+  injectIntoAI?: boolean;
 
   // Additional node data properties
   transformType?: string;
@@ -141,6 +148,8 @@ export interface WorkflowEdge {
 
 export interface Workflow {
   id: string;
+  _id?: string;
+  _convexId?: string;
   name: string;
   description?: string;
   category?: string;
@@ -151,6 +160,15 @@ export interface Workflow {
   edges: WorkflowEdge[];
   createdAt: string;
   updatedAt: string;
+  isDeployed?: boolean;
+  deployedAt?: string;
+  settings?: {
+    snapToGrid?: boolean;
+    gridStyle?: 'dots' | 'lines' | 'none';
+    edgeStyle?: 'default' | 'straight' | 'step' | 'smoothstep';
+    maxIterations?: number;
+    timeout?: number;
+  };
 }
 
 export interface WorkflowExecution {
@@ -185,6 +203,7 @@ export interface NodeExecutionResult {
 export interface WorkflowState {
   variables: Record<string, any>;
   chatHistory: Array<{ role: string; content: string }>;
+  memory?: Record<string, any>;
 }
 
 export interface WorkflowPendingAuth {

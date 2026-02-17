@@ -39,7 +39,7 @@ export const listConnectorsByNamespace = query({
  */
 export const createConnector = mutation({
   args: {
-    namespaceId: v.id("namespaces"),
+    namespaceId: v.optional(v.id("namespaces")),
     name: v.string(),
     type: v.string(),
     config: v.any(),

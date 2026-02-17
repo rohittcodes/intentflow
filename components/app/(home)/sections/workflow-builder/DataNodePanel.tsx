@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
 import { toast } from "sonner";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Database, Code2, Globe } from "lucide-react";
 import VariableReferencePicker from "./VariableReferencePicker";
 
 interface DataNodePanelProps {
@@ -47,6 +50,11 @@ return result;`,
     "string" | "number" | "boolean" | "json" | "expression"
   >(nodeData?.valueType || "string");
 
+  // Database Query state
+  const [sqlQuery, setSqlQuery] = useState(nodeData?.sqlQuery || "SELECT * FROM table LIMIT 10;");
+  const [selectedConnectorId, setSelectedConnectorId] = useState(nodeData?.connectorId || "");
+  const connectors = useQuery(api.knowledgeConnectors.listConnectors);
+
   // Auto-save changes with change check
   useEffect(() => {
     if (!node?.id) return;
@@ -58,12 +66,16 @@ return result;`,
         stateValue !== node.data?.stateValue ||
         valueType !== node.data?.valueType;
 
-      if (hasChanged) {
+      if (hasChanged ||
+        sqlQuery !== node.data?.sqlQuery ||
+        selectedConnectorId !== node.data?.connectorId) {
         onUpdate(node.id, {
           transformScript,
           stateKey,
           stateValue,
           valueType,
+          sqlQuery,
+          connectorId: selectedConnectorId,
         });
       }
     }, 500);
@@ -74,6 +86,8 @@ return result;`,
     stateKey,
     stateValue,
     valueType,
+    sqlQuery,
+    selectedConnectorId,
     node?.id,
     node?.data,
     onUpdate
@@ -139,7 +153,7 @@ return result;`,
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-24">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Transform Node - Code Editor */}
       {nodeType.includes("transform") && (
         <>
@@ -288,6 +302,78 @@ return result;`,
             </div>
           </div>
         </>
+      )}
+      {/* Database Query Node */}
+      {nodeType.includes("query") && (
+        <div className="space-y-20">
+          <div>
+            <h3 className="text-sm font-medium text-accent-black mb-12 flex items-center gap-8">
+              <Database className="w-16 h-16 text-amber-500" />
+              Database Query
+            </h3>
+            <p className="text-[13px] text-black-alpha-48 mb-16">
+              Execute a SQL query against your connected database.
+            </p>
+
+            <div className="space-y-16">
+              {/* Connector Selection */}
+              <div>
+                <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-8">
+                  Data Source
+                </label>
+                <select
+                  value={selectedConnectorId}
+                  onChange={(e) => setSelectedConnectorId(e.target.value)}
+                  className="w-full px-12 py-10 bg-accent-white border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors cursor-pointer appearance-none"
+                >
+                  <option value="">Select a Data Source</option>
+                  {connectors?.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name} ({c.type})
+                    </option>
+                  ))}
+                </select>
+                {connectors && connectors.length === 0 && (
+                  <p className="mt-8 text-xs text-red-500">
+                    No data sources found. Add one in the Library or Settings.
+                  </p>
+                )}
+              </div>
+
+              {/* SQL Editor */}
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
+                    SQL Query
+                  </label>
+                  <VariableReferencePicker
+                    nodes={nodes}
+                    currentNodeId={node?.id || ''}
+                    onSelect={(varPath) => {
+                      setSqlQuery(prev => prev + `{{${varPath}}}`);
+                    }}
+                  />
+                </div>
+                <div className="relative group">
+                  <div className="absolute top-12 left-12 text-black-alpha-24 pointer-events-none">
+                    <Code2 className="w-16 h-16" />
+                  </div>
+                  <textarea
+                    value={sqlQuery}
+                    onChange={(e) => setSqlQuery(e.target.value)}
+                    rows={12}
+                    className="w-full pl-36 pr-12 py-12 bg-black-alpha-4 text-accent-black border border-border-faint rounded-12 text-sm font-mono focus:outline-none focus:border-amber-500 transition-all resize-none"
+                    placeholder="SELECT * FROM table_name WHERE id = {{state.user_id}}"
+                    spellCheck={false}
+                  />
+                </div>
+                <p className="mt-8 text-xs text-black-alpha-40 leading-relaxed">
+                  Use <code className="text-amber-600 font-mono">{"{{variable}}"}</code> syntax to inject dynamic values into your query.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -133,11 +133,13 @@ export default function WorkflowsPage() {
         method: "DELETE",
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         toast.success(`"${name}" moved to trash`);
         loadWorkflows(); // Reload workflows
       } else {
-        toast.error("Failed to delete workflow");
+        toast.error(data.message || data.error || "Failed to delete workflow");
       }
     } catch (error) {
       console.error("Error deleting workflow:", error);

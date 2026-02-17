@@ -69,12 +69,12 @@ export default function ExtractNodePanel({
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [instructions, model, jsonSchema, node?.id, node.data, onUpdate]);
+  }, [instructions, model, jsonSchema, node?.id, node?.data, onUpdate]);
 
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-24">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Instructions */}
       <div>
         <label className="block text-label-small text-black-alpha-48 mb-8">

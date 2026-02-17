@@ -147,10 +147,9 @@ export default function MCPPanel({
                   >
                     <option value="">Select an MCP server...</option>
                     {mcpServers.map((server) => {
-                      const isFirecrawl = server.name === 'Firecrawl' && server.isOfficial;
                       return (
                         <option key={server._id} value={server._id}>
-                          {server.name} {isFirecrawl && '(API Key Required)'} {server.tools && `(${server.tools.length} tools)`}
+                          {server.name} {server.tools && `(${server.tools.length} tools)`}
                         </option>
                       );
                     })}
@@ -169,26 +168,11 @@ export default function MCPPanel({
                               <h4 className="text-sm font-medium text-accent-black">
                                 {selectedServer.name}
                               </h4>
-                              {selectedServer.name === 'Firecrawl' && selectedServer.isOfficial && (
-                                <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-6 text-xs border border-heat-100 font-medium">
-                                  API Key Required
-                                </span>
-                              )}
                             </div>
                             {selectedServer.description && (
                               <p className="text-xs text-black-alpha-48 mb-8">
                                 {selectedServer.description}
                               </p>
-                            )}
-                            {selectedServer.name === 'Firecrawl' && selectedServer.isOfficial && (
-                              <a
-                                href="https://www.firecrawl.dev/app/api-keys"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-heat-100 hover:text-heat-200 underline block mb-8"
-                              >
-                                Get API key here →
-                              </a>
                             )}
                             <div className="flex items-center gap-12 text-xs">
                               <span className="text-black-alpha-48">

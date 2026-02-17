@@ -6,15 +6,37 @@ import { substituteVariables } from '../variable-substitution';
  */
 export async function executeHTTPNode(
   node: WorkflowNode,
-  state: WorkflowState
+  state: WorkflowState,
+  connectors: any[] = []
 ): Promise<any> {
   const { data } = node;
   const nodeData = data as any;
 
   try {
     // Substitute variables in URL
-    const url = substituteVariables(nodeData.httpUrl || '', state);
-    const method = nodeData.httpMethod || 'GET';
+    let url = substituteVariables(nodeData.httpUrl || '', state);
+    let method = nodeData.httpMethod || 'GET';
+    const connectorId = nodeData.connectorId;
+
+    // Resolve connector if provided
+    if (connectorId) {
+      const connector = connectors.find(c => c._id === connectorId || c.id === connectorId);
+      if (connector) {
+        console.log(`🔗 Using connector: ${connector.name} (${connector.type})`);
+        // If it's a knowledge source/API connector, it might have a base URL
+        if (connector.config?.url) {
+          // If node URL is relative, prepend base URL. If it's empty, use base URL.
+          const baseUrl = connector.config.url.endsWith('/') ? connector.config.url.slice(0, -1) : connector.config.url;
+          if (!url) {
+            url = baseUrl;
+          } else if (url.startsWith('/')) {
+            url = `${baseUrl}${url}`;
+          } else if (!url.startsWith('http')) {
+            url = `${baseUrl}/${url}`;
+          }
+        }
+      }
+    }
 
     // Build headers
     const headers: Record<string, string> = {};
@@ -27,7 +49,23 @@ export async function executeHTTPNode(
       });
     }
 
-    // Add authentication
+    // Add authentication from connector
+    if (connectorId) {
+      const connector = connectors.find(c => c._id === connectorId || c.id === connectorId);
+      if (connector && connector.config?.auth) {
+        const auth = connector.config.auth;
+        if (auth.type === 'bearer' && auth.token) {
+          headers['Authorization'] = `Bearer ${auth.token}`;
+        } else if (auth.type === 'api-key' && auth.token) {
+          const keyName = auth.keyName || 'X-API-Key';
+          headers[keyName] = auth.token;
+        } else if (auth.type === 'basic' && auth.username && auth.password) {
+          headers['Authorization'] = `Basic ${btoa(`${auth.username}:${auth.password}`)}`;
+        }
+      }
+    }
+
+    // Add node-specific authentication (overrides connector)
     if (nodeData.httpAuthType === 'bearer' && nodeData.httpAuthToken) {
       headers['Authorization'] = `Bearer ${nodeData.httpAuthToken}`;
     } else if (nodeData.httpAuthType === 'api-key' && nodeData.httpAuthToken) {

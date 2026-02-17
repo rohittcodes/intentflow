@@ -18,7 +18,7 @@ export default function WorkflowNameEditor({ workflow, onSave, renameTrigger = 0
     if (workflow) {
       setName(workflow.name);
     }
-  }, [workflow]);
+  }, [workflow?.name]);
 
   useEffect(() => {
     if (renameTrigger > 0) {
@@ -54,12 +54,12 @@ export default function WorkflowNameEditor({ workflow, onSave, renameTrigger = 0
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           autoFocus
-          className="px-12 py-6 bg-[#1c1c1f] border border-heat-100 rounded-8 text-sm text-white focus:outline-none shadow-lg min-w-[200px]"
+          className="px-12 py-6 bg-[#1c1c1f] border border-heat-100 rounded-8 text-sm text-white text-accent-black hover:text-black focus:outline-none shadow-lg min-w-[200px]"
         />
       ) : (
         <button
           onClick={() => setIsEditing(true)}
-          className="px-12 py-6 bg-transparent hover:bg-[#1c1c1f] border border-transparent hover:border-[#27272a] rounded-8 text-sm font-semibold text-[#e4e4e7] transition-all flex items-center gap-8 group"
+          className="px-12 py-6 bg-transparent hover:bg-[#fff] border border-transparent hover:border-heat-100 rounded-8 text-sm font-semibold text-[#e4e4e7] hover:text-heat-100 transition-all flex items-center gap-8 group"
         >
           <span>{name}</span>
           <svg className="w-14 h-14 text-[#71717a] group-hover:text-heat-100 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

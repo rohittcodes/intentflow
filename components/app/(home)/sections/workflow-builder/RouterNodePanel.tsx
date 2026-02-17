@@ -46,7 +46,7 @@ export default function RouterNodePanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-20 space-y-20">
       <div>
         <div className="flex items-center justify-between mb-4">
           <label className="text-sm font-medium text-black-alpha-48">

@@ -33,7 +33,7 @@ export default function NoteNodePanel({ node, onClose, onDelete, onUpdate }: Not
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Sticky Note */}
       <div>
         <label className="block text-sm font-medium text-accent-black mb-8 flex items-center gap-8">

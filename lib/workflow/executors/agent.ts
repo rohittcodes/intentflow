@@ -25,6 +25,15 @@ export async function executeAgentNode(
     // Build context from previous node output
     const lastOutput = state.variables?.lastOutput;
 
+    // INJECT MEMORY CONTEXT
+    let memoryContextString = '';
+    if (state.memory && Object.keys(state.memory).length > 0) {
+      memoryContextString = '\n\nCORE MEMORY CONTEXT:\n' +
+        Object.entries(state.memory)
+          .map(([key, value]) => `- ${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`)
+          .join('\n');
+    }
+
     // Migrate data if using old format
     const migratedData = migrateMCPData(data);
 
@@ -74,9 +83,9 @@ export async function executeAgentNode(
       }
     }
 
-    // Use the already-substituted instructions from line 20
+    // Use the already-substituted instructions from line 20 AND append memory context
     // Don't re-process or append context if variables are already substituted
-    const contextualPrompt = instructions;
+    const contextualPrompt = instructions + memoryContextString;
 
     // Prepare messages
     const messages = data.includeChatHistory && state.chatHistory.length > 0

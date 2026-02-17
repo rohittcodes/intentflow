@@ -1,11 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/shadcn/tabs";
 import { Workflow } from "@/lib/workflow/types";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Key, Copy, Plus, Loader2, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 interface TestEndpointPanelProps {
   workflowId: string;
@@ -17,10 +19,16 @@ interface TestEndpointPanelProps {
 export default function TestEndpointPanel({ workflowId, workflow, environment, onClose }: TestEndpointPanelProps) {
   // Get user's API keys
   const apiKeys = useQuery(api.apiKeys.list, {});
+  const generateKey = useMutation(api.apiKeys.generate); // Added generate mutation
   const firstKey = apiKeys?.[0];
 
   // Try to get the full API key from localStorage (only available if just generated)
   const [fullApiKey, setFullApiKey] = useState<string | null>(null);
+
+  // API Key Generation State
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [generatedDetails, setGeneratedDetails] = useState<{ key: string, name: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -88,6 +96,32 @@ export default function TestEndpointPanel({ workflowId, workflow, environment, o
       }, 1500);
     } catch (copyError) {
       console.error("Failed to copy code block", copyError);
+    }
+  };
+
+  const handleGenerateKey = async () => {
+    if (!newKeyName.trim()) {
+      toast.error('Please enter a key name');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await generateKey({ name: newKeyName.trim() });
+      setGeneratedDetails({ key: result.key, name: newKeyName.trim() });
+      setFullApiKey(result.key); // Use this new key for examples instantly
+      setNewKeyName("");
+
+      // Store in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('latest_api_key', result.key);
+      }
+
+      toast.success('API key generated successfully');
+    } catch (err) {
+      toast.error('Failed to generate API key');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -206,13 +240,7 @@ with requests.post(
   };
 
   return (
-    <motion.aside
-      initial={{ x: 400, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 400, opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="fixed right-20 top-80 h-[calc(100vh-100px)] w-[calc(100vw-240px)] max-w-520 bg-accent-white border border-border-faint shadow-lg overflow-y-auto z-50 rounded-16 flex flex-col"
-    >
+    <div className="flex-1 flex flex-col min-h-0 bg-accent-white">
       {/* Header */}
       <div className="p-20 border-b border-border-faint flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -233,6 +261,76 @@ with requests.post(
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-20 space-y-20">
+        {/* API Key Generation Section */}
+        <div className="p-16 bg-background-base border border-border-faint rounded-12">
+          <h3 className="text-label-medium text-accent-black mb-12">API Access</h3>
+
+          {generatedDetails ? (
+            <div className="p-16 bg-heat-4 border border-heat-100 rounded-8 mb-12 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-start gap-12 mb-12">
+                <Key className="w-20 h-20 text-heat-100 flex-shrink-0 mt-2" />
+                <div className="flex-1">
+                  <p className="text-body-medium text-accent-black font-medium mb-4">
+                    Key generated successfully!
+                  </p>
+                  <p className="text-body-small text-black-alpha-64 mb-8">
+                    Make sure to copy it now. You won't be able to see it again.
+                  </p>
+                  <div className="flex items-center gap-8">
+                    <code className="flex-1 px-12 py-8 bg-white border border-border-faint rounded-8 text-xs font-mono text-accent-black break-all">
+                      {generatedDetails.key}
+                    </code>
+                    <button
+                      onClick={() => handleCopy('new-key', generatedDetails.key)}
+                      className="px-12 py-8 bg-accent-black hover:bg-black-alpha-88 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 flex-shrink-0"
+                    >
+                      <Copy className="w-14 h-14" />
+                      {copiedKey === 'new-key' ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setGeneratedDetails(null)}
+                className="text-body-small text-black-alpha-64 hover:text-accent-black underline ml-32"
+              >
+                Done, I've saved it
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-12">
+              <div className="flex gap-8">
+                <input
+                  type="text"
+                  placeholder="Key Name (e.g. Production App)"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  className="flex-1 px-12 py-8 bg-white border border-border-faint rounded-8 text-body-small text-accent-black placeholder:text-black-alpha-32 focus:outline-none focus:border-accent-black transition-colors"
+                  onKeyDown={(e) => e.key === 'Enter' && handleGenerateKey()}
+                />
+                <button
+                  onClick={handleGenerateKey}
+                  disabled={isGenerating || !newKeyName.trim()}
+                  className="px-16 py-8 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-14 h-14 animate-spin" />
+                  ) : (
+                    <Plus className="w-14 h-14" />
+                  )}
+                  Generate Key
+                </button>
+              </div>
+              {apiKeys && apiKeys.length > 0 && (
+                <p className="text-xs text-black-alpha-48 flex items-center gap-6">
+                  <Key className="w-12 h-12" />
+                  You have {apiKeys.length} active API key{apiKeys.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Endpoint URL */}
         <div>
           <label className="block text-label-small text-black-alpha-48 mb-8">
@@ -330,7 +428,7 @@ with requests.post(
                   {copiedKey === 'curl' ? 'Copied' : 'Copy'}
                 </button>
                 <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
-{curlStandard}
+                  {curlStandard}
                 </pre>
               </div>
             </TabsContent>
@@ -343,7 +441,7 @@ with requests.post(
                   {copiedKey === 'curl-stream' ? 'Copied' : 'Copy'}
                 </button>
                 <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
-{curlStreaming}
+                  {curlStreaming}
                 </pre>
               </div>
             </TabsContent>
@@ -356,7 +454,7 @@ with requests.post(
                   {copiedKey === 'ts' ? 'Copied' : 'Copy'}
                 </button>
                 <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
-{tsExample}
+                  {tsExample}
                 </pre>
               </div>
             </TabsContent>
@@ -369,7 +467,7 @@ with requests.post(
                   {copiedKey === 'python' ? 'Copied' : 'Copy'}
                 </button>
                 <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
-{pythonExample}
+                  {pythonExample}
                 </pre>
               </div>
             </TabsContent>
@@ -399,6 +497,6 @@ with requests.post(
           </div>
         )}
       </div>
-    </motion.aside>
+    </div>
   );
 }

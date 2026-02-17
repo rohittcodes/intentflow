@@ -23,7 +23,8 @@ import CodeInterpreter from '@e2b/code-interpreter';
  */
 export async function executeDataNode(
   node: WorkflowNode,
-  state: WorkflowState
+  state: WorkflowState,
+  connectors: any[] = []
 ): Promise<any> {
   const { data } = node;
   const nodeType = data.nodeType || node.type;
@@ -40,6 +41,9 @@ export async function executeDataNode(
 
       case 'export':
         return await executeExport(data, state);
+
+      case 'data-query':
+        return await executeDataQuery(data, state, connectors);
 
       default:
         throw new Error(`Unknown data node type: ${nodeType}`);
@@ -335,6 +339,54 @@ async function executeExport(data: any, state: WorkflowState): Promise<any> {
     exportData: input,
     exported: true,
   };
+}
+
+/**
+ * Execute Database Query
+ * In a real implementation, this would:
+ * 1. Fetch connector config from Convex/DB
+ * 2. Connect to the database via a proxy or direct driver
+ * 3. Execute the SQL and return results
+ */
+async function executeDataQuery(data: any, state: WorkflowState, connectors: any[] = []): Promise<any> {
+  const { sqlQuery, connectorId } = data;
+
+  const connector = connectorId ? connectors.find(c => c._id === connectorId || c.id === connectorId) : null;
+
+  if (!connectorId) {
+    throw new Error('No database connector selected');
+  }
+
+  if (!sqlQuery) {
+    throw new Error('No SQL query provided');
+  }
+
+  // Import variable substitution
+  const { substituteVariables } = await import('../variable-substitution');
+
+  // Substitute variables in the SQL query
+  const finalQuery = substituteVariables(sqlQuery, state);
+
+  console.log(`🛢️ Executing DB Query on connector ${connectorId}:`, finalQuery);
+
+  // MOCK EXECUTION logic for now
+  // Real implementation would call a Convex action or dedicated service
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const mockResult = {
+    results: [
+      { id: 1, name: "Sample Item", value: 100 },
+      { id: 2, name: "Another Item", value: 200 }
+    ],
+    count: 2,
+    query: finalQuery,
+    status: 'success'
+  };
+
+  // Update state with result
+  state.variables['lastOutput'] = mockResult;
+
+  return mockResult;
 }
 
 /**

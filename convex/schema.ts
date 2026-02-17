@@ -42,11 +42,24 @@ export default defineSchema({
     updatedAt: v.string(),
     deletedAt: v.optional(v.string()), // ISO timestamp when moved to trash
 
+    // Deployment status
+    isDeployed: v.optional(v.boolean()),
+    deployedAt: v.optional(v.string()),
+
     // Optional metadata
     version: v.optional(v.string()),
     isTemplate: v.optional(v.boolean()),
     isPublic: v.optional(v.boolean()), // For shared templates
     isStarred: v.optional(v.boolean()), // For bookmarking/favoriting workflows
+
+    // Workflow-specific settings
+    settings: v.optional(v.object({
+      snapToGrid: v.optional(v.boolean()),
+      gridStyle: v.optional(v.string()), // "dots", "lines", "none"
+      edgeStyle: v.optional(v.string()), // "default", "straight", "step", "smoothstep"
+      maxIterations: v.optional(v.number()),
+      timeout: v.optional(v.number()),
+    })),
   })
     .index("by_userId", ["userId"])
     .index("by_customId", ["customId"])
@@ -54,7 +67,8 @@ export default defineSchema({
     .index("by_category", ["category"])
     .index("by_template", ["isTemplate"])
     .index("by_deleted", ["deletedAt"]) // Index for filtering trashed workflows
-    .index("by_starred", ["userId", "isStarred"]), // Index for filtering starred workflows
+    .index("by_starred", ["userId", "isStarred"]) // Index for filtering starred workflows
+    .index("by_deployed", ["isDeployed"]),
 
   // Workflow executions - track execution state
   executions: defineTable({
@@ -328,7 +342,7 @@ export default defineSchema({
   // Knowledge Connectors - Dynamic data sources
   connectors: defineTable({
     userId: v.string(),
-    namespaceId: v.id("namespaces"),
+    namespaceId: v.optional(v.id("namespaces")),
     name: v.string(), // "My SQL DB", "Docs Website"
     type: v.string(), // "database", "url", "notion"
     config: v.any(), // Connection strings, URLs, API keys

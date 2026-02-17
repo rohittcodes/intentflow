@@ -27,8 +27,8 @@ export async function GET(
       customId: workflowId,
     });
 
-    // If not found and looks like Convex ID, try direct lookup
-    if (!workflow && workflowId.startsWith('j')) {
+    // If not found and looks like a prospective Convex ID, try direct lookup
+    if (!workflow) {
       try {
         workflow = await convex.query(api.workflows.getWorkflow, {
           id: workflowId as any,
@@ -84,10 +84,20 @@ export async function DELETE(
 
     const convex = await getAuthenticatedConvexClient();
 
-    // Look up by customId to get Convex ID
-    const workflow = await convex.query(api.workflows.getWorkflowByCustomId, {
+    // Look up by customId first, then try as Convex ID
+    let workflow = await convex.query(api.workflows.getWorkflowByCustomId, {
       customId: workflowId,
     });
+
+    if (!workflow) {
+      try {
+        workflow = await convex.query(api.workflows.getWorkflow, {
+          id: workflowId as any,
+        });
+      } catch (e) {
+        // Not a valid Convex ID
+      }
+    }
 
     if (!workflow) {
       return NextResponse.json(

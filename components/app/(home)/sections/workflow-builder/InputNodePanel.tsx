@@ -59,7 +59,7 @@ export default function InputNodePanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Trigger Type Selection */}
       <div>
         <label className="block text-sm font-medium text-black-alpha-48 mb-4">

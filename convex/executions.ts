@@ -82,3 +82,67 @@ export const getWorkflowExecutions = query({
     return executions;
   },
 });
+
+/**
+ * Watch execution in real-time
+ * This query is reactive and will automatically update when the execution changes
+ */
+export const watchExecution = query({
+  args: { executionId: v.id("executions") },
+  handler: async ({ db }, { executionId }) => {
+    const execution = await db.get(executionId);
+
+    if (!execution) {
+      return null;
+    }
+
+    return {
+      id: execution._id,
+      workflowId: execution.workflowId,
+      status: execution.status,
+      currentNodeId: execution.currentNodeId,
+      nodeResults: execution.nodeResults || {},
+      variables: execution.variables || {},
+      input: execution.input,
+      output: execution.output,
+      error: execution.error,
+      startedAt: execution.startedAt,
+      completedAt: execution.completedAt,
+      threadId: execution.threadId,
+    };
+  },
+});
+
+/**
+ * Watch latest execution for a workflow
+ */
+export const watchLatestExecution = query({
+  args: { workflowId: v.id("workflows") },
+  handler: async ({ db }, { workflowId }) => {
+    const execution = await db
+      .query("executions")
+      .withIndex("by_workflow", (q) => q.eq("workflowId", workflowId))
+      .order("desc")
+      .first();
+
+    if (!execution) {
+      return null;
+    }
+
+    return {
+      id: execution._id,
+      workflowId: execution.workflowId,
+      status: execution.status,
+      currentNodeId: execution.currentNodeId,
+      nodeResults: execution.nodeResults || {},
+      variables: execution.variables || {},
+      input: execution.input,
+      output: execution.output,
+      error: execution.error,
+      startedAt: execution.startedAt,
+      completedAt: execution.completedAt,
+      threadId: execution.threadId,
+    };
+  },
+});
+

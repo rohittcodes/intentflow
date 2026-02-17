@@ -139,7 +139,7 @@ export default function LogicNodePanel({ node, nodes, onClose, onDelete, onUpdat
   const availableVars = getAvailableVariables();
 
   return (
-    <div className="flex-1 overflow-y-auto p-16 space-y-16">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* If/Else Configuration */}
       {nodeType.includes('if') && (
         <>

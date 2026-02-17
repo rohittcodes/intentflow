@@ -36,6 +36,13 @@ export async function POST(
         }
       };
 
+      let workflow: any;
+      let threadId: string = '';
+      let initialInput: any = '';
+      let executionId: string = `exec_${Date.now()}`;
+      let executor: LangGraphExecutor;
+      const nodeResults: Record<string, any> = {};
+
       try {
         // Get inputs from request body
         const body = await request.json();
@@ -84,20 +91,7 @@ export async function POST(
           id: workflowDoc.customId || workflowDoc._id, // Use customId if exists, otherwise Convex ID
         };
 
-        if (!workflowData) {
-          sendEvent('error', {
-            error: `Workflow ${workflowId} not found`,
-            workflowId,
-          });
-          controller.close();
-          return;
-        }
-
-        const workflow = workflowData as any;
-
-        // Create a custom execution with progress callbacks
-        const executionId = `exec_${Date.now()}`;
-        const nodeResults: Record<string, any> = {};
+        workflow = workflowData as any;
 
         // Get API keys - check user keys first, then fall back to environment
         const { getLLMApiKey } = await import('@/lib/api/llm-keys');
@@ -112,73 +106,61 @@ export async function POST(
         };
 
         // Prepare initial input - pass as object if it's an object, otherwise as string
-        let initialInput: any = '';
         if (typeof inputs === 'object' && Object.keys(inputs).length > 0) {
-          // If the body has an "input" field, extract it (common pattern from curl/API calls)
-          // Otherwise use the body directly
           initialInput = inputs.input || inputs;
         } else {
-          // Otherwise use url or input field
           initialInput = inputs.url || inputs.input || '';
         }
 
         // LangGraph Execution Path
-        // Use provided threadId or generate new one for persistent sessions
-        const threadId = inputs.threadId || `thread_${workflowId}_${Date.now()}`;
+        threadId = inputs.threadId || `thread_${workflowId}_${Date.now()}`;
 
-        let executor;
-        try {
-          executor = new LangGraphExecutor(
-            workflow,
-            (nodeId, result) => {
-              nodeResults[nodeId] = result;
+        // Fetch all connectors for the user
+        const connectors = await convex.query(api.knowledgeConnectors.listConnectors);
 
-              if (result.status === 'running') {
-                const node = workflow.nodes.find((n: any) => n.id === nodeId);
-                sendEvent('node_started', {
-                  nodeId,
-                  nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
-                  nodeType: node?.type || 'unknown',
-                  timestamp: new Date().toISOString(),
-                });
-              } else if (result.status === 'completed') {
-                const node = workflow.nodes.find((n: any) => n.id === nodeId);
-                sendEvent('node_completed', {
-                  nodeId,
-                  nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
-                  result,
-                  timestamp: new Date().toISOString(),
-                });
-              } else if (result.status === 'failed') {
-                const node = workflow.nodes.find((n: any) => n.id === nodeId);
-                sendEvent('node_failed', {
-                  nodeId,
-                  nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
-                  error: result.error,
-                  timestamp: new Date().toISOString(),
-                });
-              } else if (result.status === 'pending-authorization' || result.status === 'pending-approval') {
-                const node = workflow.nodes.find((n: any) => n.id === nodeId);
-                sendEvent('node_paused', {
-                  nodeId,
-                  nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
-                  status: result.status,
-                  timestamp: new Date().toISOString(),
-                });
-              }
-            },
-            apiKeys,
-            convex // Pass convex client for persistence
-          );
-        } catch (graphBuildError) {
-          console.error('❌ Failed to build LangGraph:', graphBuildError);
-          sendEvent('error', {
-            error: graphBuildError instanceof Error ? graphBuildError.message : 'Graph compilation failed',
-            timestamp: new Date().toISOString(),
-          });
-          controller.close();
-          return;
-        }
+        executor = new LangGraphExecutor(
+          workflow,
+          (nodeId, result) => {
+            nodeResults[nodeId] = result;
+
+            if (result.status === 'running') {
+              const node = workflow.nodes.find((n: any) => n.id === nodeId);
+              sendEvent('node_started', {
+                nodeId,
+                nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
+                nodeType: node?.type || 'unknown',
+                timestamp: new Date().toISOString(),
+              });
+            } else if (result.status === 'completed') {
+              const node = workflow.nodes.find((n: any) => n.id === nodeId);
+              sendEvent('node_completed', {
+                nodeId,
+                nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
+                result,
+                timestamp: new Date().toISOString(),
+              });
+            } else if (result.status === 'failed') {
+              const node = workflow.nodes.find((n: any) => n.id === nodeId);
+              sendEvent('node_failed', {
+                nodeId,
+                nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
+                error: result.error,
+                timestamp: new Date().toISOString(),
+              });
+            } else if (result.status === 'pending-authorization' || result.status === 'pending-approval') {
+              const node = workflow.nodes.find((n: any) => n.id === nodeId);
+              sendEvent('node_paused', {
+                nodeId,
+                nodeName: node?.data?.nodeName || node?.data?.label || nodeId,
+                status: result.status,
+                timestamp: new Date().toISOString(),
+              });
+            }
+          },
+          apiKeys,
+          convex, // Pass convex client for persistence
+          connectors || [] // Pass connectors for dynamic resolution
+        );
 
         // Send start event with threadId
         sendEvent('workflow_started', {
@@ -190,7 +172,6 @@ export async function POST(
         });
 
         // Execute with streaming
-        // Pass threadId to resume/start specific session
         const executionStream = await executor.executeStream(initialInput, {
           threadId,
           executionId,
@@ -228,9 +209,6 @@ export async function POST(
                 timestamp: new Date().toISOString(),
               });
 
-              // TODO: Save execution state to Convex for resume capability
-              // await convex.mutation(api.executions.createExecution, {...})
-
               controller.close();
               return;
             }
@@ -256,11 +234,9 @@ export async function POST(
           timestamp: new Date().toISOString(),
         });
 
-        // TODO: Save execution results to Convex
-        // await convex.mutation(api.executions.completeExecution, {...})
-
         controller.close();
       } catch (error) {
+        console.error('Workflow execution error:', error);
         sendEvent('error', {
           error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: new Date().toISOString(),

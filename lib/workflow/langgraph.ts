@@ -23,6 +23,7 @@ import { executeToolsNode } from './executors/tools';
 import { executeHTTPNode } from './executors/http';
 import { executeExtractNode } from './executors/extract';
 import { executeArcadeNode } from './executors/arcade';
+import { executeMemoryNode } from "./executors/memory";
 import { executeGuardrailsNode } from './executors/guardrails';
 import { executeRetrieverNode } from './executors/retriever';
 import { createOrUpdateArcadeAuthRecord } from '../arcade/auth-store';
@@ -62,6 +63,12 @@ export const WorkflowStateAnnotation = Annotation.Root({
     default: () => [],
   }),
 
+  // Memory context for AI injection
+  memory: Annotation<Record<string, any>>({
+    reducer: (left, right) => ({ ...left, ...right }),
+    default: () => ({}),
+  }),
+
   // Execution metadata
   currentNodeId: Annotation<string>({
     reducer: (_, right) => right,
@@ -97,36 +104,28 @@ export class LangGraphExecutor {
   private apiKeys?: { anthropic?: string; groq?: string; openai?: string; firecrawl?: string; arcade?: string };
   private onNodeUpdate?: (nodeId: string, result: NodeExecutionResult) => void;
   private checkpointer: BaseCheckpointSaver;
+  private convex?: any; // ConvexHttpClient for persistence
   private parallelNodeIds = new Set<string>();
   private activeThreadId?: string;
   private activeExecutionId?: string;
   private pendingAuth: WorkflowPendingAuth | null = null;
   private lastStreamState: any = null;
   private edgesBySource: Map<string, WorkflowEdge[]> = new Map();
+  private connectors: any[] = [];
 
   constructor(
     workflow: Workflow,
     onNodeUpdate?: (nodeId: string, result: NodeExecutionResult) => void,
     apiKeys?: { anthropic?: string; groq?: string; openai?: string; firecrawl?: string; arcade?: string },
-    convexClient?: any
+    convex?: any,
+    connectors: any[] = []
   ) {
-
-    this.workflow = workflow;
+    this.workflow = JSON.parse(JSON.stringify(workflow));
     this.onNodeUpdate = onNodeUpdate;
     this.apiKeys = apiKeys;
-
-    // Checkpointing configuration
-    // Use ConvexCheckpointer if client is provided (Persistent)
-    // Otherwise fallback to MemorySaver (Ephemeral)
-    if (convexClient) {
-      console.log('Using persistent ConvexCheckpointer');
-      this.checkpointer = new ConvexCheckpointer(convexClient);
-    } else {
-      console.log('Using in-memory MemorySaver (state will be lost on restart)');
-      this.checkpointer = new MemorySaver();
-    }
-
-    // Build the LangGraph StateGraph
+    this.convex = convex;
+    this.connectors = connectors;
+    this.checkpointer = convex ? new ConvexCheckpointer(convex) : new MemorySaver();
     this.graph = this.buildGraph();
   }
 
@@ -539,6 +538,10 @@ export class LangGraphExecutor {
         return await executeMCPNode(node, state as WorkflowState, this.apiKeys?.firecrawl);
       }
 
+      case 'memory': {
+        return await executeMemoryNode(node, state as WorkflowState);
+      }
+
       case 'transform':
       case 'data-transform': {
         // Support both transformScript (UI) and transformation (templates)
@@ -548,9 +551,13 @@ export class LangGraphExecutor {
         return transformFn(input, input, state);
       }
 
+      case 'data':
+      case 'data-query':
+        return await executeDataNode(node, state as WorkflowState, this.connectors);
+
       case 'http':
       case 'http-request':
-        return await executeHTTPNode(node, state as WorkflowState);
+        return await executeHTTPNode(node, state as WorkflowState, this.connectors);
 
       case 'if-else': {
         const condition = data.condition || 'true';
@@ -578,6 +585,12 @@ export class LangGraphExecutor {
           variables: state.variables,
           chatHistory: state.chatHistory,
         };
+
+        // Pass connectors if it's a data node type handled by executeDataNode
+        if (nodeType === 'data' || nodeType === 'data-query' || nodeType === 'set-state' || nodeType === 'export') {
+          return await executeDataNode(node, state as WorkflowState, this.connectors);
+        }
+
         return await this.executeNode(node, tempState);
     }
   }
@@ -976,9 +989,22 @@ export class LangGraphExecutor {
 
     const executionRef = this.activeExecutionId ?? this.activeThreadId ?? `exec_${Date.now()}`;
 
-    // TODO: Save approval state to database
-    // This should be handled by the API route that calls this executor
-    // The API route should save to Convex/Redis as needed
+    // Save approval state to database
+    if (this.convex) {
+      try {
+        const { api } = await import('../../convex/_generated/api');
+        await this.convex.mutation(api.approvals.create, {
+          approvalId: pending.approvalId,
+          workflowId: this.workflow.id as any,
+          executionId: this.activeExecutionId,
+          nodeId: node.id,
+          message,
+        });
+        console.log(`✅ Saved persistence approval record for ${pending.approvalId}`);
+      } catch (error) {
+        console.error(`❌ Failed to save approval record to Convex:`, error);
+      }
+    }
 
     const resumeValue = interrupt({
       type: 'user-approval',

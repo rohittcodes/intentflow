@@ -9,6 +9,8 @@ import { ConvexReactClient } from "convex/react";
 import ColorStyles from "@/components/shared/color-styles/color-styles";
 import Scrollbar from "@/components/ui/scrollbar";
 import { BigIntProvider } from "@/components/providers/BigIntProvider";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from "react";
 import "styles/main.css";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -27,28 +29,31 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <ClerkProvider>
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <html lang="en">
-          <head>
-            <title>Intentflow</title>
-            <meta name="description" content="Build AI agents and workflows with visual programming" />
-            <link rel="icon" href="/favicon.png" />
-            <ColorStyles />
-          </head>
-          <body
-            className={`${GeistMono.variable} ${robotoMono.variable} font-sans text-accent-black bg-background-base overflow-x-clip`}
-          >
-            <BigIntProvider>
-              <main className="overflow-x-clip">{children}</main>
-              <Scrollbar />
-              <Toaster position="bottom-right" />
-            </BigIntProvider>
-          </body>
-        </html>
+        <QueryClientProvider client={queryClient}>
+          <html lang="en">
+            <head>
+              <title>Intentflow</title>
+              <meta name="description" content="Build AI agents and workflows with visual programming" />
+              <link rel="icon" href="/favicon.png" />
+              <ColorStyles />
+            </head>
+            <body
+              className={`${GeistMono.variable} ${robotoMono.variable} font-sans text-accent-black bg-background-base overflow-x-clip`}
+            >
+              <BigIntProvider>
+                <main className="overflow-x-clip">{children}</main>
+                <Scrollbar />
+                <Toaster position="bottom-right" />
+              </BigIntProvider>
+            </body>
+          </html>
+        </QueryClientProvider>
       </ConvexProviderWithClerk>
     </ClerkProvider>
   );
 }
-

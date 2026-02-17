@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         isStarred: w.isStarred || false,
         nodeCount: w.nodes?.length || 0,
         edgeCount: w.edges?.length || 0,
+        settings: w.settings,
       })),
       total: workflows.length,
       source: 'convex',
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
       edges: workflow.edges,
       version: workflow.version,
       isTemplate: workflow.isTemplate,
+      settings: workflow.settings,
     });
 
     return NextResponse.json({
@@ -172,7 +174,25 @@ export async function DELETE(request: NextRequest) {
       customId: workflowId,
     });
 
-    // If not found by customId, try direct lookup by ID (try-catch for invalid ID format)
+    // 1. Check for dependencies
+    const allWorkflows = await convex.query(api.workflows.listWorkflows, {});
+    const dependents = allWorkflows.filter((w: any) =>
+      w.customId !== workflowId &&
+      w._id !== workflowId &&
+      (w.nodes || []).some((n: any) => n.data?.workflowId === workflowId)
+    );
+
+    if (dependents.length > 0) {
+      const depNames = dependents.map((d: any) => d.name).join(', ');
+      return NextResponse.json(
+        {
+          error: 'Dependency check failed',
+          message: `Cannot delete: This workflow is being used in "${depNames}"`
+        },
+        { status: 400 }
+      );
+    }
+
     if (!workflow) {
       try {
         workflow = await convex.query(api.workflows.getWorkflow, {

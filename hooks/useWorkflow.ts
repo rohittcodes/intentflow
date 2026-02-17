@@ -1,407 +1,195 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Workflow, WorkflowNode, WorkflowEdge, MCPServer } from '@/lib/workflow/types';
-import {
-  saveWorkflow as saveWorkflowToStorage,
-  getWorkflows,
-  getWorkflow,
-  deleteWorkflow as deleteWorkflowFromStorage,
-  setCurrentWorkflow,
-  getCurrentWorkflowId,
-  saveMCPServer,
-  getMCPServers,
-} from '@/lib/workflow/storage';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Workflow, WorkflowNode, WorkflowEdge } from '@/lib/workflow/types';
 import { cleanupInvalidEdges } from '@/lib/workflow/edge-cleanup';
 
 export function useWorkflow(workflowId?: string) {
-  const [workflow, setWorkflow] = useState<Workflow | null>(null);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [convexId, setConvexId] = useState<string | null>(null); // Track Convex ID
-  const saveToConvexTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const workflowRef = useRef<Workflow | null>(null);
+  const queryClient = useQueryClient();
+  const [localWorkflow, setLocalWorkflow] = useState<Workflow | null>(null);
 
-  // Keep workflowRef in sync with state
-  useEffect(() => {
-    workflowRef.current = workflow;
-  }, [workflow]);
-
-  // Load workflow from Redis via API
-  useEffect(() => {
-    const loadWorkflow = async () => {
-      setLoading(true);
-
-      if (workflowId) {
-        // Fetch workflow from API (Redis)
-        try {
-          const response = await fetch('/api/workflows');
-          const data = await response.json();
-          const workflows = data.workflows || [];
-          const loaded = workflows.find((w: any) => w.id === workflowId);
-
-          if (loaded) {
-            // Fetch full workflow details
-            const fullWorkflow = await fetch(`/api/workflows/${workflowId}`).then(r => r.json());
-            let workflowData = fullWorkflow.workflow || loaded;
-
-            // Clean up any invalid edges before setting the workflow
-            const cleaned = cleanupInvalidEdges(workflowData.nodes, workflowData.edges);
-            if (cleaned.removedCount > 0) {
-              console.log(`🧹 Cleaned ${cleaned.removedCount} invalid edges from loaded workflow`);
-              workflowData = {
-                ...workflowData,
-                nodes: cleaned.nodes,
-                edges: cleaned.edges,
-              };
-            }
-
-            setWorkflow(workflowData);
-            // Store the Convex ID for future saves
-            setConvexId(workflowData._convexId || workflowData._id || null);
-          } else {
-            createNewWorkflow();
-          }
-        } catch (error) {
-          console.error('Failed to load workflow from Convex:', error);
-          createNewWorkflow();
-        }
-      } else {
-        createNewWorkflow();
-      }
-
-      setLoading(false);
-    };
-
-    loadWorkflow();
-  }, [workflowId]);
-
-  // Load all workflows from API
-  const loadWorkflows = useCallback(async () => {
-    try {
+  // Load all workflows
+  const { data: workflowsData } = useQuery({
+    queryKey: ['workflows'],
+    queryFn: async () => {
       const response = await fetch('/api/workflows');
+      if (!response.ok) throw new Error('Failed to fetch workflows');
       const data = await response.json();
-      setWorkflows(data.workflows || []);
-    } catch (error) {
-      console.error('Failed to load workflows from API:', error);
-      setWorkflows([]);
+      return (data.workflows || []) as Workflow[];
     }
-  }, []);
+  });
 
-  useEffect(() => {
-    loadWorkflows();
-  }, [loadWorkflows]);
+  const workflows = workflowsData || [];
 
-  // Create new workflow
-  const createNewWorkflow = useCallback(() => {
-    const newWorkflow: Workflow = {
-      id: `workflow_${Date.now()}`,
-      name: 'New Workflow',
-      nodes: [
-        {
-          id: 'node_0',
-          type: 'start',
-          position: { x: 250, y: 100 },
-          data: { label: 'Start' },
-        },
-        {
-          id: 'node_1',
-          type: 'agent',
-          position: { x: 250, y: 250 },
-          data: {
-            label: 'Agent',
-            name: 'My agent',
-            instructions: 'You are a helpful assistant.',
-            model: 'gpt-4.1',
-            includeChatHistory: true,
-            tools: [],
-            outputFormat: 'Text',
-          },
-        },
-      ],
-      edges: [
-        {
-          id: 'edge_0_1',
-          source: 'node_0',
-          target: 'node_1',
-        },
-      ],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  // Load single workflow
+  const { data: serverWorkflow, isLoading: queryLoading } = useQuery({
+    queryKey: ['workflow', workflowId],
+    queryFn: async () => {
+      if (!workflowId) return null;
+      const response = await fetch(`/api/workflows/${workflowId}`);
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error('Failed to fetch workflow');
+      const data = await response.json();
+      let workflowData = data.workflow;
 
-    setWorkflow(newWorkflow);
-    // No longer save to localStorage
-    // Workflow will be saved via API when user makes changes
-
-    return newWorkflow;
-  }, []);
-
-  // Save workflow with debounce to prevent multiple rapid saves
-  // Use useCallback with minimal deps to prevent infinite loops
-  const saveWorkflow = useCallback(async (updates?: Partial<Workflow>) => {
-    // If no workflow exists yet, create a new one from updates
-    if (!workflow) {
-      if (!updates || !updates.nodes || !updates.edges) {
-        console.warn('⚠️ Cannot save workflow: no workflow state and incomplete updates');
-        return;
-      }
-
-      // Create a complete workflow from updates
-      const newWorkflow: Workflow = {
-        id: updates.id || `workflow_${Date.now()}`,
-        name: updates.name || 'New Workflow',
-        description: updates.description,
-        nodes: updates.nodes,
-        edges: updates.edges,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      setWorkflow(newWorkflow);
-
-      // Save immediately to Convex
-      try {
-        const response = await fetch('/api/workflows', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newWorkflow),
-        });
-        const data = await response.json();
-        console.log('💾 New workflow saved to Convex:', data.success ? 'SUCCESS' : 'FAILED');
-
-        // Store the Convex ID from the response
-        if (data.success && data.workflowId) {
-          setConvexId(data.workflowId);
+      if (workflowData) {
+        const cleaned = cleanupInvalidEdges(workflowData.nodes, workflowData.edges);
+        if (cleaned.removedCount > 0) {
+          workflowData = { ...workflowData, nodes: cleaned.nodes, edges: cleaned.edges };
         }
-      } catch (error) {
-        console.error('Failed to save new workflow to Convex:', error);
       }
-      return;
-    }
+      return workflowData as Workflow;
+    },
+    enabled: !!workflowId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-    const updated: Workflow = {
-      ...workflowRef.current!,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    setWorkflow(updated);
-
-    // Clear any pending save timeout
-    if (saveToConvexTimeoutRef.current) {
-      clearTimeout(saveToConvexTimeoutRef.current);
-    }
-
-    // Debounce the save to Convex to prevent rapid saves
-    saveToConvexTimeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await fetch('/api/workflows', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updated),
-        });
-        const data = await response.json();
-        console.log('💾 [AUTO-SAVE] Workflow synced to Convex:', data.success ? '✅ SUCCESS' : '❌ FAILED');
-
-        // Store the Convex ID from the response
-        if (data.success && data.workflowId) {
-          setConvexId(data.workflowId);
-        }
-
-        // Don't reload workflows on every save - only when explicitly needed
-        // This prevents unnecessary re-fetches and duplicate saves
-      } catch (error) {
-        console.error('❌ Failed to save workflow to Convex:', error);
-      }
-    }, 1000); // 1000ms debounce to batch rapid saves
-  }, [loadWorkflows]); // Removed workflow dependency
-
-  // Update nodes
-  const updateNodes = useCallback((nodes: WorkflowNode[]) => {
-    if (!workflowRef.current) {
-      console.warn('⚠️ updateNodes called but no workflow exists');
-      return;
-    }
-
-    console.log('📝 updateNodes called with', nodes.length, 'nodes');
-    saveWorkflow({ nodes });
-  }, [saveWorkflow]); // Removed workflow dependency
-
-  // Update edges
-  const updateEdges = useCallback((edges: WorkflowEdge[]) => {
-    if (!workflowRef.current) return;
-
-    saveWorkflow({ edges });
-  }, [saveWorkflow]); // Removed workflow dependency
-
-  // Update node data
-  const updateNodeData = useCallback((nodeId: string, data: any) => {
-    if (!workflowRef.current) return;
-
-    const nodes = workflowRef.current.nodes.map(node =>
-      node.id === nodeId
-        ? { ...node, data: { ...node.data, ...data } }
-        : node
-    );
-
-    updateNodes(nodes);
-  }, [updateNodes]); // Removed workflow dependency
-
-  // Delete workflow (move to trash)
-  const deleteWorkflow = useCallback(async (id: string) => {
-    try {
-      const response = await fetch(`/api/workflows?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete workflow');
-      }
-
-      // Update local state if needed
-      await loadWorkflows();
-
-      if (workflow?.id === id) {
-        // If current workflow is deleted, create new empty one or redirect
-        // For now, create new
-        createNewWorkflow();
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Failed to delete workflow:', error);
-      return false;
-    }
-  }, [workflow, loadWorkflows, createNewWorkflow]);
-
-  // Restore workflow from trash
-  const restoreWorkflow = useCallback(async (id: string) => {
-    try {
-      const response = await fetch('/api/workflows/trash', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workflowId: id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to restore workflow');
-      }
-
-      await loadWorkflows();
-      return true;
-    } catch (error) {
-      console.error('Failed to restore workflow:', error);
-      return false;
-    }
-  }, [loadWorkflows]);
-
-  // Permanently delete workflow
-  const permanentlyDeleteWorkflow = useCallback(async (id: string) => {
-    try {
-      const response = await fetch(`/api/workflows/trash?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to permanently delete workflow');
-      }
-
-      await loadWorkflows();
-      return true;
-    } catch (error) {
-      console.error('Failed to permanently delete workflow:', error);
-      return false;
-    }
-  }, [loadWorkflows]);
-
-  // Save workflow immediately (non-debounced) - used before execution
-  const saveWorkflowImmediate = useCallback(async (updates?: Partial<Workflow>) => {
-    if (!workflow) {
-      console.warn('⚠️ Cannot save workflow immediately: no workflow state');
-      return;
-    }
-
-    const updated: Workflow = {
-      ...workflow,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    setWorkflow(updated);
-
-    // Cancel any pending debounced saves
-    if (saveToConvexTimeoutRef.current) {
-      clearTimeout(saveToConvexTimeoutRef.current);
-      saveToConvexTimeoutRef.current = null;
-    }
-
-    // Save immediately without debounce
-    try {
+  // Mutation for saving
+  const saveMutation = useMutation({
+    mutationFn: async (updated: Workflow) => {
       const response = await fetch('/api/workflows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
-      const data = await response.json();
-      console.log('💾 [IMMEDIATE SAVE] Workflow saved to Convex:', data.success ? '✅ SUCCESS' : '❌ FAILED');
+      if (!response.ok) throw new Error('Failed to save workflow');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(['workflow', variables.id], {
+        ...variables,
+        _id: data.workflowId,
+        _convexId: data.workflowId
+      });
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    }
+  });
 
-      if (data.success && data.workflowId) {
-        setConvexId(data.workflowId);
+  // Mutation for deleting
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/workflows?id=${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete workflow');
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    }
+  });
+
+  // Create new workflow helper
+  const createNewWorkflow = useCallback(() => {
+    const newWorkflow: Workflow = {
+      id: `workflow_${Date.now()}`,
+      name: 'New Workflow',
+      nodes: [
+        { id: 'node_0', type: 'start', position: { x: 250, y: 150 }, data: { label: 'Start' } },
+      ],
+      edges: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setLocalWorkflow(newWorkflow);
+    // Seed the cache so other components can see it immediately
+    queryClient.setQueryData(['workflow', newWorkflow.id], newWorkflow);
+    return newWorkflow;
+  }, [queryClient]);
+
+  // Determine current workflow
+  const workflow = useMemo(() => {
+    if (!workflowId) return localWorkflow;
+    return serverWorkflow || localWorkflow;
+  }, [workflowId, serverWorkflow, localWorkflow]);
+
+  const loading = workflowId ? queryLoading : false;
+  const isSaving = saveMutation.isPending;
+  const convexId = serverWorkflow?._id || serverWorkflow?._convexId || null;
+
+  const saveWorkflow = useCallback(async (updates: Partial<Workflow>) => {
+    // If no workflow loaded and no workflowId, we can't save unless it's a new one being created
+    const base = workflow;
+    if (!base) return;
+
+    const updated = {
+      ...base,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    } as Workflow;
+
+    // Optimistic update for UI if it's the current one
+    if (workflowId === updated.id) {
+      setLocalWorkflow(null); // Clear local if we're now syncing with server
+    } else if (!workflowId) {
+      setLocalWorkflow(updated);
+    }
+
+    await saveMutation.mutateAsync(updated);
+  }, [workflow, workflowId, saveMutation]);
+
+  const saveWorkflowImmediate = saveWorkflow;
+
+  const updateNodes = useCallback((nodes: WorkflowNode[]) => {
+    saveWorkflow({ nodes });
+  }, [saveWorkflow]);
+
+  const updateEdges = useCallback((edges: WorkflowEdge[]) => {
+    saveWorkflow({ edges });
+  }, [saveWorkflow]);
+
+  const updateNodeData = useCallback((nodeId: string, data: any) => {
+    if (!workflow) return;
+    const nodes = workflow.nodes.map(node =>
+      node.id === nodeId ? { ...node, data: { ...node.data, ...data } } : node
+    );
+    updateNodes(nodes);
+  }, [workflow, updateNodes]);
+
+  const deleteWorkflow = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/workflows?id=${id}`, { method: 'DELETE' });
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.message || data.error || 'Failed to delete workflow'
+        };
       }
 
-      return data.success;
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      return { success: true };
     } catch (error) {
-      console.error('❌ Failed to save workflow immediately:', error);
-      return false;
+      console.error('Failed to delete workflow:', error);
+      return { success: false, error: 'Network or database error' };
     }
-  }, [workflow]);
+  }, [queryClient]);
 
   return {
     workflow,
     workflows,
     loading,
-    convexId, // Expose Convex ID for templates and other features
+    isSaving,
+    convexId,
     saveWorkflow,
-    saveWorkflowImmediate, // Non-debounced save for before execution
+    saveWorkflowImmediate,
     updateNodes,
     updateEdges,
     updateNodeData,
     deleteWorkflow,
-    restoreWorkflow,
-    permanentlyDeleteWorkflow,
+    restoreWorkflow: async (id: string) => {
+      const response = await fetch('/api/workflows/trash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflowId: id }),
+      });
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      return response.ok;
+    },
+    permanentlyDeleteWorkflow: async (id: string) => {
+      const response = await fetch(`/api/workflows/trash?id=${id}`, { method: 'DELETE' });
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      return response.ok;
+    },
     createNewWorkflow,
-    loadWorkflows,
-  };
-}
-
-export function useMCPServers() {
-  const [servers, setServers] = useState<MCPServer[]>([]);
-
-  useEffect(() => {
-    loadServers();
-  }, []);
-
-  const loadServers = () => {
-    const loaded = getMCPServers();
-    setServers(loaded);
-  };
-
-  const addServer = useCallback((server: MCPServer) => {
-    saveMCPServer(server);
-    loadServers();
-  }, []);
-
-  const updateServer = useCallback((id: string, updates: Partial<MCPServer>) => {
-    const existing = servers.find(s => s.id === id);
-    if (existing) {
-      saveMCPServer({ ...existing, ...updates });
-      loadServers();
-    }
-  }, [servers]);
-
-  return {
-    servers,
-    addServer,
-    updateServer,
-    loadServers,
+    loadWorkflows: () => queryClient.invalidateQueries({ queryKey: ['workflows'] }),
   };
 }

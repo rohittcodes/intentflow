@@ -85,7 +85,7 @@ export default function ToolsNodePanel({ node, onClose, onDelete, onUpdate }: To
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto p-20 space-y-24">
+      <div className="flex-1 overflow-y-auto p-20 space-y-20">
         {/* File Search Configuration */}
         {nodeType.includes('file') && (
           <>
@@ -478,145 +478,142 @@ export default function ToolsNodePanel({ node, onClose, onDelete, onUpdate }: To
           </>
         )}
 
-      </div>
-    </div >
-
-      {/* PII Configuration Modal */ }
-  {
-    showPIIModal && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-black-alpha-64 z-[200] flex items-center justify-center backdrop-blur-sm"
-        onClick={() => setShowPIIModal(false)}
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-accent-white rounded-16 shadow-2xl w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
-        >
-          {/* Header */}
-          <div className="p-20 border-b border-border-faint bg-background-base">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-10">
-                <svg className="w-24 h-24 text-heat-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <div>
-                  <h3 className="text-label-large text-accent-black">
-                    PII Detection Configuration
-                  </h3>
-                  <p className="text-body-small text-black-alpha-48 mt-2">
-                    Select which types of personal data to detect
-                  </p>
+        {
+          showPIIModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 bg-black-alpha-64 z-[200] flex items-center justify-center backdrop-blur-sm"
+              onClick={() => setShowPIIModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-accent-white rounded-16 shadow-2xl w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
+              >
+                {/* Header */}
+                <div className="p-20 border-b border-border-faint bg-background-base">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-10">
+                      <svg className="w-24 h-24 text-heat-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      <div>
+                        <h3 className="text-label-large text-accent-black">
+                          PII Detection Configuration
+                        </h3>
+                        <p className="text-body-small text-black-alpha-48 mt-2">
+                          Select which types of personal data to detect
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPIIModal(false)}
+                      className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
+                    >
+                      <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={() => setShowPIIModal(false)}
-                className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
-              >
-                <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
 
-          {/* Content */}
-          <div className="p-20 flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between mb-16">
-              <button
-                onClick={() => setPiiEntities(allPIIEntities.map(e => e.id))}
-                className="text-body-small text-heat-100 hover:text-heat-200 transition-colors font-medium"
-              >
-                Select all
-              </button>
-              <button
-                onClick={() => setPiiEntities([])}
-                className="text-body-small text-black-alpha-48 hover:text-accent-black transition-colors"
-              >
-                Clear all
-              </button>
-            </div>
+                {/* Content */}
+                <div className="p-20 flex-1 overflow-y-auto">
+                  <div className="flex items-center justify-between mb-16">
+                    <button
+                      onClick={() => setPiiEntities(allPIIEntities.map(e => e.id))}
+                      className="text-body-small text-heat-100 hover:text-heat-200 transition-colors font-medium"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      onClick={() => setPiiEntities([])}
+                      className="text-body-small text-black-alpha-48 hover:text-accent-black transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  </div>
 
-            <div className="space-y-16">
-              <div>
-                <h4 className="text-label-small text-accent-black mb-10">Common Types</h4>
-                <div className="grid grid-cols-2 gap-8">
-                  {allPIIEntities.slice(0, 8).map((entity) => (
-                    <label key={entity.id} className="flex items-center gap-8 p-10 hover:bg-background-base rounded-8 cursor-pointer transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={piiEntities.includes(entity.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setPiiEntities([...piiEntities, entity.id]);
-                          } else {
-                            setPiiEntities(piiEntities.filter(id => id !== entity.id));
-                          }
-                        }}
-                        className="w-16 h-16 rounded-4 border border-border-faint text-heat-100 focus:ring-heat-100"
-                      />
-                      <span className="text-body-small text-accent-black">{entity.label}</span>
-                    </label>
-                  ))}
+                  <div className="space-y-16">
+                    <div>
+                      <h4 className="text-label-small text-accent-black mb-10">Common Types</h4>
+                      <div className="grid grid-cols-2 gap-8">
+                        {allPIIEntities.slice(0, 8).map((entity) => (
+                          <label key={entity.id} className="flex items-center gap-8 p-10 hover:bg-background-base rounded-8 cursor-pointer transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={piiEntities.includes(entity.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setPiiEntities([...piiEntities, entity.id]);
+                                } else {
+                                  setPiiEntities(piiEntities.filter(id => id !== entity.id));
+                                }
+                              }}
+                              className="w-16 h-16 rounded-4 border border-border-faint text-heat-100 focus:ring-heat-100"
+                            />
+                            <span className="text-body-small text-accent-black">{entity.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-label-small text-accent-black mb-10">US-Specific Types</h4>
+                      <div className="grid grid-cols-2 gap-8">
+                        {allPIIEntities.slice(8).map((entity) => (
+                          <label key={entity.id} className="flex items-center gap-8 p-10 hover:bg-background-base rounded-8 cursor-pointer transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={piiEntities.includes(entity.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setPiiEntities([...piiEntities, entity.id]);
+                                } else {
+                                  setPiiEntities(piiEntities.filter(id => id !== entity.id));
+                                }
+                              }}
+                              className="w-16 h-16 rounded-4 border border-border-faint text-heat-100 focus:ring-heat-100"
+                            />
+                            <span className="text-body-small text-accent-black">{entity.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <h4 className="text-label-small text-accent-black mb-10">US-Specific Types</h4>
-                <div className="grid grid-cols-2 gap-8">
-                  {allPIIEntities.slice(8).map((entity) => (
-                    <label key={entity.id} className="flex items-center gap-8 p-10 hover:bg-background-base rounded-8 cursor-pointer transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={piiEntities.includes(entity.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setPiiEntities([...piiEntities, entity.id]);
-                          } else {
-                            setPiiEntities(piiEntities.filter(id => id !== entity.id));
-                          }
-                        }}
-                        className="w-16 h-16 rounded-4 border border-border-faint text-heat-100 focus:ring-heat-100"
-                      />
-                      <span className="text-body-small text-accent-black">{entity.label}</span>
-                    </label>
-                  ))}
+                {/* Footer */}
+                <div className="p-20 border-t border-border-faint bg-background-base flex justify-between items-center">
+                  <div className="text-body-small text-black-alpha-48">
+                    {piiEntities.length} of {allPIIEntities.length} types selected
+                  </div>
+                  <div className="flex gap-8">
+                    <button
+                      onClick={() => setShowPIIModal(false)}
+                      className="px-16 py-8 text-body-small text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        onUpdate(node?.id || '', { piiEntities });
+                        setShowPIIModal(false);
+                      }}
+                      className="px-20 py-8 bg-accent-black hover:bg-black-alpha-88 text-white rounded-8 text-body-small font-medium transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="p-20 border-t border-border-faint bg-background-base flex justify-between items-center">
-            <div className="text-body-small text-black-alpha-48">
-              {piiEntities.length} of {allPIIEntities.length} types selected
-            </div>
-            <div className="flex gap-8">
-              <button
-                onClick={() => setShowPIIModal(false)}
-                className="px-16 py-8 text-body-small text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  onUpdate(node?.id || '', { piiEntities });
-                  setShowPIIModal(false);
-                }}
-                className="px-20 py-8 bg-accent-black hover:bg-black-alpha-88 text-white rounded-8 text-body-small font-medium transition-colors"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    )
-  }
+              </motion.div>
+            </motion.div>
+          )
+        }
+      </div >
     </>
   );
-}
+};

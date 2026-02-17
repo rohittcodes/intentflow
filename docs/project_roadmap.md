@@ -87,3 +87,27 @@
 - [ ] 43. **Dashboard**: Runs Table (Status, Cost, Duration). <!-- id: 42 -->
 - [ ] 44. **Documentation**: Auto-gen API docs. <!-- id: 43 -->
 - [ ] 45. **Launch**: Final Verification. <!-- id: 44 -->
+
+## Phase 8: Community & Ecosystem
+- [ ] 46. **Community Template Registry**: <!-- id: 45 -->
+    - [ ] Backend: `publishTemplate`, `cloneTemplate`, `searchTemplates`.
+    - [ ] UI: Template Gallery & "Explore" tab in Library.
+    - [ ] Feature: Public/Private visibility settings.
+
+## Phase 9: Next-Gen UI (Generative & Builder)
+- [ ] 47. **Generative UI (Agent-Driven)**: <!-- id: 46 -->
+    - [ ] Protocol: JSON Schema for UI components (Cards, Charts).
+    - [ ] Renderer: `ExecutionPanel` support for `UiNode`.
+- [ ] 48. **App Builder (Retool-style)**: <!-- id: 47 -->
+    - [ ] Canvas: Drag-and-drop UI Builder.
+    - [ ] Binding: Connect UI events to Workflow Triggers.
+    - [ ] Deployment: Standalone Apps.
+
+## Phase 10: Security & Governance
+- [ ] 49. **MCP Auth Vault**: <!-- id: 48 -->
+    - [ ] Architecture: Centralized, encrypted credential store (AES-256).
+    - [ ] OAuth Handler: Unified callback handler for MCP services (Google, Slack, GitHub).
+    - [ ] Least Privilege Proxy: Middleware that injects auth headers *after* the LLM generates the request, preventing the LLM from ever seeing the raw key.
+- [ ] 50. **AI Safety Rails**: <!-- id: 49 -->
+    - [ ] Egress Filtering: Scan AI outputs for potential key leaks or PII.
+    - [ ] Audit Logging: Immutable log of every tool call and its payload.

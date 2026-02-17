@@ -70,6 +70,13 @@ export const saveWorkflow = mutation({
     edges: v.array(v.any()),
     version: v.optional(v.string()),
     isTemplate: v.optional(v.boolean()),
+    settings: v.optional(v.object({
+      snapToGrid: v.optional(v.boolean()),
+      gridStyle: v.optional(v.string()),
+      edgeStyle: v.optional(v.string()),
+      maxIterations: v.optional(v.number()),
+      timeout: v.optional(v.number()),
+    })),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -592,5 +599,28 @@ export const deleteWorkflowsWithoutUserId = mutation({
       count: workflows.length,
       message: `Deleted ${workflows.length} workflows without userId`,
     };
+  },
+});
+
+// Deploy workflow (Production ready)
+export const deployWorkflow = mutation({
+  args: { id: v.id("workflows") },
+  handler: async (ctx, { id }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db.get(id);
+
+    if (!workflow || workflow.userId !== identity?.subject) {
+      throw new Error("Unauthorized");
+    }
+
+    // For now, just mark updated and set version if needed
+    // In future this could freeze a version
+    await ctx.db.patch(id, {
+      isDeployed: true,
+      deployedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    return { success: true };
   },
 });

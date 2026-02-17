@@ -5,6 +5,10 @@ import { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
 import VariableReferencePicker from "./VariableReferencePicker";
 
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Globe, Shield, Zap } from "lucide-react";
+
 interface HTTPNodePanelProps {
   node: Node | null;
   nodes?: Node[];
@@ -30,6 +34,8 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
   const [authType, setAuthType] = useState(nodeData?.httpAuthType || "none");
   const [authToken, setAuthToken] = useState(nodeData?.httpAuthToken || "");
   const [showAuthToken, setShowAuthToken] = useState(false);
+  const [selectedConnectorId, setSelectedConnectorId] = useState(nodeData?.connectorId || "");
+  const connectors = useQuery(api.knowledgeConnectors.listConnectors);
 
   // Auto-save with change check
   useEffect(() => {
@@ -42,7 +48,8 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
         JSON.stringify(headers) !== JSON.stringify(node.data?.httpHeaders) ||
         body !== node.data?.httpBody ||
         authType !== node.data?.httpAuthType ||
-        authToken !== node.data?.httpAuthToken;
+        authToken !== node.data?.httpAuthToken ||
+        selectedConnectorId !== node.data?.connectorId;
 
       if (hasChanged) {
         onUpdate(node.id, {
@@ -52,6 +59,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
           httpBody: body,
           httpAuthType: authType,
           httpAuthToken: authToken,
+          connectorId: selectedConnectorId,
         });
       }
     }, 500);
@@ -83,7 +91,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-16 space-y-16">
+    <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Method */}
       <div>
         <label className="block text-label-small text-black-alpha-48 mb-8">
@@ -100,6 +108,37 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
           <option value="PATCH">PATCH</option>
           <option value="DELETE">DELETE</option>
         </select>
+      </div>
+
+      {/* Connector / Data Source Selection */}
+      <div className="p-12 bg-accent-blue-alpha-4 border border-accent-blue-alpha-12 rounded-10">
+        <div className="flex items-center gap-8 mb-8">
+          <Zap className="w-14 h-14 text-accent-blue" />
+          <label className="block text-label-small font-bold text-accent-blue uppercase tracking-widest">
+            Connector (Optional)
+          </label>
+        </div>
+        <p className="text-body-tiny text-black-alpha-48 mb-12">
+          Link to a saved connector to automatically include base URL and authentication.
+        </p>
+        <select
+          value={selectedConnectorId}
+          onChange={(e) => setSelectedConnectorId(e.target.value)}
+          className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black focus:outline-none focus:border-accent-blue transition-colors cursor-pointer"
+        >
+          <option value="">No Connector (Direct Request)</option>
+          {connectors?.map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.name} ({c.type})
+            </option>
+          ))}
+        </select>
+        {selectedConnectorId && connectors && (
+          <div className="mt-8 flex items-center gap-4 text-body-tiny text-accent-green font-medium">
+            <Shield className="w-10 h-10" />
+            Connector settings will be resolved at runtime
+          </div>
+        )}
       </div>
 
       {/* URL Input - Full Width */}

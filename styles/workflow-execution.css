@@ -21,19 +21,23 @@
 .executing-node {
   animation: pulse-heat 2s ease-in-out infinite;
   border-color: #FA5D19 !important;
+  box-shadow: 0 0 20px rgba(250, 93, 25, 0.4);
   transition: border-color 0.3s ease-out, box-shadow 0.3s ease-out;
+  z-index: 10 !important;
 }
 
 .completed-node {
-  animation: none !important; /* Stop any running animations immediately */
-  transition: border-color 0.4s ease-out, opacity 0.4s ease-out;
-  border-color: #9ca3af !important;
+  animation: none !important;
+  transition: border-color 0.4s ease-out, opacity 0.4s ease-out, box-shadow 0.4s ease-out;
+  border-color: #10b981 !important; /* Green for completed */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
   opacity: 1;
 }
 
 .failed-node {
-  animation: shake 0.4s ease-out !important; /* Only shake, no pulse */
+  animation: shake 0.4s ease-out !important;
   border-color: #ef4444 !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
 
 @keyframes shake {
@@ -44,50 +48,26 @@
 
 /* React Flow custom styles for execution */
 .react-flow__node.executing-node {
-  z-index: 2 !important;
-}
-
-/* Keep selected nodes within the normal stacking context so they don't float above others */
-.react-flow__node.selected {
-  z-index: 1 !important;
+  z-index: 100 !important;
 }
 
 .react-flow__edge.active-edge {
-  stroke: #FA5D19 !important;
-  stroke-width: 2.5px !important;
-  animation: dash 1.5s linear infinite, glow-edge 2s ease-in-out infinite;
-  z-index: 100;
+  stroke: #10b981 !important; /* Green Path */
+  stroke-width: 3px !important;
+  animation: dash 1s linear infinite, glow-edge-green 1.5s ease-in-out infinite;
+  z-index: 50;
 }
 
-.react-flow__edge.active-edge .react-flow__edge-text,
-.react-flow__edge.selected-edge .react-flow__edge-text {
-  fill: #18181b !important;
-  font-weight: 600 !important;
+.react-flow__edge.active-edge .react-flow__edge-path {
+  stroke-linecap: round;
 }
 
-.react-flow__edge.active-edge .react-flow__edge-textbg,
-.react-flow__edge.selected-edge .react-flow__edge-textbg {
-  fill: white !important;
-  opacity: 1 !important;
-}
-
-.react-flow__edge.selected-edge {
-  stroke: #FA5D19 !important;
-  stroke-width: 2px !important;
-}
-
-@keyframes dash {
-  to {
-    stroke-dashoffset: -20;
-  }
-}
-
-@keyframes glow-edge {
+@keyframes glow-edge-green {
   0%, 100% {
-    filter: drop-shadow(0 0 2px rgba(250, 93, 25, 0.4));
+    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4));
   }
   50% {
-    filter: drop-shadow(0 0 6px rgba(250, 93, 25, 0.8));
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
   }
 }
 

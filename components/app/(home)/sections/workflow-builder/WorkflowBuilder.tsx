@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useCallback, useRef, DragEvent, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import {
   ReactFlow,
@@ -11,12 +12,12 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
-  useReactFlow,
   ReactFlowProvider,
   type OnConnect,
   type Node,
   type Edge,
   type NodeMouseHandler,
+  type NodeChange,
   SelectionMode,
   useKeyPress,
 } from "@xyflow/react";
@@ -49,6 +50,11 @@ import {
   Trash2,
   Maximize,
   Database,
+  CloudUpload,
+  CloudOff,
+  Wand2,
+  Undo,
+  Redo,
 } from "lucide-react";
 import NodePanel from "./NodePanel";
 import MCPPanel from "./MCPPanel";
@@ -56,8 +62,10 @@ import PreviewPanel from "./PreviewPanel";
 import ExecutionPanel from "./ExecutionPanel";
 import TestEndpointPanel from "./TestEndpointPanel";
 import LogicNodePanel from "./LogicNodePanel";
+import MemoryNodePanel from "./MemoryNodePanel";
 import DataNodePanel from "./DataNodePanel";
 import HTTPNodePanel from "./HTTPNodePanel";
+import SourceSelectorModal from "./SourceSelectorModal";
 import ExtractNodePanel from "./ExtractNodePanel";
 import StartNodePanel from "./StartNodePanel";
 import RouterNodePanel from "./RouterNodePanel";
@@ -68,13 +76,18 @@ import ConfirmDialog from "./ConfirmDialog";
 import EdgeLabelModal from "./EdgeLabelModal";
 import ShareWorkflowModal from "./ShareWorkflowModal";
 import SaveAsTemplateModal from "./SaveAsTemplateModal";
+import LibraryPanel from "./LibraryPanel";
+import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
 import { toast } from "sonner";
 import { useWorkflow } from "@/hooks/useWorkflow";
 import { useWorkflowExecution } from "@/hooks/useWorkflowExecution";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
+import WorkflowCanvas from "./WorkflowCanvas";
 import { getWorkflow } from "@/lib/workflow/storage";
 import type { WorkflowNode, WorkflowEdge } from "@/lib/workflow/types";
 import { nodeTypes } from "./CustomNodes";
 import type { NodeData } from "@/lib/workflow/types";
+import { autoLayoutNodes, getNodeColor } from "@/lib/workflow/utils";
 import { detectDuplicateCredentials } from "@/lib/workflow/duplicate-detection";
 import { cleanupInvalidEdges } from "@/lib/workflow/edge-cleanup";
 import { useQuery, useMutation } from "convex/react";
@@ -145,115 +158,92 @@ const nodeCategories = [
     nodes: [
       { type: "transform", label: "Transform", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
       { type: "extract", label: "Extract", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Search },
-      { type: "retriever", label: "Retriever", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Database },
-      { type: "http", label: "HTTP", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Server },
       { type: "set-state", label: "Set state", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
     ],
   },
 ];
 
-// Utility to get node color based on type
-const getNodeColor = (type: string): string => {
-  const colorMap: Record<string, string> = {
-    'agent': 'bg-blue-500',
-    'custom-input': 'bg-indigo-500',
-    'mcp': 'bg-heat-100',
-    'if-else': 'bg-orange-500',
-    'router': 'bg-orange-500',
-    'while': 'bg-orange-500',
-    'user-approval': 'bg-gray-400',
-    'transform': 'bg-purple-500',
-    'extract': 'bg-purple-500',
-    'retriever': 'bg-purple-500',
-    'http': 'bg-purple-500',
-    'start': 'bg-gray-600',
-    'end': 'bg-teal-500',
-    'note': 'bg-gray-200',
-  };
-  return colorMap[type] || 'bg-gray-500';
-};
+// Utilities imported from @/lib/workflow/utils
 
-// Auto-layout function to position nodes left to right
-const autoLayoutNodes = (nodes: Node[], edges: Edge[]) => {
-  if (nodes.length === 0) return nodes;
+interface CanvasWindowProps {
+  workflowId: string;
+  instanceId: string;
+  isMain?: boolean;
+  onSelectNode: (node: Node<NodeData> | null, instanceId: string) => void;
+  onOpenNestedWorkflow: (workflowId: string) => void;
+  onClose?: (instanceId: string) => void;
+  snapToGrid: boolean;
+  gridStyle: string;
+  edgeStyle: string;
+  activeNodeId?: string | null;
+  nodeResults?: Record<string, any>;
+  onRegisterUpdate: (instanceId: string, handlers: any) => void;
+  onUndoRedoStateChange?: (instanceId: string, state: { canUndo: boolean, canRedo: boolean }) => void;
+  onFocus?: (instanceId: string) => void;
+  onGridStyleChange: (style: 'dots' | 'lines' | 'none') => void;
+  onEdgeStyleChange: (style: 'default' | 'straight' | 'step' | 'smoothstep') => void;
+  isFocused: boolean;
+}
 
-  const LAYER_SPACING = 350;
-  const NODE_SPACING = 150;
-  const START_X = 100;
-  const START_Y = 100;
+const CanvasWindow = ({
+  workflowId,
+  instanceId,
+  isMain,
+  onSelectNode,
+  onOpenNestedWorkflow,
+  onClose,
+  snapToGrid,
+  gridStyle,
+  edgeStyle,
+  activeNodeId,
+  nodeResults,
+  onRegisterUpdate,
+  onUndoRedoStateChange,
+  onFocus,
+  onGridStyleChange,
+  onEdgeStyleChange,
+  isFocused,
+}: CanvasWindowProps) => {
+  const handleRegister = useCallback((handlers: any) => {
+    onRegisterUpdate(instanceId, handlers);
+  }, [instanceId, onRegisterUpdate]);
 
-  const adjacency: { [key: string]: string[] } = {};
-  nodes.forEach(n => (adjacency[n.id] = []));
+  const handleUndoRedoChange = useCallback((id: string, state: { canUndo: boolean, canRedo: boolean }) => {
+    onUndoRedoStateChange?.(id, state);
+  }, [onUndoRedoStateChange]);
 
-  edges.forEach(e => {
-    if (adjacency[e.source] && adjacency[e.target] !== undefined) {
-      adjacency[e.source].push(e.target);
-    }
-  });
+  const handleFocus = useCallback(() => {
+    onFocus?.(instanceId);
+  }, [instanceId, onFocus]);
 
-  const layers: { [key: string]: number } = {};
-  const queue: string[] = [];
-
-  const startNode = nodes.find(n => (n.data as any)?.nodeType === 'start');
-  if (startNode) {
-    layers[startNode.id] = 0;
-    queue.push(startNode.id);
-  } else if (nodes.length > 0) {
-    layers[nodes[0].id] = 0;
-    queue.push(nodes[0].id);
-  }
-
-  while (queue.length > 0) {
-    const nodeId = queue.shift()!;
-    const currentLayer = layers[nodeId];
-    const children = adjacency[nodeId];
-    if (children) {
-      for (const childId of children) {
-        if (!(childId in layers)) {
-          layers[childId] = currentLayer + 1;
-          queue.push(childId);
+  return (
+    <ReactFlowProvider>
+      <WorkflowCanvas
+        workflowId={workflowId}
+        instanceId={instanceId}
+        isMain={isMain}
+        onSelectNode={onSelectNode}
+        onOpenNestedWorkflow={onOpenNestedWorkflow}
+        onClose={onClose ? () => onClose(instanceId) : undefined}
+        snapToGrid={snapToGrid}
+        gridStyle={gridStyle}
+        edgeStyle={edgeStyle}
+        activeNodeId={activeNodeId}
+        nodeResults={nodeResults || {}
         }
-      }
-    }
-  }
-
-  for (const node of nodes) {
-    if (!(node.id in layers)) {
-      layers[node.id] = Math.max(...Object.values(layers), -1) + 1;
-    }
-  }
-
-  const nodesByLayer: { [key: number]: Node[] } = {};
-  for (const node of nodes) {
-    const layer = layers[node.id];
-    if (!nodesByLayer[layer]) nodesByLayer[layer] = [];
-    nodesByLayer[layer].push(node);
-  }
-
-  const layoutNodes: Node[] = [];
-  for (const layer in nodesByLayer) {
-    const layerNodes = nodesByLayer[layer];
-    const nodesInLayer = layerNodes.length;
-    const totalHeight = (nodesInLayer - 1) * NODE_SPACING;
-    const startYForLayer = START_Y + (300 - totalHeight / 2);
-
-    layerNodes.forEach((node, index) => {
-      layoutNodes.push({
-        ...node,
-        position: {
-          x: START_X + parseInt(layer) * LAYER_SPACING,
-          y: startYForLayer + index * NODE_SPACING,
-        },
-      });
-    });
-  }
-
-  return layoutNodes;
+        onRegisterUpdateHandler={handleRegister}
+        onUndoRedoStateChange={handleUndoRedoChange}
+        onFocus={handleFocus}
+        onGridStyleChange={onGridStyleChange}
+        onEdgeStyleChange={onEdgeStyleChange}
+        isFocused={isFocused}
+      />
+    </ReactFlowProvider>
+  );
 };
 
 function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: WorkflowBuilderProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const router = useRouter();
   const [initialized, setInitialized] = useState(false);
   const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(initialTemplateId ?? null);
 
@@ -261,12 +251,12 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
     currentTemplateId ? { customId: currentTemplateId } : "skip"
   );
 
-  const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
   const [showExecution, setShowExecution] = useState(false);
   const [showTestEndpoint, setShowTestEndpoint] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
+  const [showSourceSelector, setShowSourceSelector] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -280,7 +270,6 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
     onConfirm: () => { },
   });
 
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
   const [showMCPSelector, setShowMCPSelector] = useState(false);
@@ -291,15 +280,70 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const [environment, setEnvironment] = useState<'draft' | 'production'>('draft');
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [activeSidebarTab, setActiveSidebarTab] = useState<'nodes' | 'library' | 'settings'>('nodes');
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [gridStyle, setGridStyle] = useState<'dots' | 'lines' | 'none'>('dots');
+  const [edgeStyle, setEdgeStyle] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
+  const [maxIterations, setMaxIterations] = useState(50);
+  const [timeout, setTimeoutSec] = useState(30);
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const nodeIdRef = useRef(2);
-  const { screenToFlowPosition, getNode, setCenter } = useReactFlow<Node<NodeData>>();
 
+  // Multi-canvas state
+  const [canvasStack, setCanvasStack] = useState<{ workflowId: string; instanceId: string }[]>([]);
+  const [activeCanvasId, setActiveCanvasId] = useState<string>("main");
+  const [selectedNodeByCanvas, setSelectedNodeByCanvas] = useState<Record<string, Node<NodeData> | null>>({});
+  const [canvasUndoRedoState, setCanvasUndoRedoState] = useState<Record<string, { canUndo: boolean, canRedo: boolean }>>({});
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const updateHandlersRef = useRef<Record<string, {
+    update: (nodeId: string, data: any) => void;
+    delete: (nodeId: string) => void;
+    autoLayout: () => void;
+    clearCanvas: () => void;
+    undo: () => void;
+    redo: () => void;
+    getState: () => { nodes: any[], edges: any[] };
+  }>>({});
+  const nodeIdRef = useRef(2);
   const getId = useCallback(() => `node_${nodeIdRef.current++}`, []);
 
-  const { workflow, convexId, updateNodes, updateEdges, saveWorkflow, saveWorkflowImmediate, deleteWorkflow, createNewWorkflow } = useWorkflow(initialWorkflowId || undefined);
+  const activeWorkflowId = (canvasStack.find(c => c.instanceId === activeCanvasId)?.workflowId || initialWorkflowId) as string | undefined;
+
+  const { workflow, convexId, updateNodes, updateEdges, saveWorkflow, saveWorkflowImmediate, updateNodeData, isSaving, createNewWorkflow } = useWorkflow(activeWorkflowId);
+  const deleteWorkflow = useMutation(api.workflows.deleteWorkflow);
+  const createConnector = useMutation(api.knowledgeConnectors.createConnector);
+  const deployWorkflow = useMutation(api.workflows.deployWorkflow);
   const { runWorkflow, stopWorkflow, isRunning, nodeResults, execution, currentNodeId, pendingAuth, resumeWorkflow } = useWorkflowExecution();
+
+  // Initialize canvas stack with the main workflow
+  useEffect(() => {
+    if (workflow && canvasStack.length === 0) {
+      setCanvasStack([{ workflowId: workflow.id, instanceId: "main" }]);
+    }
+  }, [workflow?.id, canvasStack.length]);
+
+  // Handle "New Workflow" initialization
+  useEffect(() => {
+    if (!initialWorkflowId && !workflow && !initialized) {
+      createNewWorkflow();
+    } else if (initialWorkflowId && workflow && !initialized) {
+      // If an initial workflow ID is provided and the workflow is loaded,
+      // ensure the canvas stack is initialized and mark as initialized.
+      if (canvasStack.length === 0) {
+        setCanvasStack([{ workflowId: workflow.id, instanceId: "main" }]);
+      }
+      setInitialized(true);
+    }
+  }, [initialWorkflowId, workflow, initialized, createNewWorkflow, canvasStack.length]);
+
+  const activeUndoRedo = canvasUndoRedoState[activeCanvasId] || { canUndo: false, canRedo: false };
+
+  const handleUndo = useCallback(() => {
+    updateHandlersRef.current[activeCanvasId]?.undo();
+  }, [activeCanvasId]);
+
+  const handleRedo = useCallback(() => {
+    updateHandlersRef.current[activeCanvasId]?.redo();
+  }, [activeCanvasId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -312,14 +356,28 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   }, []);
 
   useEffect(() => {
-    setEnvironment('draft');
-    setShowTestEndpoint(false);
-  }, [workflow?.id]);
+    if (workflow && !initialized) {
+      setEnvironment('draft');
+      setShowTestEndpoint(false);
+
+      // Initialize settings from workflow
+      if (workflow.settings) {
+        if (workflow.settings.snapToGrid !== undefined) setSnapToGrid(workflow.settings.snapToGrid);
+        if (workflow.settings.gridStyle) setGridStyle(workflow.settings.gridStyle as any);
+        if (workflow.settings.edgeStyle) setEdgeStyle(workflow.settings.edgeStyle as any);
+        if (workflow.settings.maxIterations) setMaxIterations(workflow.settings.maxIterations);
+        if (workflow.settings.timeout) setTimeoutSec(workflow.settings.timeout);
+      }
+      setInitialized(true);
+    }
+  }, [workflow?.id, initialized]);
 
   const isCtrlPressed = useKeyPress(['Control', 'Meta']);
 
   const handleDuplicateWorkflow = useCallback(() => {
-    if (!workflow) return;
+    const bridge = updateHandlersRef.current[activeCanvasId];
+    if (!bridge || !workflow) return;
+    const { nodes: canvasNodes, edges: canvasEdges } = bridge.getState();
     const original = workflow;
     const newWorkflow = createNewWorkflow();
     setShowWorkflowMenu(false);
@@ -327,54 +385,78 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       saveWorkflow({
         name: `${original.name || 'Workflow'} Copy`,
         description: original.description,
-        nodes: original.nodes,
-        edges: original.edges,
+        nodes: canvasNodes as any,
+        edges: canvasEdges as any,
       });
       toast.success('Workflow duplicated');
     }, 0);
-  }, [workflow, createNewWorkflow, saveWorkflow]);
+  }, [workflow, createNewWorkflow, saveWorkflow, activeCanvasId]);
 
-  const handleRenameWorkflow = useCallback(() => {
-    setRenameTrigger(prev => prev + 1);
-    setShowWorkflowMenu(false);
-  }, []);
-
-  const handleSaveWorkflowImmediate = useCallback(() => {
-    if (!workflow) return;
+  // Bridge top-bar actions to the active canvas
+  const handleSave = useCallback(async () => {
+    const bridge = updateHandlersRef.current[activeCanvasId];
+    if (!bridge || !workflow) return;
+    const { nodes: canvasNodes, edges: canvasEdges } = bridge.getState();
     const updatedWorkflow = {
       ...workflow,
-      nodes: nodes.map(n => ({
-        ...n,
-        type: n.type || 'default',
-        data: {
-          ...n.data,
-          label: typeof n.data.label === 'string' ? n.data.label : 'Node',
-          nodeType: n.data.nodeType || n.type,
-        },
-      })) as any,
-      edges: edges as any,
+      nodes: canvasNodes as any,
+      edges: canvasEdges as any,
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
     };
-    saveWorkflow(updatedWorkflow);
+    await saveWorkflowImmediate(updatedWorkflow);
+
+    // Redirect if this was a new workflow
+    if (!initialWorkflowId && workflow.id.startsWith('workflow_')) {
+      // The API should have saved it to its customId (which is workflow.id)
+      router.push(`/flow/${workflow.id}`);
+    }
+
     toast.success('Saved to Cloud');
     setShowWorkflowMenu(false);
-  }, [workflow, nodes, edges, saveWorkflow]);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate, initialWorkflowId, router]);
+
+  const handleDeploy = useCallback(async () => {
+    const bridge = updateHandlersRef.current[activeCanvasId];
+    if (!bridge || !workflow) return;
+    const { nodes: canvasNodes, edges: canvasEdges } = bridge.getState();
+    const updatedWorkflow = {
+      ...workflow,
+      nodes: canvasNodes as any,
+      edges: canvasEdges as any,
+      isDeployed: true,
+      deployedAt: new Date().toISOString(),
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
+    };
+    await saveWorkflowImmediate(updatedWorkflow);
+    toast.success('Workflow deployed');
+    setShowWorkflowMenu(false);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate]);
+
+  const handleUnpublish = useCallback(async () => {
+    const bridge = updateHandlersRef.current[activeCanvasId];
+    if (!bridge || !workflow) return;
+    const { nodes: canvasNodes, edges: canvasEdges } = bridge.getState();
+    const updatedWorkflow = {
+      ...workflow,
+      nodes: canvasNodes as any,
+      edges: canvasEdges as any,
+      isDeployed: false,
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
+    };
+    await saveWorkflowImmediate(updatedWorkflow);
+    toast.success('Workflow unpublished (Draft mode)');
+    setShowWorkflowMenu(false);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate]);
+
+  const handleAutoLayout = useCallback(() => {
+    updateHandlersRef.current[activeCanvasId]?.autoLayout();
+    setShowWorkflowMenu(false);
+  }, [activeCanvasId]);
 
   const handleClearCanvas = useCallback(() => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Clear Canvas',
-      description: 'This will remove all nodes. This action cannot be undone.',
-      variant: 'warning',
-      onConfirm: () => {
-        setNodes(initialNodes);
-        setEdges(initialEdges);
-        setSelectedNode(null);
-        nodeIdRef.current = calculateMaxNodeId(initialNodes);
-        toast.success('Canvas cleared');
-      },
-    });
+    updateHandlersRef.current[activeCanvasId]?.clearCanvas();
     setShowWorkflowMenu(false);
-  }, [setNodes, setEdges]);
+  }, [activeCanvasId]);
 
   const confirmDeleteWorkflow = useCallback(() => {
     if (!workflow) return;
@@ -384,114 +466,57 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       description: 'This will move the workflow to trash. You can restore it later.',
       variant: 'danger',
       onConfirm: async () => {
-        await deleteWorkflow(workflow.id);
-        toast.success('Workflow moved to trash');
+        try {
+          await deleteWorkflow({ id: workflow.id as any });
+          toast.success('Workflow moved to trash');
+          setConfirmDialog((p) => ({ ...p, isOpen: false }));
+        } catch (error) {
+          toast.error("Failed to delete workflow");
+        }
       },
     });
     setShowWorkflowMenu(false);
   }, [workflow, deleteWorkflow]);
 
-
-  // Initialization logic
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
-    if (initialized) return;
-
-    if (initialTemplateId && template) {
-      const cleaned = cleanupInvalidEdges(template.nodes, template.edges);
-      const templateNodes = cleaned.nodes.map((n: any) => ({
-        ...n,
-        data: {
-          ...n.data,
-          label: n.data.nodeName || n.data.label || n.type,
-        },
-      }));
-      const layoutedNodes = autoLayoutNodes(templateNodes as any, cleaned.edges as any);
-
-      setNodes(layoutedNodes as any);
-      setEdges(cleaned.edges as any);
-      nodeIdRef.current = calculateMaxNodeId(layoutedNodes as any);
-      setInitialized(true);
-    } else if (initialWorkflowId && workflow) {
-      const cleaned = cleanupInvalidEdges(workflow.nodes, workflow.edges);
-      const workflowNodes = cleaned.nodes.map((n: any) => ({
-        ...n,
-        data: {
-          ...n.data,
-          label: n.data.nodeName || n.data.label || n.type,
-        },
-      }));
-      const layoutedNodes = autoLayoutNodes(workflowNodes as any, cleaned.edges as any);
-
-      setNodes(layoutedNodes as any);
-      setEdges(cleaned.edges as any);
-      nodeIdRef.current = calculateMaxNodeId(layoutedNodes as any);
-      setInitialized(true);
-    } else if (!initialTemplateId && !initialWorkflowId) {
-      setInitialized(true);
+  const handleSelectNode = useCallback((node: Node<NodeData> | null, instanceId: string) => {
+    setSelectedNodeByCanvas(prev => ({ ...prev, [instanceId]: node }));
+    setActiveCanvasId(instanceId);
+    if (node) {
+      setInspectorOpen(true);
+      setShowSettings(false);
+      setShowTestEndpoint(false);
+      setShowExecution(false);
+    } else {
+      setInspectorOpen(false);
     }
-  }, [initialTemplateId, initialWorkflowId, initialized, template, workflow, setNodes, setEdges]);
-
-  // Visual updates for execution
-  useEffect(() => {
-    setNodes((nds) => nds.map((node) => {
-      const isCurrentlyRunning = currentNodeId === node.id;
-      const result = nodeResults[node.id];
-      const nextClassName = isCurrentlyRunning ? 'executing-node' :
-        result?.status === 'completed' ? 'completed-node' :
-          result?.status === 'failed' ? 'failed-node' : '';
-
-      return {
-        ...node,
-        className: nextClassName,
-        data: {
-          ...node.data,
-          isRunning: isCurrentlyRunning,
-          executionStatus: result?.status,
-        },
-      };
-    }));
-
-    setEdges((eds) => eds.map((edge) => {
-      const isActive = nodeResults[edge.source]?.status === 'completed' && currentNodeId === edge.target;
-      return {
-        ...edge,
-        className: isActive ? 'active-edge' : '',
-        animated: isActive,
-      };
-    }));
-  }, [currentNodeId, nodeResults, setNodes, setEdges]);
-
-  const onConnect: OnConnect = useCallback((connection) => {
-    setEdges((eds) => addEdge(connection, eds));
-  }, [setEdges]);
-
-  const onDragOver = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const onDrop = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    const type = event.dataTransfer.getData('application/reactflow');
-    const label = event.dataTransfer.getData('application/reactflow-label');
-    const color = event.dataTransfer.getData('application/reactflow-color');
+  const handleUndoRedoChange = useCallback((id: string, state: { canUndo: boolean, canRedo: boolean }) => {
+    setCanvasUndoRedoState(prev => ({ ...prev, [id]: state }));
+  }, []);
 
-    if (!type) return;
+  const handleUpdateNodeData = useCallback((nodeId: string, data: any) => {
+    const handler = updateHandlersRef.current[activeCanvasId];
+    if (handler) {
+      handler.update(nodeId, data);
 
-    const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-    const newNode: Node<NodeData> = {
-      id: getId(),
-      type: type === 'firecrawl' ? 'mcp' : type,
-      position,
-      data: {
-        label: label,
-        nodeType: type === 'firecrawl' ? 'mcp' : type,
-        nodeName: label,
-      },
-    };
-    setNodes((nds) => nds.concat(newNode));
-  }, [screenToFlowPosition, setNodes, getId]);
+      // Also update the local state for the inspector's preview
+      setSelectedNodeByCanvas(prev => {
+        const current = prev[activeCanvasId];
+        if (current && current.id === nodeId) {
+          return { ...prev, [activeCanvasId]: { ...current, data: { ...current.data, ...data } } };
+        }
+        return prev;
+      });
+    }
+  }, [activeCanvasId]);
+
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    const handler = updateHandlersRef.current[activeCanvasId];
+    if (handler) {
+      handler.delete(nodeId);
+    }
+  }, [activeCanvasId]);
 
   const onDragStart = (event: DragEvent, nodeType: string, nodeLabel: string, nodeColor: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -500,113 +525,74 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const onNodeClick: NodeMouseHandler<Node<NodeData>> = useCallback((_event, node) => {
-    setShowExecution(false);
-    setShowTestEndpoint(false);
-    setSelectedEdgeId(null);
-    setSelectedNode(node);
-    setInspectorOpen(true);
-  }, []);
-
   const handleShowTestAPI = useCallback(() => {
     setShowExecution(false);
-    setSelectedNode(null);
+    handleSelectNode(null, activeCanvasId);
     setShowSettings(false);
     setShowTestEndpoint(true);
     setInspectorOpen(true);
-  }, []);
+  }, [activeCanvasId, handleSelectNode]);
 
   const handleShowSettings = useCallback(() => {
-    setSelectedNode(null);
+    handleSelectNode(null, activeCanvasId);
     setShowTestEndpoint(false);
     setShowExecution(false);
     setShowSettings(true);
     setInspectorOpen(true);
-  }, []);
+  }, [activeCanvasId, handleSelectNode]);
 
   const handlePreview = useCallback(() => {
-    setSelectedNode(null);
     setShowSettings(false);
     setShowTestEndpoint(false);
     setShowExecution(true);
     setInspectorOpen(true);
   }, []);
 
-  const handleUpdateNodeData = useCallback((nodeId: string, data: any) => {
-    setNodes((nds) => {
-      const updated = nds.map((node) => {
-        if (node.id === nodeId) {
-          const updatedData = { ...node.data, ...data };
-          if (data.name) {
-            updatedData.label = data.name;
+  const handleOpenNestedWorkflow = useCallback((nestedId: string) => {
+    setCanvasStack(prev => {
+      // Check if already open
+      if (prev.find(c => c.workflowId === nestedId)) {
+        return prev;
+      }
+
+      // Limit to 3
+      if (prev.length >= 3) {
+        toast.error("Maximum 3 active windows reached", {
+          action: {
+            label: "Open in new tab",
+            onClick: () => window.open(`/workflows/${nestedId}`, '_blank')
           }
-          return { ...node, data: updatedData };
-        }
-        return node;
-      });
-      if (workflow) updateNodes(updated as any);
-      return updated;
+        });
+        return prev;
+      }
+
+      return [...prev, { workflowId: nestedId, instanceId: nestedId }];
     });
-  }, [workflow, updateNodes, setNodes]);
+    // Set active canvas outside
+    setActiveCanvasId(nestedId);
+  }, []);
 
-  const handleDeleteNode = useCallback((nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node?.type === 'start') {
-      toast.error('Cannot delete the start node');
-      return;
-    }
-    setNodes(nds => nds.filter(n => n.id !== nodeId));
-    setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
-    setSelectedNode(null);
-    setInspectorOpen(false);
-    toast.success('Node deleted');
-  }, [setNodes, setEdges, nodes]);
+  const handleCloseCanvas = useCallback((instanceId: string) => {
+    setCanvasStack(prev => {
+      const filtered = prev.filter(c => c.instanceId !== instanceId);
+      // Logic for changing active canvas if we close the current one
+      if (activeCanvasId === instanceId) {
+        setActiveCanvasId(filtered[filtered.length - 1]?.instanceId || "main");
+      }
+      return filtered;
+    });
+  }, [activeCanvasId]);
 
-  const handleDuplicateNode = useCallback((nodeId: string) => {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (!node) return;
-
-    const newNode: Node<NodeData> = {
-      ...node,
-      id: getId(),
-      position: { x: node.position.x + 40, y: node.position.y + 40 },
-      data: { ...node.data },
-      selected: true,
-    };
-
-    setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), newNode]);
-    toast.success('Node duplicated');
-  }, [nodes, getId, setNodes]);
-
-  const onNodeContextMenu = useCallback(
-    (event: any, node: any) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-        nodeId: node.id,
-      });
-    },
-    [setContextMenu]
-  );
-
-  const onPaneContextMenu = useCallback(
-    (event: any) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-        nodeId: '',
-      });
-    },
-    [setContextMenu]
-  );
+  const activeNode = selectedNodeByCanvas[activeCanvasId];
 
   const handleRunWithInput = useCallback(async (input: string) => {
     if (!workflow) return;
-    await saveWorkflowImmediate({ nodes: nodes as any, edges: edges as any });
-    await runWorkflow(workflow, input);
-  }, [workflow, nodes, edges, runWorkflow, saveWorkflowImmediate]);
+    // We'll need a way to get nodes/edges from the active canvas for running
+    // For now, we'll use the updateHandlersRef or similar to request the current state
+    // Or simpler: each WorkflowCanvas handles its own 'Run' if we move it there.
+    // But Execution is global. 
+    // Let's keep run here but it needs to 'fetch' nodes from the active canvas.
+  }, [workflow]);
 
   return (
     <div className="h-screen w-full flex flex-col bg-background-base text-accent-black overflow-hidden font-sans selection:bg-heat-100/30">
@@ -619,10 +605,20 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           <div className="flex flex-col">
             <div className="flex items-center gap-8">
               <WorkflowNameEditor workflow={workflow} renameTrigger={renameTrigger} onSave={(name) => saveWorkflow({ ...workflow!, name })} />
-              <span className="px-8 py-2 rounded-full bg-black-alpha-4 border border-black-alpha-8 text-[10px] uppercase tracking-wider text-black-alpha-56 font-bold">{environment}</span>
+              <div className={`px-8 py-2 rounded-full border text-[10px] uppercase tracking-wider font-bold flex items-center gap-4 ${workflow?.isDeployed ? 'bg-green-100 border-green-200 text-green-700' : 'bg-black-alpha-4 border-black-alpha-8 text-black-alpha-56'}`}>
+                {workflow?.isDeployed ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full bg-green-500 animate-pulse" />
+                    Live
+                  </>
+                ) : (
+                  'Draft'
+                )}
+              </div>
             </div>
             <p className="text-[11px] text-black-alpha-56 font-medium flex items-center gap-4">
-              <span className="w-6 h-6 rounded-full bg-green-500 animate-pulse" /> Draft saved auto
+              <span className={`w-6 h-6 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-black-alpha-24' : 'bg-green-500')}`} />
+              {isSaving ? 'Saving changes...' : (!convexId ? 'Unsaved' : 'Changes saved')}
             </p>
           </div>
         </div>
@@ -636,14 +632,47 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               {showWorkflowMenu && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-8 w-200 bg-accent-white border border-black-alpha-8 rounded-12 shadow-2xl z-[110] overflow-hidden p-4">
                   <button onClick={handleDuplicateWorkflow} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Duplicate</button>
-                  <button onClick={handleSaveWorkflowImmediate} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Save</button>
-                  <button onClick={() => { setShowSaveAsTemplateModal(true); setShowWorkflowMenu(false); }} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors border-b border-black-alpha-8 mb-4 pb-12">Save as Template</button>
+                  <button onClick={() => { setShowSaveAsTemplateModal(true); setShowWorkflowMenu(false); }} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Save as Template</button>
+                  <button onClick={handleAutoLayout} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors flex items-center justify-between">
+                    Auto Layout
+                    <Wand2 className="w-14 h-14 text-black-alpha-32" />
+                  </button>
+                  {workflow?.isDeployed ? (
+                    <button onClick={handleUnpublish} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors border-b border-black-alpha-8 mb-4 pb-12 flex items-center justify-between">
+                      Unpublish
+                      <CloudOff className="w-14 h-14 text-black-alpha-32" />
+                    </button>
+                  ) : (
+                    <button onClick={handleDeploy} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors border-b border-black-alpha-8 mb-4 pb-12 flex items-center justify-between">
+                      Deploy
+                      <CloudUpload className="w-14 h-14 text-black-alpha-32" />
+                    </button>
+                  )}
                   <button onClick={handleClearCanvas} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Clear</button>
                   <button onClick={confirmDeleteWorkflow} className="w-full px-12 py-8 text-left text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-8 transition-colors">Delete</button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
+          <div className="flex items-center gap-4 mr-8 border-r border-black-alpha-8 pr-12">
+            <button
+              onClick={handleUndo}
+              disabled={!activeUndoRedo.canUndo}
+              className={`w-32 h-32 rounded-8 flex items-center justify-center transition-all ${activeUndoRedo.canUndo ? 'text-black-alpha-56 hover:bg-black-alpha-4 hover:text-accent-black' : 'text-black-alpha-16 cursor-not-allowed'}`}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo className="w-16 h-16" />
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={!activeUndoRedo.canRedo}
+              className={`w-32 h-32 rounded-8 flex items-center justify-center transition-all ${activeUndoRedo.canRedo ? 'text-black-alpha-56 hover:bg-black-alpha-4 hover:text-accent-black' : 'text-black-alpha-16 cursor-not-allowed'}`}
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo className="w-16 h-16" />
+            </button>
+          </div>
+
           <button onClick={handleShowSettings} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
             <Settings2 className="w-16 h-16" /> Config
           </button>
@@ -659,8 +688,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               <StopCircle className="w-16 h-16" /> Stop
             </button>
           )}
-          <button onClick={handleSaveWorkflowImmediate} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-white hover:bg-[#f4f4f5] text-black text-sm font-semibold transition-all">
-            <Save className="w-16 h-16" /> Deploy
+          <button onClick={handleSave} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-semibold transition-all">
+            <Save className="w-16 h-16" /> Save
           </button>
         </div>
       </header>
@@ -687,106 +716,168 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                 <h3 className="text-sm font-bold uppercase tracking-wider text-black-alpha-56">{activeSidebarTab}</h3>
                 <button onClick={() => setSidebarExpanded(false)} className="w-24 h-24 rounded-6 hover:bg-black-alpha-4 flex items-center justify-center text-black-alpha-56 transition-all"><ChevronLeft className="w-16 h-16" /></button>
               </div>
-              <div className="flex-1 overflow-y-auto p-12 space-y-24 no-scrollbar">
-                {activeSidebarTab === 'nodes' && nodeCategories.map((cat) => (
-                  <div key={cat.category}>
-                    <h4 className="text-[10px] font-bold text-black-alpha-56 uppercase tracking-wider mb-12 px-8">{cat.category}</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {cat.nodes.map((node) => (
-                        <motion.div key={node.type} draggable onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)} className="flex items-center gap-12 p-10 rounded-12 bg-background-base border border-black-alpha-8 hover:border-heat-100/50 hover:bg-black-alpha-4 transition-all cursor-grab active:cursor-grabbing">
-                          <div className={`w-32 h-32 rounded-10 ${node.color} flex items-center justify-center`}><node.icon className="w-16 h-16 text-white" /></div>
-                          <span className="text-xs font-semibold text-accent-black">{node.label}</span>
-                        </motion.div>
-                      ))}
-                    </div>
+              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-black-alpha-8 scrollbar-track-transparent">
+                {activeSidebarTab === 'nodes' && (
+                  <div className="p-20 space-y-24">
+                    {nodeCategories.map((cat) => (
+                      <div key={cat.category}>
+                        <h4 className="text-[10px] font-bold text-black-alpha-56 uppercase tracking-wider mb-12 px-8">{cat.category}</h4>
+                        <div className="grid grid-cols-1 gap-8">
+                          {cat.nodes.map((node) => (
+                            <motion.div key={node.type} draggable onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)} className="flex items-center gap-12 p-10 rounded-12 bg-background-base border border-black-alpha-8 hover:border-heat-100/50 hover:bg-black-alpha-4 transition-all cursor-grab active:cursor-grabbing">
+                              <div className={`w-32 h-32 rounded-10 ${node.color} flex items-center justify-center`}><node.icon className="w-16 h-16 text-white" /></div>
+                              <span className="text-xs font-semibold text-accent-black">{node.label}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {activeSidebarTab === 'library' && (
+                  <LibraryPanel
+                    onAddSource={() => setShowSourceSelector(true)}
+                    onAddMCPServer={() => setShowSettings(true)}
+                  />
+                )}
+                {activeSidebarTab === 'settings' && (
+                  <WorkflowSettingsPanel
+                    workflow={workflow}
+                    onUpdateWorkflow={(updates) => saveWorkflow({ ...workflow!, ...updates })}
+                    onOpenGlobalSettings={handleShowSettings}
+                    snapToGrid={snapToGrid}
+                    setSnapToGrid={setSnapToGrid}
+                    gridStyle={gridStyle}
+                    setGridStyle={setGridStyle}
+                    edgeStyle={edgeStyle}
+                    setEdgeStyle={setEdgeStyle}
+                    maxIterations={maxIterations}
+                    setMaxIterations={setMaxIterations}
+                    timeout={timeout}
+                    setTimeout={setTimeoutSec}
+                  />
+                )}
               </div>
             </motion.aside>
           )}
         </AnimatePresence>
 
         {/* Main Workspace */}
-        <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 relative" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onNodeClick={onNodeClick}
-            onNodeContextMenu={onNodeContextMenu}
-            onPaneContextMenu={onPaneContextMenu}
-            onEdgeClick={(_e, edge) => setSelectedEdgeId(edge.id)}
-            onPaneClick={() => { setSelectedEdgeId(null); setInspectorOpen(false); setContextMenu(null); }}
-            onBeforeDelete={async ({ nodes: deletedNodes }) => {
-              const hasStartNode = deletedNodes.some(n => (n.data as any)?.nodeType === 'start' || n.type === 'start');
-              if (hasStartNode) {
-                toast.error('Cannot delete the start node');
-                return false;
-              }
-              return true;
-            }}
-            onNodesDelete={(deleted) => {
-              if (workflow) updateNodes(nodes.filter(n => !deleted.find(d => d.id === n.id)) as any);
-            }}
-            onEdgesDelete={(deleted) => {
-              if (workflow) updateEdges(edges.filter(e => !deleted.find(d => d.id === e.id)) as any);
-            }}
-            selectionOnDrag={!isCtrlPressed}
-            selectionMode={SelectionMode.Partial}
-            panOnDrag={isCtrlPressed ? [0, 1, 2] : [1, 2]} // Pan with Left Click only if Ctrl is pressed. Right/Middle always pan.
-            panActivationKeyCode={undefined} // Manually handled
-            defaultEdgeOptions={{ type: 'smoothstep', style: { strokeWidth: 2 } }}
-          >
-            <Background color="#e5e5e5" gap={20} size={1} />
-            <Controls className="!bg-accent-white !border-black-alpha-8 !fill-black-alpha-56 !shadow-md react-flow-controls" position="bottom-right" showInteractive={false} />
-          </ReactFlow>
+        <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 relative flex overflow-hidden">
+          <div className={`flex-1 grid gap-1 h-full w-full ${canvasStack.length === 1 ? 'grid-cols-1' :
+            canvasStack.length === 2 ? 'grid-cols-2' :
+              'grid-cols-[1fr_1fr]'
+            }`}>
+            {/* Column 1 (Main) */}
+            <div className="h-full w-full relative">
+              {canvasStack[0] && (
+                <CanvasWindow
+                  workflowId={canvasStack[0].workflowId}
+                  instanceId="main"
+                  isMain={true}
+                  onSelectNode={handleSelectNode}
+                  onOpenNestedWorkflow={handleOpenNestedWorkflow}
+                  snapToGrid={snapToGrid}
+                  gridStyle={gridStyle}
+                  edgeStyle={edgeStyle}
+                  onGridStyleChange={(style) => setGridStyle(style)}
+                  onEdgeStyleChange={(style) => setEdgeStyle(style)}
+                  activeNodeId={currentNodeId}
+                  nodeResults={nodeResults}
+                  onRegisterUpdate={(id, h) => { updateHandlersRef.current[id] = h; }}
+                  onUndoRedoStateChange={handleUndoRedoChange}
+                  onFocus={setActiveCanvasId}
+                  isFocused={activeCanvasId === "main"}
+                />
+              )}
+            </div>
+
+            {/* Column 2 (Secondary/Stack) */}
+            {canvasStack.length > 1 && (
+              <div className={`grid gap-1 ${canvasStack.length === 2 ? 'grid-rows-1' : 'grid-rows-2'}`}>
+                {canvasStack.slice(1).map((c) => (
+                  <CanvasWindow
+                    key={c.instanceId}
+                    workflowId={c.workflowId}
+                    instanceId={c.instanceId}
+                    onSelectNode={handleSelectNode}
+                    onOpenNestedWorkflow={handleOpenNestedWorkflow}
+                    onClose={handleCloseCanvas}
+                    snapToGrid={snapToGrid}
+                    gridStyle={gridStyle}
+                    edgeStyle={edgeStyle}
+                    onGridStyleChange={(style) => setGridStyle(style)}
+                    onEdgeStyleChange={(style) => setEdgeStyle(style)}
+                    onRegisterUpdate={(id, h) => { updateHandlersRef.current[id] = h; }}
+                    onUndoRedoStateChange={handleUndoRedoChange}
+                    onFocus={setActiveCanvasId}
+                    isFocused={activeCanvasId === c.instanceId}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </motion.main>
 
         {/* Unified Inspector */}
         <AnimatePresence>
           {inspectorOpen && (
-            <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 380, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="relative border-l border-black-alpha-8 bg-accent-white flex flex-col overflow-hidden shadow-2xl">
+            <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 380, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="relative border-l border-black-alpha-8 bg-accent-white flex flex-col overflow-hidden shadow-2xl h-full">
               <div className="flex items-center justify-between p-20 border-b border-black-alpha-8">
                 <div className="flex items-center gap-10">
-                  <div className={`w-28 h-28 rounded-8 ${selectedNode ? getNodeColor(selectedNode.type || '') : 'bg-heat-100'} flex items-center justify-center`}>
+                  <div className={`w-28 h-28 rounded-8 ${activeNode ? getNodeColor(activeNode.type || '') : 'bg-heat-100'} flex items-center justify-center`}>
                     <LayoutGrid className="w-14 h-14 text-white" />
                   </div>
                   <h3 className="text-sm font-bold text-accent-black tracking-tight">
-                    {showSettings ? 'Project Settings' : (selectedNode?.data?.nodeName || 'Properties')}
+                    {showSettings ? 'Project Settings' : (activeNode?.data?.nodeName || activeNode?.data?.label || 'Properties')}
                   </h3>
                 </div>
-                <button onClick={() => { setInspectorOpen(false); setSelectedNode(null); setShowSettings(false); }} className="w-28 h-28 rounded-8 hover:bg-black-alpha-4 flex items-center justify-center text-black-alpha-56 transition-all"><ChevronRight className="w-18 h-18" /></button>
+                <button onClick={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); setShowSettings(false); }} className="w-28 h-28 rounded-8 hover:bg-black-alpha-4 flex items-center justify-center text-black-alpha-56 transition-all"><ChevronRight className="w-18 h-18" /></button>
               </div>
 
               {showSettings ? (
                 <SettingsPanel isOpen={true} onClose={() => { setShowSettings(false); setInspectorOpen(false); }} />
               ) : showTestEndpoint && workflow ? (
-                <TestEndpointPanel key={workflow.id} workflowId={workflow.id} workflow={{ ...workflow, nodes: nodes as any }} environment={environment} onClose={() => setShowTestEndpoint(false)} />
+                <TestEndpointPanel key={workflow.id} workflowId={workflow.id} workflow={{ ...workflow }} environment={environment} onClose={() => setShowTestEndpoint(false)} />
               ) : showExecution ? (
-                <ExecutionPanel workflow={workflow ? { ...workflow, nodes: nodes as any } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
-              ) : (selectedNode?.data as any)?.nodeType === 'mcp' ? (
-                <MCPPanel node={selectedNode} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onUpdate={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType === 'router' ? (
-                <RouterNodePanel node={selectedNode} updateNodeData={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType?.includes('if') || (selectedNode?.data as any)?.nodeType?.includes('while') || (selectedNode?.data as any)?.nodeType?.includes('appr') ? (
-                <LogicNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType?.includes('trans') || (selectedNode?.data as any)?.nodeType?.includes('set-state') ? (
-                <DataNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType === 'extract' ? (
-                <ExtractNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onAddMCP={() => { setTargetAgentForMCP(selectedNode); setShowMCPSelector(true); }} />
-              ) : (selectedNode?.data as any)?.nodeType === 'retriever' ? (
-                <RetrieverNodePanel node={selectedNode} nodes={nodes} updateNodeData={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType === 'http' ? (
-                <HTTPNodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (selectedNode?.data as any)?.nodeType === 'start' ? (
-                <StartNodePanel node={selectedNode} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onUpdate={handleUpdateNodeData} />
-              ) : selectedNode ? (
-                <NodePanel node={selectedNode} nodes={nodes} onClose={() => { setInspectorOpen(false); setSelectedNode(null); }} onAddMCP={() => { setTargetAgentForMCP(selectedNode); setShowMCPSelector(true); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onOpenSettings={handleShowSettings} />
+                <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
+              ) : (activeNode?.data as any)?.nodeType === 'mcp' ? (
+                <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'router' ? (
+                <RouterNodePanel node={activeNode as any} updateNodeData={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType?.includes('if') || (activeNode?.data as any)?.nodeType?.includes('while') || (activeNode?.data as any)?.nodeType?.includes('appr') ? (
+                <LogicNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType?.includes('trans') || (activeNode?.data as any)?.nodeType?.includes('set-state') || (activeNode?.data as any)?.nodeType?.includes('query') ? (
+                <DataNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'extract' ? (
+                <ExtractNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onAddMCP={() => { }} />
+              ) : (activeNode?.data as any)?.nodeType === 'retriever' ? (
+                <RetrieverNodePanel node={activeNode as any} nodes={[]} updateNodeData={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'memory' ? (
+                <MemoryNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'http' ? (
+                <HTTPNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'start' ? (
+                <StartNodePanel node={activeNode as any} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
+              ) : (activeNode?.data as any)?.nodeType === 'workflow' ? (
+                <div className="p-40 space-y-24">
+                  <div className="p-20 rounded-16 bg-teal-50 border border-teal-100 space-y-12">
+                    <div className="flex items-center gap-12">
+                      <div className="w-40 h-40 rounded-12 bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-200">
+                        <Layers className="w-20 h-20 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-teal-900">{activeNode?.data?.label}</h4>
+                        <p className="text-[10px] font-medium text-teal-600 uppercase tracking-wider">Nested Workflow</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-teal-700 leading-relaxed">
+                      This node represents a nested workflow. Any changes made in the side canvas will be saved directly to this workflow asset.
+                    </p>
+                  </div>
+                </div>
+              ) : activeNode ? (
+                <NodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onAddMCP={() => { }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onOpenSettings={handleShowSettings} />
               ) : (
                 <div className="p-40 text-center text-black-alpha-56">Select a node to edit</div>
               )}
@@ -795,87 +886,30 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         </AnimatePresence>
       </div>
 
+      {/* Context Menu and Dialogs moved to WorkflowCanvas */}
       <ShareWorkflowModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} workflowId={workflow?.id || ''} workflowName={workflow?.name || 'Workflow'} />
       <SaveAsTemplateModal isOpen={showSaveAsTemplateModal} onClose={() => setShowSaveAsTemplateModal(false)} workflowId={convexId || ''} workflowName={workflow?.name || 'Workflow'} />
-      <ConfirmDialog isOpen={confirmDialog.isOpen} title={confirmDialog.title} description={confirmDialog.description} variant={confirmDialog.variant} onConfirm={confirmDialog.onConfirm} onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })} />
+      <SourceSelectorModal
+        isOpen={showSourceSelector}
+        onClose={() => setShowSourceSelector(false)}
+        onSelect={async (data: any) => {
+          try {
+            const loadingToast = toast.loading(`Creating integration ${data.name}...`);
+            await createConnector({
+              name: data.name,
+              type: data.category === 'database' ? 'database' : 'custom',
+              config: data.config,
+            });
+            toast.success(`Success! Connected to ${data.name}.`, { id: loadingToast });
+            setShowSourceSelector(false);
+          } catch (error) {
+            toast.error("Failed to create integration");
+            console.error(error);
+          }
+        }}
+      />
 
-      {contextMenu && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="fixed bg-accent-white border border-black-alpha-8 rounded-12 shadow-2xl z-[500] p-4 min-w-[180px] backdrop-blur-xl"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {contextMenu.nodeId ? (
-            <>
-              <button
-                onClick={() => {
-                  handleDuplicateNode(contextMenu.nodeId);
-                  setContextMenu(null);
-                }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
-              >
-                <div className="w-20 h-20 flex items-center justify-center bg-blue-500/20 text-blue-500 rounded-4">
-                  <Copy className="w-12 h-12" />
-                </div>
-                Duplicate
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedNode(nodes.find(n => n.id === contextMenu.nodeId) || null);
-                  setInspectorOpen(true);
-                  setContextMenu(null);
-                }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
-              >
-                <div className="w-20 h-20 flex items-center justify-center bg-indigo-500/20 text-indigo-500 rounded-4">
-                  <Settings2 className="w-12 h-12" />
-                </div>
-                Edit Properties
-              </button>
-              <div className="h-1 bg-black-alpha-8 my-4 mx-8 opacity-50" />
-              <button
-                onClick={() => {
-                  handleDeleteNode(contextMenu.nodeId);
-                  setContextMenu(null);
-                }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-8 transition-colors"
-              >
-                <div className="w-20 h-20 flex items-center justify-center bg-red-500/10 rounded-4">
-                  <Trash2 className="w-12 h-12" />
-                </div>
-                Delete
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  const layoutedNodes = autoLayoutNodes(nodes as any, edges as any);
-                  setNodes(layoutedNodes as any);
-                  setContextMenu(null);
-                }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
-              >
-                <div className="w-20 h-20 flex items-center justify-center bg-teal-500/20 text-teal-500 rounded-4">
-                  <Maximize className="w-12 h-12" />
-                </div>
-                Auto-layout
-              </button>
-              <button
-                onClick={() => setContextMenu(null)}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-black-alpha-56 hover:bg-black-alpha-4 rounded-8 transition-colors"
-              >
-                <div className="w-20 h-20 flex items-center justify-center bg-black-alpha-8 rounded-4">
-                  <Activity className="w-12 h-12" />
-                </div>
-                Cancel
-              </button>
-            </>
-          )}
-        </motion.div>
-      )}
+      {/* Context Menu and Dialogs moved to WorkflowCanvas */}
 
       <style jsx global>{`
         .react-flow__pane {
@@ -904,9 +938,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 export default function WorkflowBuilder(props: WorkflowBuilderProps) {
   return (
     <ErrorBoundary>
-      <ReactFlowProvider>
-        <WorkflowBuilderInner {...props} />
-      </ReactFlowProvider>
+      <WorkflowBuilderInner {...props} />
     </ErrorBoundary>
   );
 }

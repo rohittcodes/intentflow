@@ -19,7 +19,8 @@ import {
   Search,
   Server,
   Activity,
-  Database
+  Database,
+  Globe
 } from "lucide-react";
 
 // Custom node component with handles for connections
@@ -69,6 +70,9 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
       'http': { icon: Server, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Request' },
       'set-state': { icon: Braces, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'State' },
       'start': { icon: Activity, color: 'bg-gray-600', label: 'Trigger' },
+      'workflow': { icon: Globe, color: 'bg-teal-600 font-bold', label: 'Workflow' },
+      'data-query': { icon: Database, color: 'bg-amber-500', label: 'Database' },
+      'memory': { icon: Zap, color: 'bg-purple-500', label: 'Memory' },
     };
     return themes[nodeType || ''] || { icon: Activity, color: 'bg-gray-500', label: 'Node' };
   };
@@ -210,7 +214,6 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
         padding: '12px 16px',
         fontSize: '13px',
         backgroundColor: getBackgroundColor(),
-        border: selected ? '2px solid #FA5D19' : '1px solid rgba(0,0,0,0.08)',
         outline: getOutlineStyle(),
         outlineOffset: 0,
         boxShadow: selected
@@ -218,9 +221,10 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
           : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         borderRadius: '8px', // rounded-2xl
-        minWidth: '180px',
+        minWidth: nodeType === 'workflow' ? '220px' : '180px',
         maxWidth: '280px',
         width: 'fit-content',
+        border: nodeType === 'workflow' ? '2px dashed #0d9488' : (selected ? '2px solid #FA5D19' : '1px solid rgba(0,0,0,0.08)'),
         // overflow: 'hidden', // Removed to prevent clipping
       }}
     >
@@ -243,7 +247,7 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
           style={{
             width: 10,
             height: 10,
-            background: '#52525b',
+            background: nodeType === 'workflow' ? '#0d9488' : '#52525b',
             border: 'none',
             borderRadius: '50%',
             left: -6,
@@ -252,6 +256,10 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             zIndex: 10,
           }}
         />
+      )}
+
+      {nodeType === 'workflow' && (
+        <div className="absolute inset-0 bg-teal-50/50 rounded-8 -z-10 pointer-events-none" />
       )}
 
       <div className="flex items-center gap-12">
@@ -550,4 +558,7 @@ export const nodeTypes = {
   'guardrails': CustomNode,
   'router': CustomNode,
   'retriever': CustomNode,
+  'workflow': CustomNode,
+  'data-query': CustomNode,
+  'memory': CustomNode,
 };

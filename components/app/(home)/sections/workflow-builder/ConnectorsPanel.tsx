@@ -158,11 +158,10 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
               <div className="flex gap-8">
                 <button
                   onClick={() => setActiveTab('mcp')}
-                  className={`px-16 py-8 rounded-8 text-body-medium font-medium transition-all ${
-                    activeTab === 'mcp'
+                  className={`px-16 py-8 rounded-8 text-body-medium font-medium transition-all ${activeTab === 'mcp'
                       ? 'bg-heat-100 text-white'
                       : 'bg-background-base text-black-alpha-64 hover:bg-black-alpha-4'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-8">
                     <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,11 +172,10 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                 </button>
                 <button
                   onClick={() => setActiveTab('llm')}
-                  className={`px-16 py-8 rounded-8 text-body-medium font-medium transition-all ${
-                    activeTab === 'llm'
+                  className={`px-16 py-8 rounded-8 text-body-medium font-medium transition-all ${activeTab === 'llm'
                       ? 'bg-heat-100 text-white'
                       : 'bg-background-base text-black-alpha-64 hover:bg-black-alpha-4'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-8">
                     <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,21 +196,19 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                     <div className="flex gap-8">
                       <button
                         onClick={() => setMcpTab('templates')}
-                        className={`flex-1 px-12 py-8 rounded-8 text-body-small transition-colors ${
-                          mcpTab === 'templates'
+                        className={`flex-1 px-12 py-8 rounded-8 text-body-small transition-colors ${mcpTab === 'templates'
                             ? 'bg-heat-4 text-heat-100 border border-heat-100'
                             : 'bg-background-base text-black-alpha-64 hover:bg-black-alpha-4'
-                        }`}
+                          }`}
                       >
                         Pre-configured
                       </button>
                       <button
                         onClick={() => setMcpTab('custom')}
-                        className={`flex-1 px-12 py-8 rounded-8 text-body-small transition-colors ${
-                          mcpTab === 'custom'
+                        className={`flex-1 px-12 py-8 rounded-8 text-body-small transition-colors ${mcpTab === 'custom'
                             ? 'bg-heat-4 text-heat-100 border border-heat-100'
                             : 'bg-background-base text-black-alpha-64 hover:bg-black-alpha-4'
-                        }`}
+                          }`}
                       >
                         Custom Remote
                       </button>
@@ -220,7 +216,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                   </div>
 
                   {mcpTab === 'templates' ? (
-                    <div className="p-20 space-y-16">
+                    <div className="p-20 space-y-20">
                       <div>
                         <h3 className="text-label-medium text-accent-black mb-12">MCP Templates</h3>
                         <div className="space-y-12">
