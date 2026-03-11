@@ -95,11 +95,11 @@ export default function MemoryNodePanel({
   const selectedScope = SCOPES.find((s) => s.id === scope)!;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-20">
+    <div className="flex-1 overflow-y-auto p-2 space-y-2 w-[260px]">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-8">
-          <Brain className="w-16 h-16 text-purple-500" />
+        <h3 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          <Brain className="w-4 h-4 text-purple-500" />
           Memory Node
           <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-purple-500 bg-purple-50 px-6 py-2 rounded-4">
             Mem0
@@ -113,10 +113,10 @@ export default function MemoryNodePanel({
 
       {/* Mode Selection */}
       <div>
-        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-10">
+        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-1">
           Mode
         </label>
-        <div className="space-y-8">
+        <div className="space-y-4">
           {MODES.map((m) => {
             const Icon = m.icon;
             const active = mode === m.id;
@@ -124,17 +124,14 @@ export default function MemoryNodePanel({
               <button
                 key={m.id}
                 onClick={() => setMode(m.id)}
-                className={`w-full p-12 rounded-lg border text-left transition-all ${active ? m.bg : "bg-accent-white border-border hover:border-black-alpha-16"
+                className={`w-full p-2 rounded-lg border text-left transition-all ${active ? m.bg : "bg-accent-white border-border hover:border-black-alpha-16"
                   }`}
               >
-                <div className="flex items-center gap-8 mb-4">
-                  <Icon className={`w-14 h-14 ${active ? m.color : "text-black-alpha-40"}`} />
+                <div className="flex items-center gap-2 mb-1">
+                  <Icon className={`w-3.5 h-3.5 ${active ? m.color : "text-black-alpha-40"}`} />
                   <span className={`text-xs font-bold  ${active ? m.color : "text-foreground"}`}>
                     {m.label}
                   </span>
-                  {active && (
-                    <span className="ml-auto w-6 h-6 rounded-full bg-current opacity-80" />
-                  )}
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">{m.desc}</p>
               </button>
@@ -144,11 +141,11 @@ export default function MemoryNodePanel({
       </div>
 
       {/* Memory Scope */}
-      <div className="pt-16 border-t border-border">
-        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-10">
+      <div className="pt-4 border-t border-border">
+        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-1">
           Memory Scope
         </label>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-2">
           {SCOPES.map((s) => {
             const Icon = s.icon;
             const active = scope === s.id;
@@ -157,26 +154,26 @@ export default function MemoryNodePanel({
                 key={s.id}
                 onClick={() => setScope(s.id)}
                 title={s.desc}
-                className={`p-10 rounded-lg border text-center transition-all ${active
-                    ? "bg-purple-50 border-purple-200 text-purple-700"
-                    : "bg-accent-white border-border text-black-alpha-56 hover:border-purple-100"
+                className={`p-2 rounded-lg border text-center transition-all ${active
+                  ? "bg-purple-50 border-purple-200 text-purple-700"
+                  : "bg-accent-white border-border text-black-alpha-56 hover:border-purple-100"
                   }`}
               >
-                <Icon className={`w-14 h-14 mx-auto mb-4 ${active ? "text-purple-600" : "text-black-alpha-32"}`} />
+                <Icon className={`w-3.5 h-3.5 mx-auto mb-1 ${active ? "text-purple-600" : "text-black-alpha-32"}`} />
                 <span className="text-[10px] font-bold uppercase tracking-tight block">{s.label}</span>
               </button>
             );
           })}
         </div>
-        <p className="mt-6 text-[11px] text-black-alpha-40 leading-snug">{selectedScope.desc}</p>
+        <p className="mt-1 text-[11px] text-black-alpha-40 leading-snug">{selectedScope.desc}</p>
       </div>
 
       {/* Retrieve Mode Options */}
       {mode === "retrieve" && (
-        <div className="pt-16 border-t border-border space-y-16">
+        <div className="pt-4 border-t border-border space-y-4">
           {/* Query */}
           <div>
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
                 Search Query
               </label>
@@ -191,9 +188,9 @@ export default function MemoryNodePanel({
               onChange={(e) => setQuery(e.target.value)}
               rows={3}
               placeholder="What to search for... (leave empty to use lastOutput)"
-              className="w-full px-12 py-10 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:border-purple-400 transition-all resize-none"
+              className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:border-purple-400 transition-all resize-none"
             />
-            <p className="mt-4 text-[10px] text-black-alpha-36">
+            <p className="mt-1 text-[10px] text-black-alpha-36">
               Supports <code className="font-mono">{"{{variable}}"}</code> references. If empty,
               uses the upstream lastOutput.
             </p>
@@ -201,7 +198,7 @@ export default function MemoryNodePanel({
 
           {/* Top-K Slider */}
           <div>
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
                 Inject Top
               </label>
@@ -215,7 +212,7 @@ export default function MemoryNodePanel({
               onChange={(e) => setTopK(Number(e.target.value))}
               className="w-full accent-purple-500"
             />
-            <p className="mt-4 text-[10px] text-black-alpha-36">
+            <p className="mt-1 text-[10px] text-black-alpha-36">
               Top-{topK} most semantically relevant memories will be injected into the next
               agent's system prompt.
             </p>
@@ -225,10 +222,10 @@ export default function MemoryNodePanel({
 
       {/* Clear Mode Warning */}
       {mode === "clear" && (
-        <div className="pt-16 border-t border-border">
-          <div className="p-12 bg-red-50 border border-red-100 rounded-lg">
-            <div className="flex items-start gap-8">
-              <Trash2 className="w-14 h-14 text-red-500 mt-1 flex-shrink-0" />
+        <div className="pt-4 border-t border-border">
+          <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Trash2 className="w-3.5 h-3.5 text-red-500 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-xs font-semibold text-red-700 mb-2">Destructive operation</p>
                 <p className="text-[11px] text-red-600 leading-relaxed">
@@ -241,20 +238,20 @@ export default function MemoryNodePanel({
       )}
 
       {/* Advanced */}
-      <div className="pt-16 border-t border-border">
+      <div className="pt-4 border-t border-border">
         <button
           onClick={() => setShowAdvanced((v) => !v)}
-          className="flex items-center gap-6 text-xs font-bold text-black-alpha-40 uppercase tracking-widest hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-xs font-bold text-black-alpha-40 uppercase tracking-widest hover:text-foreground transition-colors"
         >
-          {showAdvanced ? <ChevronDown className="w-12 h-12" /> : <ChevronRight className="w-12 h-12" />}
+          {showAdvanced ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
           Advanced
         </button>
 
         {showAdvanced && (
-          <div className="mt-14 space-y-14">
+          <div className="mt-4 space-y-4">
             {/* Agent ID / Attribution Label */}
             <div>
-              <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-8">
+              <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-1">
                 Agent Attribution Label
               </label>
               <input
@@ -262,9 +259,9 @@ export default function MemoryNodePanel({
                 value={agentId}
                 onChange={(e) => setAgentId(e.target.value)}
                 placeholder="e.g. customer-support-agent"
-                className="w-full px-12 py-10 bg-secondary border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-purple-400 transition-all"
+                className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm font-mono focus:outline-none focus:border-purple-400 transition-all"
               />
-              <p className="mt-4 text-[10px] text-black-alpha-36">
+              <p className="mt-1 text-[10px] text-black-alpha-36">
                 Tags memories with this label so you can filter by agent in the future.
               </p>
             </div>
@@ -273,9 +270,9 @@ export default function MemoryNodePanel({
       </div>
 
       {/* How It Works callout */}
-      <div className="p-12 bg-secondary rounded-lg space-y-6">
+      <div className="p-3 bg-secondary rounded-lg space-y-6">
         <div className="flex items-center gap-6">
-          <Info className="w-12 h-12 text-black-alpha-32" />
+          <Info className="w-4 h-4 text-black-alpha-32" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-black-alpha-32">
             How it works
           </span>

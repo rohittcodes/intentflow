@@ -57,7 +57,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-secondary8 z-[100] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[100] flex items-center justify-center p-6"
           onClick={onClose}
         >
           <motion.div
@@ -78,7 +78,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                       onClick={onClose}
                       className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
                     >
-                      <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -89,7 +89,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                 </div>
 
                 {/* Form */}
-                <div className="p-24 space-y-20">
+                <div className="p-24 space-y-6">
                   {/* Name */}
                   <div>
                     <label className="block text-label-small text-muted-foreground mb-8">
@@ -99,7 +99,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
 
@@ -112,13 +112,13 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                      className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                       placeholder="Describe what this workflow does..."
                     />
                   </div>
 
                   {/* Public Access */}
-                  <div className="flex items-center justify-between p-16 bg-background rounded-xl border border-border">
+                  <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
                     <div>
                       <h3 className="text-label-small text-foreground mb-4">Public Access</h3>
                       <p className="text-xs text-muted-foreground">
@@ -127,12 +127,11 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                     </div>
                     <button
                       onClick={() => setIsPublic(!isPublic)}
-                      className={`w-44 h-24 rounded-full transition-colors relative ${
-                        isPublic ? 'bg-primary' : 'bg-muted'
-                      }`}
+                      className={`w-44 h-24 rounded-full transition-colors relative ${isPublic ? 'bg-primary' : 'bg-muted'
+                        }`}
                     >
                       <motion.div
-                        className="w-20 h-20 bg-white rounded-full absolute top-2 shadow-sm"
+                        className="w-8 h-8 bg-white rounded-full absolute top-2 shadow-sm"
                         animate={{ left: isPublic ? '22px' : '2px' }}
                         transition={{ duration: 0.2 }}
                       />
@@ -140,7 +139,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                   </div>
 
                   {/* Require Authentication */}
-                  <div className="flex items-center justify-between p-16 bg-background rounded-xl border border-border">
+                  <div className="flex items-center justify-between p-4 bg-background rounded-xl border border-border">
                     <div>
                       <h3 className="text-label-small text-foreground mb-4">Require Authentication</h3>
                       <p className="text-xs text-muted-foreground">
@@ -149,12 +148,11 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                     </div>
                     <button
                       onClick={() => setRequiresAuth(!requiresAuth)}
-                      className={`w-44 h-24 rounded-full transition-colors relative ${
-                        requiresAuth ? 'bg-primary' : 'bg-muted'
-                      }`}
+                      className={`w-44 h-24 rounded-full transition-colors relative ${requiresAuth ? 'bg-primary' : 'bg-muted'
+                        }`}
                     >
                       <motion.div
-                        className="w-20 h-20 bg-white rounded-full absolute top-2 shadow-sm"
+                        className="w-8 h-8 bg-white rounded-full absolute top-2 shadow-sm"
                         animate={{ left: requiresAuth ? '22px' : '2px' }}
                         transition={{ duration: 0.2 }}
                       />
@@ -163,9 +161,9 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
 
                   {/* Workflow Stats */}
                   {workflow && (
-                    <div className="p-16 bg-blue-50 rounded-xl border border-blue-200">
-                      <h3 className="text-label-small text-blue-900 mb-12">Workflow Summary</h3>
-                      <div className="grid grid-cols-2 gap-12 text-xs">
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <h3 className="text-label-small text-blue-900 mb-3">Workflow Summary</h3>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <span className="text-blue-600">Nodes:</span>
                           <span className="text-blue-900 font-medium ml-8">{workflow.nodes.length}</span>
@@ -200,7 +198,7 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                 {/* Success State */}
                 <div className="p-24">
                   <div className="text-center mb-24">
-                    <div className="w-64 h-64 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-16">
+                    <div className="w-64 h-64 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-32 h-32 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
@@ -216,8 +214,8 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                     <label className="block text-label-small text-muted-foreground mb-8">
                       API Endpoint
                     </label>
-                    <div className="flex gap-8">
-                      <div className="flex-1 px-12 py-10 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto">
+                    <div className="flex gap-2">
+                      <div className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto">
                         {endpointUrl}
                       </div>
                       <button
@@ -235,8 +233,8 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                       Example cURL Request
                     </label>
                     <div className="relative">
-                      <pre className="px-12 py-10 bg-gray-900 text-green-400 rounded-md text-xs font-mono overflow-x-auto">
-{`curl -X POST ${endpointUrl} \\
+                      <pre className="px-3 py-2 bg-gray-900 text-green-400 rounded-md text-xs font-mono overflow-x-auto">
+                        {`curl -X POST ${endpointUrl} \\
   -H "Content-Type: application/json" \\
   -d '{"input": "Your input message"}'`}
                       </pre>
@@ -254,8 +252,8 @@ export default function PublishModal({ workflow, isOpen, onClose, onPublish }: P
                     <label className="block text-label-small text-muted-foreground mb-8">
                       JavaScript Example
                     </label>
-                    <pre className="px-12 py-10 bg-gray-900 text-green-400 rounded-md text-xs font-mono overflow-x-auto">
-{`const response = await fetch('${endpointUrl}', {
+                    <pre className="px-3 py-2 bg-gray-900 text-green-400 rounded-md text-xs font-mono overflow-x-auto">
+                      {`const response = await fetch('${endpointUrl}', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

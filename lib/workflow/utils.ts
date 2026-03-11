@@ -4,23 +4,27 @@ import { NodeData } from "./types";
 // Utility to get node color based on type
 export const getNodeColor = (type: string): string => {
   const colorMap: Record<string, string> = {
-    'agent': 'bg-blue-500',
-    'custom-input': 'bg-indigo-500',
-    'mcp': 'bg-heat-100',
-    'if-else': 'bg-orange-500',
-    'router': 'bg-orange-500',
-    'while': 'bg-orange-500',
-    'user-approval': 'bg-gray-400',
-    'transform': 'bg-purple-500',
-    'extract': 'bg-purple-500',
-    'retriever': 'bg-purple-500',
-    'http': 'bg-purple-500',
-    'start': 'bg-gray-600',
-    'end': 'bg-teal-500',
-    'note': 'bg-gray-200',
-    'workflow': 'bg-teal-600',
+    'agent': '#3b82f6',
+    'custom-input': '#6366f1',
+    'mcp': '#FFDD40',
+    'if-else': '#F59E0B',
+    'router': '#EA580C',
+    'while': '#EF4444',
+    'user-approval': '#9CA3AF',
+    'guardrails': '#F43F5E',
+    'transform': '#8B5CF6',
+    'extract': '#EC4899',
+    'retriever': '#0EA5E9',
+    'http': '#9665FF',
+    'set-state': '#10B981',
+    'start': '#4b5563',
+    'end': '#14b8a6',
+    'note': '#EAB308',
+    'workflow': '#3a958e',
+    'data-query': '#f59e0b',
+    'memory': '#a855f7',
   };
-  return colorMap[type] || 'bg-gray-500';
+  return colorMap[type] || '#6b7280';
 };
 
 // Auto-layout function to position nodes left to right

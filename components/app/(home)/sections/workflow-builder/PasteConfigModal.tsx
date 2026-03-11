@@ -1,9 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState } from "react";
-import { AlertCircle, Loader2, ExternalLink } from "lucide-react";
+import { AlertCircle, Loader2, ExternalLink, X } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 interface PasteConfigModalProps {
   isOpen: boolean;
@@ -146,54 +154,31 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black-alpha-16 backdrop-blur-sm flex items-center justify-center z-[100]"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-accent-white rounded-16 shadow-2xl max-w-2xl w-full mx-20 flex flex-col"
-        style={{ maxHeight: '85vh' }}
-      >
-        {/* Header */}
-        <div className="p-20 border-b border-border flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-title-h4 text-foreground">Paste MCP Configuration</h2>
-            <button
-              onClick={onClose}
-              className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
-            >
-              <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-8">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden border-border bg-background shadow-2xl">
+        <DialogHeader className="px-6 py-4 border-b border-border bg-muted/30">
+          <DialogTitle className="text-sm font-bold text-foreground text-left">
+            Paste MCP Configuration
+          </DialogTitle>
+          <DialogDescription className="text-[11px] text-muted-foreground">
             Paste your Cursor/Cline MCP configuration JSON below
-          </p>
-        </div>
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Body */}
-        <div className="p-20 space-y-16 overflow-y-auto flex-1">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <label className="text-xs text-foreground/64 block">
+        <div className="p-6 space-y-4 overflow-y-auto max-h-[70vh] custom-scrollbar">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Configuration JSON
-              </label>
+              </Label>
               <a
                 href="https://www.firecrawl.dev/app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-primary hover:text-heat-200 underline flex items-center gap-4"
+                className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium transition-colors"
               >
                 See example config
-                <ExternalLink className="w-12 h-12" />
+                <ExternalLink className="w-3 h-3" />
               </a>
             </div>
             <textarea
@@ -223,63 +208,58 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
     }
   }
 }`}
-              className="w-full h-[300px] px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
+              className="w-full h-[250px] px-3 py-2 bg-background border border-border rounded-lg text-xs text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
               spellCheck={false}
             />
           </div>
 
           {error && (
-            <div className="p-12 bg-accent-black text-white rounded-md">
-              <p className="text-xs">{error}</p>
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md">
+              <p className="text-[11px] font-medium leading-relaxed">{error}</p>
             </div>
           )}
 
-          <div className="p-12 bg-secondary rounded-md border border-primary">
-            <div className="flex items-start gap-8">
-              <AlertCircle className="w-16 h-16 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <p className="text-xs text-foreground font-medium mb-4">
-                  Supported Formats
-                </p>
-                <p className="text-xs text-foreground/64 mb-6">
-                  Supports two formats:
-                  <br />• Direct URL with headers (Context7, etc.)
-                  <br />• NPX command format (Firecrawl, Cursor, Cline)
-                  <br />
-                  <br />Connections will be tested automatically after import.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  💡 Tip: Copy your MCP config from your editor's settings.json file
-                </p>
+          <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-md text-primary">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-foreground">Supported Formats</h4>
+                <div className="text-[11px] text-muted-foreground leading-relaxed space-y-1">
+                  <p>• Direct URL with headers (Context7, etc.)</p>
+                  <p>• NPX command format (Firecrawl, Cursor, Cline)</p>
+                  <p className="pt-1 text-primary/70 font-medium italic">💡 Tip: Copy your MCP config from your editor's settings.json file</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
-          <button
+        <div className="px-6 py-4 border-t border-border bg-muted/30 flex gap-3">
+          <Button
+            variant="ghost"
             onClick={onClose}
-            className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all"
+            className="flex-1 text-xs font-bold text-muted-foreground hover:text-foreground h-10"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={parseAndSave}
             disabled={!configJSON.trim() || parsing}
-            className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-6"
+            className="flex-1 text-xs font-bold h-10"
           >
             {parsing ? (
               <>
-                <Loader2 className="w-16 h-16 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 Importing & Testing...
               </>
             ) : (
               'Import & Test'
             )}
-          </button>
+          </Button>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 }

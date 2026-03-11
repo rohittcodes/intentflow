@@ -60,7 +60,7 @@ export default function UniversalOutputSelector({
   const defaultFields = getDefaultFields();
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-3">
       <div>
         <label className="block text-xs text-muted-foreground mb-6 font-medium">
           Output Format
@@ -73,7 +73,7 @@ export default function UniversalOutputSelector({
           {/* Full Output */}
           <button
             onClick={() => setOutputAs('full')}
-            className={`w-full p-12 rounded-md border transition-all text-left ${
+            className={`w-full p-3 rounded-md border transition-all text-left ${
               outputAs === 'full'
                 ? 'border-primary bg-secondary'
                 : 'border-border bg-background hover:border-border-light'
@@ -88,7 +88,7 @@ export default function UniversalOutputSelector({
           {/* Single Field */}
           <button
             onClick={() => setOutputAs('field')}
-            className={`w-full p-12 rounded-md border transition-all text-left ${
+            className={`w-full p-3 rounded-md border transition-all text-left ${
               outputAs === 'field'
                 ? 'border-primary bg-secondary'
                 : 'border-border bg-background hover:border-border-light'
@@ -138,7 +138,7 @@ export default function UniversalOutputSelector({
           {/* Custom Path */}
           <button
             onClick={() => setOutputAs('custom')}
-            className={`w-full p-12 rounded-md border transition-all text-left ${
+            className={`w-full p-3 rounded-md border transition-all text-left ${
               outputAs === 'custom'
                 ? 'border-primary bg-secondary'
                 : 'border-border bg-background hover:border-border-light'
@@ -168,7 +168,7 @@ export default function UniversalOutputSelector({
       </div>
 
       {/* Preview */}
-      <div className="p-12 bg-blue-50 rounded-md border border-blue-200">
+      <div className="p-3 bg-blue-50 rounded-md border border-blue-200">
         <p className="text-xs text-blue-900 font-medium mb-6">Preview:</p>
         <code className="text-xs text-blue-800 font-mono">
           state.variables.{nodeId}

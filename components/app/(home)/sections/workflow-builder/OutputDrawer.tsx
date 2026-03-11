@@ -49,13 +49,13 @@ export default function OutputDrawer({
   const getStatusIcon = (status?: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle2 className="w-16 h-16 text-green-500" />;
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
       case "failed":
-        return <XCircle className="w-16 h-16 text-red-500" />;
+        return <XCircle className="w-4 h-4 text-red-500" />;
       case "running":
-        return <Clock className="w-16 h-16 text-blue-500 animate-spin" />;
+        return <Clock className="w-4 h-4 text-blue-500 animate-spin" />;
       default:
-        return <Clock className="w-16 h-16 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-gray-400" />;
     }
   };
 
@@ -102,9 +102,9 @@ export default function OutputDrawer({
             className="fixed right-0 top-0 bottom-0 w-[500px] bg-accent-white border-l border-black-alpha-8 shadow-2xl z-[201] flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-20 border-b border-black-alpha-8">
-              <div className="flex items-center gap-12">
-                <Code2 className="w-20 h-20 text-primary" />
+            <div className="flex items-center justify-between p-6 border-b border-black-alpha-8">
+              <div className="flex items-center gap-3">
+                <Code2 className="w-8 h-8 text-primary" />
                 <div>
                   <h2 className="text-sm font-medium font-bold text-foreground">
                     Node Inspector
@@ -123,10 +123,10 @@ export default function OutputDrawer({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-20 space-y-20">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {!nodeResult ? (
                 <div className="text-center py-40">
-                  <Clock className="w-48 h-48 text-black-alpha-24 mx-auto mb-16" />
+                  <Clock className="w-48 h-48 text-black-alpha-24 mx-auto mb-4" />
                   <p className="text-sm text-muted-foreground">
                     No execution data available
                   </p>
@@ -135,12 +135,12 @@ export default function OutputDrawer({
                 <>
                   {/* Status Card */}
                   <div
-                    className={`p-16 rounded-16 border ${getStatusColor(
+                    className={`p-4 rounded-16 border ${getStatusColor(
                       nodeResult.status
                     )}`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-12">
+                      <div className="flex items-center gap-3">
                         {getStatusIcon(nodeResult.status)}
                         <div>
                           <p className="text-label-medium font-bold capitalize">
@@ -189,11 +189,11 @@ export default function OutputDrawer({
                       isExpanded={expandedSections.has("toolCalls")}
                       onToggle={() => toggleSection("toolCalls")}
                     >
-                      <div className="space-y-12">
+                      <div className="space-y-3">
                         {nodeResult.toolCalls.map((call, idx) => (
                           <div
                             key={idx}
-                            className="p-12 bg-background rounded-xl border border-black-alpha-8"
+                            className="p-3 bg-background rounded-xl border border-black-alpha-8"
                           >
                             <p className="text-label-small font-bold text-foreground mb-8">
                               {call.name || `Tool ${idx + 1}`}
@@ -238,10 +238,10 @@ export default function OutputDrawer({
                           <div
                             key={idx}
                             className={`p-10 rounded-md border text-[11px] leading-relaxed ${log.level === 'error'
-                                ? 'bg-red-50 border-red-100 text-red-700'
-                                : log.level === 'warn'
-                                  ? 'bg-amber-50 border-amber-100 text-amber-700'
-                                  : 'bg-secondary border-black-alpha-8 text-foreground/64'
+                              ? 'bg-red-50 border-red-100 text-red-700'
+                              : log.level === 'warn'
+                                ? 'bg-amber-50 border-amber-100 text-amber-700'
+                                : 'bg-secondary border-black-alpha-8 text-foreground/64'
                               }`}
                           >
                             <div className="flex justify-between mb-4 font-bold uppercase tracking-wider text-[9px]">
@@ -267,7 +267,7 @@ export default function OutputDrawer({
                       isExpanded={expandedSections.has("error")}
                       onToggle={() => toggleSection("error")}
                     >
-                      <div className="p-12 bg-red-50 border border-red-200 rounded-xl">
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
                         <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-words">
                           {nodeResult.error}
                         </pre>
@@ -276,8 +276,8 @@ export default function OutputDrawer({
                   )}
 
                   {/* Metadata */}
-                  <div className="p-16 bg-background rounded-16 border border-black-alpha-8">
-                    <p className="text-[10px] uppercase tracking-wider text-black-alpha-40 font-bold mb-12">
+                  <div className="p-4 bg-background rounded-16 border border-black-alpha-8">
+                    <p className="text-[10px] uppercase tracking-wider text-black-alpha-40 font-bold mb-3">
                       Metadata
                     </p>
                     <div className="space-y-8 text-xs">
@@ -304,7 +304,7 @@ export default function OutputDrawer({
                         </div>
                       )}
                       {nodeResult.usage && (
-                        <div className="mt-12 pt-12 border-t border-black-alpha-8 space-y-8">
+                        <div className="mt-3 pt-12 border-t border-black-alpha-8 space-y-8">
                           <p className="text-[10px] uppercase tracking-wider text-black-alpha-40 font-bold mb-8">
                             Token Usage
                           </p>
@@ -350,15 +350,15 @@ function Section({
     <div className="border border-black-alpha-8 rounded-16 overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-16 bg-background hover:bg-secondary transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-background hover:bg-secondary transition-colors"
       >
         <span className="text-label-medium font-bold text-foreground">
           {title}
         </span>
         {isExpanded ? (
-          <ChevronDown className="w-16 h-16 text-black-alpha-56" />
+          <ChevronDown className="w-4 h-4 text-black-alpha-56" />
         ) : (
-          <ChevronRight className="w-16 h-16 text-black-alpha-56" />
+          <ChevronRight className="w-4 h-4 text-black-alpha-56" />
         )}
       </button>
       <AnimatePresence>
@@ -370,7 +370,7 @@ function Section({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="p-16 bg-accent-white">{children}</div>
+            <div className="p-4 bg-accent-white">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -382,7 +382,7 @@ function Section({
 function CodeBlock({ code, compact = false }: { code: string; compact?: boolean }) {
   return (
     <div className={`bg-[#1E1E1E] rounded-xl overflow-hidden ${compact ? 'max-h-200' : 'max-h-400'} overflow-y-auto`}>
-      <pre className="p-12 text-[11px] leading-relaxed font-mono text-[#D4D4D4]">
+      <pre className="p-3 text-[11px] leading-relaxed font-mono text-[#D4D4D4]">
         {code}
       </pre>
     </div>

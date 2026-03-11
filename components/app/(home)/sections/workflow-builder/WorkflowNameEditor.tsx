@@ -45,7 +45,7 @@ export default function WorkflowNameEditor({ workflow, onSave, renameTrigger = 0
   if (!workflow) return null;
 
   return (
-    <div className="flex items-center gap-12">
+    <div className="flex items-center gap-2">
       {isEditing ? (
         <input
           type="text"
@@ -54,21 +54,21 @@ export default function WorkflowNameEditor({ workflow, onSave, renameTrigger = 0
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           autoFocus
-          className="px-12 py-6 bg-[#1c1c1f] border border-primary rounded-md text-sm text-white text-foreground hover:text-black focus:outline-none shadow-lg min-w-[200px]"
+          className="px-3 py-1.5 bg-muted/20 border border-primary/50 rounded-md text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 min-w-[200px]"
         />
       ) : (
         <button
           onClick={() => setIsEditing(true)}
-          className="px-12 py-6 bg-transparent hover:bg-[#fff] border border-transparent hover:border-primary rounded-md text-sm font-semibold text-[#e4e4e7] hover:text-primary transition-all flex items-center gap-8 group"
+          className="px-3 py-1.5 bg-transparent hover:bg-muted/30 border border-transparent hover:border-border rounded-md text-sm font-semibold text-foreground transition-all flex items-center gap-2 group"
         >
           <span>{name}</span>
-          <svg className="w-14 h-14 text-[#71717a] group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
           </svg>
         </button>
       )}
       {rightAccessory ? (
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2">
           {rightAccessory}
         </div>
       ) : null}

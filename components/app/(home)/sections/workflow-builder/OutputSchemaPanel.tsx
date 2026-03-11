@@ -59,7 +59,7 @@ export default function OutputSchemaPanel({ nodeId, currentSchema, onUpdate }: O
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-label-small text-muted-foreground">
           Output Schema
@@ -68,7 +68,7 @@ export default function OutputSchemaPanel({ nodeId, currentSchema, onUpdate }: O
           onClick={addField}
           className="px-10 py-6 bg-background hover:bg-secondary border border-border rounded-6 text-xs text-foreground transition-colors flex items-center gap-6"
         >
-          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Add Field
@@ -76,22 +76,22 @@ export default function OutputSchemaPanel({ nodeId, currentSchema, onUpdate }: O
       </div>
 
       {schema.length === 0 ? (
-        <div className="p-16 bg-background rounded-md border border-border text-center">
+        <div className="p-4 bg-background rounded-md border border-border text-center">
           <p className="text-xs text-muted-foreground">
             Define the shape of this node's output
           </p>
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-3">
           {schema.map((field, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-12 bg-background rounded-md border border-border space-y-8"
+              className="p-3 bg-background rounded-md border border-border space-y-8"
             >
-              <div className="flex items-start gap-8">
-                <div className="flex-1 grid grid-cols-2 gap-8">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 grid grid-cols-2 gap-2">
                   {/* Field Name */}
                   <input
                     type="text"
@@ -120,7 +120,7 @@ export default function OutputSchemaPanel({ nodeId, currentSchema, onUpdate }: O
                   onClick={() => removeField(index)}
                   className="w-24 h-24 rounded-4 hover:bg-secondary transition-colors flex items-center justify-center group"
                 >
-                  <svg className="w-12 h-12 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -145,7 +145,7 @@ export default function OutputSchemaPanel({ nodeId, currentSchema, onUpdate }: O
           <label className="block text-label-small text-muted-foreground mb-8">
             TypeScript Interface
           </label>
-          <div className="p-12 bg-gray-900 rounded-md border border-border">
+          <div className="p-3 bg-gray-900 rounded-md border border-border">
             <pre className="text-xs text-primary font-mono whitespace-pre-wrap">
               {generateTypeScriptInterface()}
             </pre>

@@ -36,15 +36,15 @@ export default function TemplatesPage() {
           {templates.map((template) => (
             <Card
               key={template.id}
-              className="group cursor-pointer hover:border-primary flex flex-col"
+              className="group cursor-pointer flex flex-col border-border"
               onClick={() => handleLoadTemplate(template.id)}
             >
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
                     <LayoutTemplate className="h-5 w-5" />
                   </div>
-                  <CardTitle className="text-lg font-bold group-hover:text-primary">
+                  <CardTitle className="text-lg font-bold">
                     {template.name}
                   </CardTitle>
                 </div>
@@ -53,7 +53,7 @@ export default function TemplatesPage() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto pt-4 border-t">
-                <div className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary">
+                <div className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground">
                   <span>USE TEMPLATE</span>
                   <ArrowRight className="h-4 w-4" />
                 </div>

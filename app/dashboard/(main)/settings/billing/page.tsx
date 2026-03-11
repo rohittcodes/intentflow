@@ -104,7 +104,7 @@ export default function BillingPage() {
   return (
     <div className="w-full pb-20 space-y-16">
       {/* Header Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4"
@@ -194,10 +194,10 @@ export default function BillingPage() {
                   </Badge>
                 </div>
               )}
-              
+
               <CardHeader className="pt-8 pb-4 relative">
                 <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm border ring-8 ring-muted/5",
+                  "w-6 h-6 rounded-2xl flex items-center justify-center mb-6 shadow-sm border ring-8 ring-muted/5",
                   plan.popular ? "bg-primary text-primary-foreground border-primary/20" : "bg-muted text-muted-foreground border-border/50"
                 )}>
                   <plan.icon className="h-6 w-6" />
@@ -227,7 +227,7 @@ export default function BillingPage() {
               </CardContent>
 
               <CardFooter className="pb-8 pt-0 relative">
-                <Button 
+                <Button
                   onClick={() => plan.tier !== 'free' && handleUpgrade(plan.tier as any)}
                   disabled={currentTier === plan.tier}
                   className={cn(
@@ -262,28 +262,28 @@ export default function BillingPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent border-border/50">
                   <TableHead className="w-[200px] font-bold text-[10px] uppercase tracking-wider py-4">Feature</TableHead>
-                <TableHead className="font-black text-center text-xs tracking-tighter">Starter</TableHead>
-                <TableHead className="font-black text-center text-xs tracking-tighter text-primary">Pro</TableHead>
-                <TableHead className="font-black text-center text-xs tracking-tighter text-amber-500">Enterprise</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {comparisonFeatures.map((f, i) => (
-                <TableRow key={f.name} className="hover:bg-muted/20 transition-colors border-border/50">
-                  <TableCell className="font-bold text-xs py-5 pl-8">{f.name}</TableCell>
-                  <TableCell className="text-center font-mono text-[11px] font-bold text-muted-foreground">
-                    {typeof f.free === 'boolean' ? (f.free ? <Check className="h-4 w-4 mx-auto text-primary" /> : "—") : f.free}
-                  </TableCell>
-                  <TableCell className="text-center font-mono text-[11px] font-black">
-                    {typeof f.pro === 'boolean' ? (f.pro ? <Sparkles className="h-4 w-4 mx-auto text-primary" /> : "—") : f.pro}
-                  </TableCell>
-                  <TableCell className="text-center font-mono text-[11px] font-black text-amber-500">
-                    {typeof f.enterprise === 'boolean' ? (f.enterprise ? <Star className="h-4 w-4 mx-auto" /> : "—") : f.enterprise}
-                  </TableCell>
+                  <TableHead className="font-black text-center text-xs tracking-tighter">Starter</TableHead>
+                  <TableHead className="font-black text-center text-xs tracking-tighter text-primary">Pro</TableHead>
+                  <TableHead className="font-black text-center text-xs tracking-tighter text-amber-500">Enterprise</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {comparisonFeatures.map((f, i) => (
+                  <TableRow key={f.name} className="hover:bg-muted/20 transition-colors border-border/50">
+                    <TableCell className="font-bold text-xs py-5 pl-8">{f.name}</TableCell>
+                    <TableCell className="text-center font-mono text-[11px] font-bold text-muted-foreground">
+                      {typeof f.free === 'boolean' ? (f.free ? <Check className="h-4 w-4 mx-auto text-primary" /> : "—") : f.free}
+                    </TableCell>
+                    <TableCell className="text-center font-mono text-[11px] font-black">
+                      {typeof f.pro === 'boolean' ? (f.pro ? <Sparkles className="h-4 w-4 mx-auto text-primary" /> : "—") : f.pro}
+                    </TableCell>
+                    <TableCell className="text-center font-mono text-[11px] font-black text-amber-500">
+                      {typeof f.enterprise === 'boolean' ? (f.enterprise ? <Star className="h-4 w-4 mx-auto" /> : "—") : f.enterprise}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
       </motion.div>
@@ -320,7 +320,7 @@ export default function BillingPage() {
         <Shield className="h-8 w-8 text-muted-foreground mb-4 opacity-50" />
         <h3 className="font-bold text-sm uppercase tracking-tight">Secure Billing</h3>
         <p className="max-w-md text-[11px] text-muted-foreground font-medium mt-3 leading-relaxed">
-          We use industry-standard encryption. In this demo environment, 
+          We use industry-standard encryption. In this demo environment,
           all upgrades are simulated for testing purposes.
         </p>
       </div>

@@ -46,9 +46,9 @@ export default function RouterNodePanel({
   };
 
   return (
-    <div className="p-20 space-y-20">
+    <div className="p-2 space-y-2 w-[260px]">
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-muted-foreground">
             Routes & Conditions
           </label>
@@ -61,7 +61,7 @@ export default function RouterNodePanel({
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <AnimatePresence initial={false}>
             {routes.map((route, index) => (
               <motion.div
@@ -69,10 +69,10 @@ export default function RouterNodePanel({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="p-12 bg-background border border-border rounded-lg space-y-3"
+                className="p-2 bg-background border border-border rounded-lg space-y-2"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
+                  <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
                     {index + 1}
                   </div>
                   <input
@@ -99,7 +99,7 @@ export default function RouterNodePanel({
                     onChange={(e) => updateRoute(route.id, { condition: e.target.value })}
                     placeholder="e.g. {{output.score}} > 0.8"
                     rows={2}
-                    className="w-full px-12 py-8 bg-accent-white border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                    className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                   />
                 </div>
               </motion.div>
@@ -108,7 +108,7 @@ export default function RouterNodePanel({
         </div>
       </div>
 
-      <div className="p-12 bg-secondary rounded-lg border border-border">
+      <div className="p-2 bg-secondary rounded-lg border border-border">
         <p className="text-[11px] text-muted-foreground leading-relaxed">
           <ArrowRight className="w-3 h-3 inline mr-1 mb-0.5" />
           The router will evaluate conditions in order. The first route to match will be followed. Add an "Else" route at the end with <code>true</code> as the condition.

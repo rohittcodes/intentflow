@@ -130,7 +130,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
         onClick={handleOpen}
         className="px-12 py-6 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-primary transition-colors flex items-center gap-6"
       >
-        <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
         </svg>
         Insert Variable
@@ -156,14 +156,14 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-12 border-b border-border">
+              <div className="p-3 border-b border-border">
                 <h4 className="text-label-small text-foreground">Available Variables</h4>
               </div>
 
               <div className="max-h-320 overflow-y-auto">
                 {variables.map((group, groupIndex) => (
                   <div key={groupIndex}>
-                    <div className="px-12 py-8 bg-background">
+                    <div className="px-3 py-1.5 bg-background">
                       <p className="text-xs text-muted-foreground font-medium">
                         {group.category}
                       </p>
@@ -176,10 +176,10 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                           onSelect(item.path);
                           setIsOpen(false);
                         }}
-                        className={`w-full px-12 py-10 text-left hover:bg-secondary transition-colors border-b border-border last:border-0 ${item.isField ? 'pl-24 bg-background' : ''
+                        className={`w-full px-3 py-2 text-left hover:bg-secondary transition-colors border-b border-border last:border-0 ${item.isField ? 'pl-24 bg-background' : ''
                           }`}
                       >
-                        <div className="flex items-start justify-between gap-8">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             {item.isNested && (
                               <span className="text-xs text-primary mr-6">↳↳</span>
@@ -219,7 +219,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                 ))}
               </div>
 
-              <div className="p-12 bg-background border-t border-border">
+              <div className="p-3 bg-background border-t border-border">
                 <p className="text-xs text-muted-foreground">
                   Click a variable to insert its reference
                 </p>

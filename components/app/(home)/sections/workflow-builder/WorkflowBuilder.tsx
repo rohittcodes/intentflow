@@ -80,6 +80,7 @@ import SaveAsTemplateModal from "./SaveAsTemplateModal";
 import LibraryPanel from "./LibraryPanel";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
 import { toast } from "sonner";
+import { useIsMutating } from "@tanstack/react-query";
 import { useWorkflow } from "@/hooks/useWorkflow";
 import { useWorkflowExecution } from "@/hooks/useWorkflowExecution";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
@@ -148,34 +149,38 @@ const nodeCategories = [
   {
     category: "Core",
     nodes: [
-      { type: "agent", label: "Agent", color: "bg-blue-500", icon: MousePointer2 },
-      { type: "custom-input", label: "Input", color: "bg-indigo-500", icon: Zap },
-      { type: "end", label: "End", color: "bg-teal-500", icon: StopCircle },
-      { type: "note", label: "Note", color: "bg-[#E4E4E7] dark:bg-[#52525B]", icon: FileText },
+      { type: "agent", label: "Agent", color: "#3b82f6", icon: MousePointer2 },
+      { type: "custom-input", label: "Input", color: "#6366f1", icon: Zap },
+      { type: "end", label: "End", color: "#14b8a6", icon: StopCircle },
+      { type: "note", label: "Note", color: "#EAB308", icon: FileText },
     ],
   },
   {
     category: "Tools",
     nodes: [
-      { type: "mcp", label: "MCP", color: "bg-[#FFEFA4] dark:bg-[#FFDD40]", icon: Plug },
+      { type: "mcp", label: "MCP", color: "#FFDD40", icon: Plug },
+      { type: "http", label: "HTTP Request", color: "#9665FF", icon: Server },
+      { type: "data-query", label: "Database", color: "#f59e0b", icon: Database },
+      { type: "memory", label: "Memory", color: "#a855f7", icon: Zap },
     ],
   },
   {
     category: "Logic",
     nodes: [
-      { type: "if-else", label: "Condition", color: "bg-[#FEE7C2] dark:bg-[#FFAE2B]", icon: GitBranch },
-      { type: "router", label: "Router", color: "bg-[#FEE7C2] dark:bg-[#FFAE2B]", icon: GitBranch },
-      { type: "while", label: "While", color: "bg-[#FEE7C2] dark:bg-[#FFAE2B]", icon: Repeat },
-      { type: "user-approval", label: "User approval", color: "bg-[#E5E7EB] dark:bg-[#9CA3AF]", icon: CheckCircle },
-      { type: "guardrails", label: "Guardrails", color: "bg-primary", icon: Shield },
+      { type: "if-else", label: "Condition", color: "#F59E0B", icon: GitBranch },
+      { type: "router", label: "Router", color: "#EA580C", icon: GitBranch },
+      { type: "while", label: "While", color: "#EF4444", icon: Repeat },
+      { type: "user-approval", label: "User approval", color: "#9CA3AF", icon: CheckCircle },
+      { type: "guardrails", label: "Guardrails", color: "#F43F5E", icon: Shield },
     ],
   },
   {
     category: "Data",
     nodes: [
-      { type: "transform", label: "Transform", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
-      { type: "extract", label: "Extract", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Search },
-      { type: "set-state", label: "Set state", color: "bg-[#ECE3FF] dark:bg-[#9665FF]", icon: Braces },
+      { type: "retriever", label: "Retriever", color: "#0EA5E9", icon: Database },
+      { type: "transform", label: "Transform", color: "#8B5CF6", icon: Braces },
+      { type: "extract", label: "Extract", color: "#EC4899", icon: Search },
+      { type: "set-state", label: "Set state", color: "#10B981", icon: Braces },
     ],
   },
 ];
@@ -363,8 +368,9 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const getId = useCallback(() => `node_${nodeIdRef.current++}`, []);
 
   const activeWorkflowId = (canvasStack.find(c => c.instanceId === activeCanvasId)?.workflowId || initialWorkflowId) as string | undefined;
-
+  const activeIsSaving = useIsMutating({ mutationKey: ['workflow-save'] }) > 0;
   const { workflow, convexId, updateNodes, updateEdges, saveWorkflow, saveWorkflowImmediate, updateNodeData, isSaving, createNewWorkflow } = useWorkflow(activeWorkflowId);
+  const showSaving = isSaving || activeIsSaving;
 
   const validationResult = useMemo<ValidationResult>(() => {
     if (!workflow) return { isValid: true, errors: [] };
@@ -665,7 +671,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   return (
     <div className="h-screen w-full flex flex-col bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30">
       {/* Standardized Top Bar */}
-      <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 z-[100] shrink-0">
+      <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 z-[2] shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
@@ -695,8 +701,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
-              <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-muted-foreground/30' : 'bg-green-500')}`} />
-              {isSaving ? 'Saving' : (!convexId ? 'Unsaved' : 'Saved')}
+              <div className={`h-1.5 w-1.5 rounded-full ${showSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-muted-foreground/30' : 'bg-green-500')}`} />
+              {showSaving ? 'Saving' : (!convexId ? 'Unsaved' : 'Saved')}
             </div>
           </div>
         </div>
@@ -786,9 +792,9 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               <TooltipTrigger asChild>
                 <Badge
                   variant="outline"
-                  className={`h-9 px-3 cursor-help gap-2 ${validationResult.isValid ? 'bg-green-50 text-green-700 border-green-200' :
-                      validationResult.errors.some(e => e.severity === 'error') ? 'bg-destructive/10 text-destructive border-destructive/20' :
-                        'bg-amber-50 text-amber-700 border-amber-200'
+                  className={`h-8 px-3 cursor-help gap-2 ${validationResult.isValid ? 'bg-green-50 text-green-700 border-green-200' :
+                    validationResult.errors.some(e => e.severity === 'error') ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                      'bg-amber-50 text-amber-700 border-amber-200'
                     }`}
                 >
                   {validationResult.isValid ? (
@@ -807,27 +813,47 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                   </span>
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="w-[280px] p-0 shadow-lg">
-                <div className="px-3 py-2 border-b bg-muted/50">
+              <TooltipContent side="bottom" className="w-[350px] p-0 shadow-lg border-black-alpha-10">
+                <div className="px-3 py-2 border-b bg-muted/50 flex items-center justify-between">
                   <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Workflow Validation</h4>
+                  <span className="text-[9px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded italic">
+                    {validationResult.errors.length} total issues
+                  </span>
                 </div>
-                <div className="max-h-[300px] overflow-y-auto p-1">
+                <div className="max-h-[350px] overflow-y-auto p-1.5 space-y-1">
                   {validationResult.errors.length === 0 ? (
-                    <div className="p-4 text-xs text-muted-foreground text-center italic">No issues detected</div>
+                    <div className="p-6 text-xs text-muted-foreground text-center italic">No issues detected. Your workflow is ready.</div>
                   ) : (
                     validationResult.errors.map((error, i) => (
-                      <div key={i} className="p-2 flex gap-3 hover:bg-muted rounded-md transition-colors">
-                        {error.severity === 'error' ? (
-                          <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                        ) : error.severity === 'warning' ? (
-                          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                        ) : (
-                          <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
-                        )}
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold leading-tight">{error.message}</p>
+                      <div key={i} className="p-2.5 flex gap-3 hover:bg-muted/50 rounded-lg transition-colors border border-transparent hover:border-black-alpha-8">
+                        <div className="mt-0.5">
+                          {error.severity === 'error' ? (
+                            <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                          ) : error.severity === 'warning' ? (
+                            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                          ) : (
+                            <Info className="h-4 w-4 text-blue-500 shrink-0" />
+                          )}
+                        </div>
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                          <div className="flex items-start gap-2 flex-wrap">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm shrink-0 border ${error.type === 'auth' ? 'bg-red-50 text-red-600 border-red-100' :
+                              error.type === 'structural' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                error.type === 'configuration' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                  'bg-gray-100 text-gray-600 border-gray-200'
+                              }`}>
+                              {error.type}
+                            </span>
+                            <p className="text-xs font-semibold leading-tight text-foreground/90">{error.message}</p>
+                          </div>
+                          {error.description && (
+                            <p className="text-[10px] text-muted-foreground leading-normal">{error.description}</p>
+                          )}
                           {error.nodeId && (
-                            <p className="text-[10px] text-muted-foreground font-mono">Node: {error.nodeId}</p>
+                            <div className="flex items-center gap-1.5 pt-0.5">
+                              <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                              <p className="text-[10px] text-muted-foreground/80 font-medium tracking-tight">Node Trace: <span className="font-mono text-foreground/70">{error.nodeId}</span></p>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -901,7 +927,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           {sidebarExpanded && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 300, opacity: 1 }}
+              animate={{ width: 260, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               className="relative border-r bg-background flex flex-col overflow-hidden shadow-sm h-full"
             >
@@ -912,9 +938,9 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                 </Button>
               </div>
               <ScrollArea className="flex-1">
-                <div className="p-4 space-y-6">
+                <div className="space-y-6">
                   {activeSidebarTab === 'nodes' && (
-                    <div className="space-y-6">
+                    <div className="space-y-6 p-2">
                       {nodeCategories.map((cat) => (
                         <div key={cat.category} className="space-y-3">
                           <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">{cat.category}</h4>
@@ -926,7 +952,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                                 onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)}
                                 className="flex items-center gap-3 p-2 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all cursor-grab active:cursor-grabbing group"
                               >
-                                <div className={`h-8 w-8 rounded-md ${node.color} flex items-center justify-center shadow-sm brightness-110 group-hover:brightness-125 transition-all`}>
+                                <div
+                                  className="h-8 w-8 rounded-md flex items-center justify-center shadow-sm brightness-110 group-hover:brightness-125 transition-all"
+                                  style={{ backgroundColor: node.color }}
+                                >
                                   <node.icon className="h-4 w-4 text-white" />
                                 </div>
                                 <span className="text-xs font-medium text-foreground">{node.label}</span>
@@ -1033,16 +1062,19 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           {inspectorOpen && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 400, opacity: 1 }}
+              animate={{ width: "auto", opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="relative border-l bg-background flex flex-col overflow-hidden shadow-lg h-full"
+              className="relative border-l bg-background flex flex-col overflow-hidden h-full max-h-[calc(100vh-120px)] border max-w-[260px]"
             >
-              <div className="flex items-center justify-between p-4 border-b bg-muted/30">
-                <div className="flex items-center gap-3">
-                  <div className={`h-8 w-8 rounded-lg ${activeNode ? getNodeColor(activeNode.type || '') : 'bg-primary'} flex items-center justify-center shadow-sm`}>
-                    <LayoutGrid className="h-4 w-4 text-white" />
+              <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-6 w-6 rounded-md flex items-center justify-center shadow-sm"
+                    style={{ backgroundColor: activeNode ? getNodeColor(activeNode.type || '') : '#3b82f6' }}
+                  >
+                    <LayoutGrid className="h-3.5 w-3.5 text-white" />
                   </div>
-                  <h3 className="text-sm font-bold tracking-tight">
+                  <h3 className="text-sm font-bold tracking-tight truncate">
                     {showSettings ? 'Project Settings' : (activeNode?.data?.nodeName || activeNode?.data?.label || 'Properties')}
                   </h3>
                 </div>
@@ -1057,7 +1089,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               </div>
 
               <ScrollArea className="flex-1">
-                <div className="p-6">
+                <div className="">
                   {showSettings ? (
                     <SettingsPanel isOpen={true} onClose={() => { setShowSettings(false); setInspectorOpen(false); }} />
                   ) : showTestEndpoint && workflow ? (
@@ -1083,11 +1115,11 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                   ) : (activeNode?.data as any)?.nodeType === 'start' ? (
                     <StartNodePanel node={activeNode as any} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
                   ) : (activeNode?.data as any)?.nodeType === 'workflow' ? (
-                    <div className="space-y-6">
-                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                            <Layers className="h-5 w-5 text-white" />
+                    <div className="space-y-4">
+                      <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Layers className="h-4 w-4 text-white" />
                           </div>
                           <div>
                             <h4 className="text-sm font-bold">{activeNode?.data?.label}</h4>

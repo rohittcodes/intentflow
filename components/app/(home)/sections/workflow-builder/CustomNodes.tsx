@@ -22,6 +22,7 @@ import {
   Database,
   Globe
 } from "lucide-react";
+import { getNodeColor } from "@/lib/workflow/utils";
 
 // Custom node component with handles for connections
 export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
@@ -48,8 +49,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
   };
 
   const getBackgroundColor = () => {
-    if (nodeType === 'note') return '#fef9c3'; // Light yellow for notes
-    return '#ffffff'; // Shade of white as requested
+    if (nodeType === 'note') return '#fef9c3';
+    return '#ffffff';
   };
 
   const getNodeTheme = () => {
@@ -57,18 +58,18 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
       'agent': { icon: MousePointer2, color: 'bg-blue-500', label: 'Agent' },
       'custom-input': { icon: Zap, color: 'bg-indigo-500', label: 'Input' },
       'end': { icon: StopCircle, color: 'bg-teal-500', label: 'End' },
-      'note': { icon: FileText, color: 'bg-gray-200', label: 'Note' },
-      'mcp': { icon: Plug, color: 'bg-[#FFEFA4] dark:bg-[#FFDD40]', label: 'MCP Tool' },
-      'if-else': { icon: GitBranch, color: 'bg-[#FEE7C2] dark:bg-[#FFAE2B]', label: 'Condition' },
-      'router': { icon: GitBranch, color: 'bg-[#FEE7C2] dark:bg-[#FFAE2B]', label: 'Router' },
-      'while': { icon: Repeat, color: 'bg-[#FEE7C2] dark:bg-[#FFAE2B]', label: 'Loop' },
-      'user-approval': { icon: CheckCircle, color: 'bg-[#E5E7EB] dark:bg-[#9CA3AF]', label: 'Approval' },
-      'guardrails': { icon: Shield, color: 'bg-[#FFEFA4] dark:bg-[#FFDD40]', label: 'Guardrails' },
-      'transform': { icon: Braces, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Transform' },
-      'extract': { icon: Search, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Extract' },
-      'retriever': { icon: Database, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Retriever' },
-      'http': { icon: Server, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'Request' },
-      'set-state': { icon: Braces, color: 'bg-[#ECE3FF] dark:bg-[#9665FF]', label: 'State' },
+      'note': { icon: FileText, color: 'bg-[#EAB308]', label: 'Note' },
+      'mcp': { icon: Plug, color: 'bg-[#FFDD40]', label: 'MCP Tool' },
+      'if-else': { icon: GitBranch, color: 'bg-[#F59E0B]', label: 'Condition' },
+      'router': { icon: GitBranch, color: 'bg-[#EA580C]', label: 'Router' },
+      'while': { icon: Repeat, color: 'bg-[#EF4444]', label: 'Loop' },
+      'user-approval': { icon: CheckCircle, color: 'bg-[#9CA3AF]', label: 'Approval' },
+      'guardrails': { icon: Shield, color: 'bg-[#F43F5E]', label: 'Guardrails' },
+      'transform': { icon: Braces, color: 'bg-[#8B5CF6]', label: 'Transform' },
+      'extract': { icon: Search, color: 'bg-[#EC4899]', label: 'Extract' },
+      'retriever': { icon: Database, color: 'bg-[#0EA5E9]', label: 'Retriever' },
+      'http': { icon: Server, color: 'bg-[#9665FF]', label: 'Request' },
+      'set-state': { icon: Braces, color: 'bg-[#10B981]', label: 'State' },
       'start': { icon: Activity, color: 'bg-gray-600', label: 'Trigger' },
       'workflow': { icon: Globe, color: 'bg-teal-600 font-bold', label: 'Workflow' },
       'data-query': { icon: Database, color: 'bg-amber-500', label: 'Database' },
@@ -88,8 +89,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
 
   // Determine text color based on background
   const getTextColor = () => {
-    if (nodeType === 'note') return '#854d0e'; // Original note text color
-    return '#000000'; // Black text as requested
+    if (nodeType === 'note') return '#854d0e';
+    return '#18181b';
   };
 
   // Update editText when noteText changes (for different notes)
@@ -211,8 +212,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
     <div
       className="relative"
       style={{
-        padding: '12px 16px',
-        fontSize: '13px',
+        padding: '8px 12px',
+        fontSize: '12px',
         backgroundColor: getBackgroundColor(),
         outline: getOutlineStyle(),
         outlineOffset: 0,
@@ -221,22 +222,31 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
           : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         borderRadius: '8px', // rounded-2xl
-        minWidth: nodeType === 'workflow' ? '220px' : '180px',
-        maxWidth: '280px',
+        minWidth: nodeType === 'workflow' ? '180px' : '140px',
+        maxWidth: '240px',
         width: 'fit-content',
         border: nodeType === 'workflow' ? '2px dashed #0d9488' : (selected ? '2px solid #FA5D19' : '1px solid rgba(0,0,0,0.08)'),
-        // overflow: 'hidden', // Removed to prevent clipping
+        position: 'relative',
+        overflow: 'visible',
       }}
     >
       {/* Left Accent Bar */}
       <div
-        className={`absolute left-0 top-0 bottom-0 w-6 ${getNodeTheme().color.split(' ')[0]}`}
         style={{
-          opacity: 0.8,
-          borderTopLeftRadius: '16px',
-          borderBottomLeftRadius: '16px',
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: '4px',
+          backgroundColor: getNodeColor(nodeType || ''),
+          borderTopLeftRadius: '8px',
+          borderBottomLeftRadius: '8px',
+          opacity: 0.9,
+          zIndex: 1
         }}
       />
+
+
 
       {/* Input handle (left) - all nodes except 'start' and 'note' */}
       {nodeType !== 'start' && nodeType !== 'note' && (
@@ -247,8 +257,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
           style={{
             width: 10,
             height: 10,
-            background: nodeType === 'workflow' ? '#0d9488' : '#52525b',
-            border: 'none',
+            background: '#52525b',
+            border: '2px solid #ffffff',
             borderRadius: '50%',
             left: -6,
             top: '50%',
@@ -262,18 +272,21 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
         <div className="absolute inset-0 bg-teal-50/50 rounded-md -z-10 pointer-events-none" />
       )}
 
-      <div className="flex items-center gap-12">
-        <div className={`w-36 h-36 rounded-xl ${getNodeTheme().color} flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden`}>
+      <div className="flex items-center gap-2 pl-1.5">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden"
+          style={{ backgroundColor: getNodeColor(nodeType || '') }}
+        >
           {(() => {
             const Icon = getNodeTheme().icon;
-            return <Icon className="w-20 h-20 text-white" strokeWidth={2.5} />;
+            return <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />;
           })()}
         </div>
         <div className="flex flex-col min-w-0">
           <span style={{
             color: getTextColor(),
             fontWeight: 700,
-            fontSize: '14px',
+            fontSize: '12.5px',
             lineHeight: '1.2',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -283,11 +296,11 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
           </span>
           <span style={{
             color: '#71717a',
-            fontSize: '10px',
-            fontWeight: 500,
+            fontSize: '9px',
+            fontWeight: 600,
             textTransform: 'uppercase',
-            letterSpacing: '0.025em',
-            marginTop: '2px'
+            letterSpacing: '0.05em',
+            marginTop: '1px'
           }}>
             {getNodeTheme().label}
           </span>
@@ -314,8 +327,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
                   style={{
                     width: 10,
                     height: 10,
-                    background: '#FA5D19',
-                    border: 'none',
+                    background: '#ffffff',
+                    border: '2px solid #F59E0B',
                     borderRadius: '50%',
                     right: -6,
                     top: `${verticalPosition}%`,
@@ -330,17 +343,19 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
                     right: -45,
                     transform: 'translateY(-50%)',
                     fontSize: '10px',
-                    color: '#FA5D19',
-                    fontWeight: 600,
+                    color: '#ffffff',
+                    fontWeight: 700,
                     maxWidth: '40px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
                   }}
                   title={route.label}
                 >
                   {route.label}
                 </div>
+
               </React.Fragment>
             );
           })}
@@ -358,8 +373,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#FA5D19',
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #F59E0B',
               borderRadius: '50%',
               right: -6,
               top: '35%',
@@ -375,8 +390,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#52525b', // Dark gray
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #52525b',
               borderRadius: '50%',
               right: -6,
               top: '65%',
@@ -391,8 +406,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             right: -50,
             transform: 'translateY(-50%)',
             fontSize: '10px',
-            color: '#FA5D19',
-            fontWeight: 600,
+            color: '#F59E0B',
+            fontWeight: 700
           }}>If</div>
           <div style={{
             position: 'absolute',
@@ -401,8 +416,11 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             transform: 'translateY(-50%)',
             fontSize: '10px',
             color: '#18181b',
-            fontWeight: 600,
+            fontWeight: 700,
+            opacity: 0.8
           }}>Else</div>
+
+
         </>
       ) : nodeType === 'user-approval' ? (
         <>
@@ -414,8 +432,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#10b981',
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #10b981',
               borderRadius: '50%',
               right: -6,
               top: '35%',
@@ -431,8 +449,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#ef4444',
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #ef4444',
               borderRadius: '50%',
               right: -6,
               top: '65%',
@@ -448,7 +466,7 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             transform: 'translateY(-50%)',
             fontSize: '10px',
             color: '#10b981',
-            fontWeight: 600,
+            fontWeight: 700
           }}>Approve</div>
           <div style={{
             position: 'absolute',
@@ -457,8 +475,10 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             transform: 'translateY(-50%)',
             fontSize: '10px',
             color: '#ef4444',
-            fontWeight: 600,
+            fontWeight: 700
           }}>Reject</div>
+
+
         </>
       ) : nodeType === 'while' ? (
         <>
@@ -470,8 +490,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#FA5D19',
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #F59E0B',
               borderRadius: '50%',
               right: -6,
               top: '35%',
@@ -487,8 +507,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             style={{
               width: 10,
               height: 10,
-              background: '#52525b', // Dark gray
-              border: 'none',
+              background: '#ffffff',
+              border: '2px solid #52525b',
               borderRadius: '50%',
               right: -6,
               top: '65%',
@@ -503,8 +523,8 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             right: -70,
             transform: 'translateY(-50%)',
             fontSize: '10px',
-            color: '#FA5D19',
-            fontWeight: 600,
+            color: '#F59E0B',
+            fontWeight: 700
           }}>Continue</div>
           <div style={{
             position: 'absolute',
@@ -513,8 +533,11 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             transform: 'translateY(-50%)',
             fontSize: '10px',
             color: '#18181b',
-            fontWeight: 600,
+            fontWeight: 700,
+            opacity: 0.8
           }}>Break</div>
+
+
         </>
       ) : nodeType !== 'end' && nodeType !== 'note' ? (
         <Handle
@@ -525,7 +548,7 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
             width: 10,
             height: 10,
             background: '#52525b',
-            border: 'none',
+            border: '2px solid #ffffff',
             borderRadius: '50%',
             right: -6,
             top: '50%',

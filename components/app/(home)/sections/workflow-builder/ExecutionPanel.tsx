@@ -20,6 +20,7 @@ import {
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import OutputDrawer from "./OutputDrawer";
 
 interface ExecutionPanelProps {
@@ -324,9 +325,9 @@ export default function ExecutionPanel({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-accent-white">
+    <div className="flex-1 flex flex-col min-h-0 bg-accent-white w-[260px] overflow-hidden">
       {/* Header */}
-      <div className="p-20 border-b border-border flex-shrink-0">
+      <div className="p-6 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col gap-4">
             <h2 className="text-sm font-medium text-foreground">Preview Workflow</h2>
@@ -334,7 +335,7 @@ export default function ExecutionPanel({
               Environment: {environment === 'production' ? 'Production' : 'Draft'}
             </span>
           </div>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2">
             {/* Copy All Results Button - Show when results exist */}
             {!showInput && Object.keys(nodeResults).length > 0 && (
               <>
@@ -346,14 +347,14 @@ export default function ExecutionPanel({
                 >
                   {copiedAll ? (
                     <>
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       Copied
                     </>
                   ) : (
                     <>
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                       Copy All
@@ -417,7 +418,7 @@ export default function ExecutionPanel({
                   className="px-12 py-6 bg-accent-black hover:bg-secondary/800 text-white rounded-6 text-xs font-medium transition-colors flex items-center gap-6"
                   title="Download workflow results as JSON"
                 >
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   Download
@@ -428,17 +429,17 @@ export default function ExecutionPanel({
               onClick={onClose}
               className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
             >
-              <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         </div>
         {execution?.status === 'waiting-auth' && pendingAuth && pendingAuth.toolName === 'user-approval' && (
-          <div className="mb-16 p-16 bg-accent-white border border-border rounded-md">
-            <div className="flex items-start gap-12 mb-12">
+          <div className="mb-4 p-4 bg-accent-white border border-border rounded-md">
+            <div className="flex items-start gap-3 mb-3">
               <div className="w-32 h-32 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
@@ -449,14 +450,14 @@ export default function ExecutionPanel({
                 <p className="text-xs text-muted-foreground mb-8">
                   Approval Required
                 </p>
-                <div className="p-12 bg-background border border-border rounded-6">
+                <div className="p-3 bg-background border border-border rounded-6">
                   <p className="text-xs text-foreground whitespace-pre-wrap">
                     {pendingAuth.message || 'This workflow requires your approval to continue.'}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex gap-8">
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={async () => {
@@ -487,16 +488,16 @@ export default function ExecutionPanel({
               </button>
             </div>
             {pendingAuth && pendingAuth.authId && (
-              <div className="mt-12 pt-12 border-t border-border flex flex-col gap-8">
+              <div className="mt-3 pt-12 border-t border-border flex flex-col gap-2">
                 <p className="text-[10px] uppercase tracking-wider text-black-alpha-32 font-bold">External Approval</p>
-                <div className="flex gap-8">
+                <div className="flex gap-2">
                   <a
                     href={`/approval/${pendingAuth?.authId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 px-12 py-6 bg-accent-white border border-border rounded-6 text-xs text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-6"
                   >
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                     Open Page
@@ -509,7 +510,7 @@ export default function ExecutionPanel({
                     }}
                     className="px-12 py-6 bg-accent-white border border-border rounded-6 text-xs text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-6"
                   >
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     Copy Link
@@ -521,8 +522,8 @@ export default function ExecutionPanel({
         )}
 
         {execution?.status === 'waiting-auth' && pendingAuth && pendingAuth.toolName !== 'user-approval' && (
-          <div className="m-20 mt-0 mb-16 p-16 bg-secondary border border-primary rounded-xl">
-            <div className="flex flex-col gap-12">
+          <div className="m-20 mt-0 mb-4 p-4 bg-secondary border border-primary rounded-xl">
+            <div className="flex flex-col gap-3">
               <div>
                 <p className="text-label-medium font-medium text-foreground">
                   Authorization required for {pendingAuth?.toolName || 'Unknown Tool'}
@@ -531,7 +532,7 @@ export default function ExecutionPanel({
                   {pendingAuth.message || 'Open the authorization link in a new tab, approve access, then resume the workflow.'}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-10 items-center">
+              <div className="flex flex-wrap gap-2 items-center">
                 {pendingAuth.authUrl ? (
                   <a
                     href={pendingAuth.authUrl}
@@ -539,7 +540,7 @@ export default function ExecutionPanel({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-6 px-14 py-8 bg-accent-black hover:bg-secondary/808 text-white rounded-md text-xs font-medium transition-colors"
                   >
-                    <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                     Open authorization
@@ -555,7 +556,7 @@ export default function ExecutionPanel({
                   disabled={!pendingAuth.authUrl}
                   className="inline-flex items-center gap-6 px-14 py-8 bg-accent-white border border-border rounded-md text-xs text-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   {copiedAuthLink ? 'Copied link' : 'Copy link'}
@@ -567,12 +568,12 @@ export default function ExecutionPanel({
                   className="inline-flex items-center gap-6 px-14 py-8 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isResumingAuth ? (
-                    <svg className="w-14 h-14 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   ) : (
-                    <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   )}
@@ -592,13 +593,13 @@ export default function ExecutionPanel({
           const NodeIcon = getNodeIcon(nodeType);
 
           return (
-            <div className="inline-flex items-center gap-8 px-12 py-6 rounded-md text-xs bg-secondary border border-border">
-              <svg className="w-14 h-14 text-muted-foreground animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="inline-flex items-center gap-2 px-12 py-6 rounded-md text-xs bg-secondary border border-border">
+              <svg className="w-3.5 h-3.5 text-muted-foreground animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <div className="flex items-center gap-6">
-                <NodeIcon className="w-12 h-12 text-foreground/64" strokeWidth={2.5} />
+                <NodeIcon className="w-6 h-6 text-foreground/64" strokeWidth={2.5} />
                 <span className="text-foreground font-medium">{typeof nodeName === 'string' ? nodeName : 'Running...'}</span>
               </div>
             </div>
@@ -609,14 +610,14 @@ export default function ExecutionPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {showInput ? (
-          <div className="p-20">
+          <div className="p-3">
             {/* Input Variables */}
             {inputVariables.length > 0 ? (
-              <div className="mb-24 space-y-20">
+              <div className="mb-12 space-y-3">
                 <h3 className="text-label-medium text-foreground">Workflow Inputs</h3>
                 {inputVariables.map((variable: any, index: number) => (
                   <div key={index}>
-                    <label className="block text-label-small text-muted-foreground mb-8">
+                    <label className="block text-label-small text-muted-foreground mb-4">
                       {variable.name}
                       {variable.required && <span className="text-red-500 ml-4">*</span>}
                     </label>
@@ -627,21 +628,21 @@ export default function ExecutionPanel({
                     )}
 
                     {variable.type === 'boolean' ? (
-                      <select
-                        value={inputValues[variable.name] || 'false'}
-                        onChange={(e) => setInputValues({ ...inputValues, [variable.name]: e.target.value === 'true' })}
-                        className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors"
-                      >
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                      </select>
+                      <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-border">
+                        <span className="text-xs text-foreground">Enable {variable.name}</span>
+                        <Switch
+                          checked={inputValues[variable.name]}
+                          onCheckedChange={(checked) => setInputValues({ ...inputValues, [variable.name]: checked })}
+                          className="scale-75 origin-right"
+                        />
+                      </div>
                     ) : variable.type === 'number' ? (
                       <input
                         type="number"
                         value={inputValues[variable.name] || ''}
                         onChange={(e) => setInputValues({ ...inputValues, [variable.name]: parseFloat(e.target.value) })}
                         placeholder={variable.defaultValue || '0'}
-                        className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors"
                       />
                     ) : (
                       <input
@@ -649,7 +650,7 @@ export default function ExecutionPanel({
                         value={inputValues[variable.name] || ''}
                         onChange={(e) => setInputValues({ ...inputValues, [variable.name]: e.target.value })}
                         placeholder={variable.defaultValue || `Enter ${variable.name}...`}
-                        className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors"
                       />
                     )}
                   </div>
@@ -657,7 +658,7 @@ export default function ExecutionPanel({
               </div>
             ) : (
               <div className="mb-24">
-                <label className="block text-label-small text-muted-foreground mb-8">
+                <label className="block text-label-small text-muted-foreground mb-4">
                   Input Message
                 </label>
                 <textarea
@@ -665,7 +666,7 @@ export default function ExecutionPanel({
                   onChange={(e) => setInputValues({ input: e.target.value })}
                   placeholder="Enter your message or prompt..."
                   rows={6}
-                  className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors resize-none"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-accent-black transition-colors resize-none"
                 />
               </div>
             )}
@@ -673,9 +674,9 @@ export default function ExecutionPanel({
             <button
               onClick={handleRun}
               disabled={hasMissingRequiredInputs}
-              className="w-full px-20 py-12 bg-accent-black hover:bg-secondary/800 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-8"
+              className="w-full px-20 py-12 bg-accent-black hover:bg-secondary/800 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -684,8 +685,8 @@ export default function ExecutionPanel({
 
             {/* Workflow Info */}
             {workflow && (
-              <div className="mt-24 p-16 bg-accent-white rounded-xl border border-border">
-                <h3 className="text-label-medium text-foreground mb-12">Workflow Summary</h3>
+              <div className="mt-24 p-4 bg-accent-white rounded-xl border border-border">
+                <h3 className="text-label-medium text-foreground mb-3">Workflow Summary</h3>
                 <div className="space-y-8 text-xs text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Nodes:</span>
@@ -700,9 +701,9 @@ export default function ExecutionPanel({
             )}
           </div>
         ) : (
-          <div className="p-20">
+          <div className="p-3">
             {/* Input Echo */}
-            <div className="mb-24 p-16 bg-accent-white rounded-xl border border-border">
+            <div className="mb-12 p-3 bg-accent-white rounded-xl border border-border">
               <p className="text-xs text-foreground mb-4 font-medium">Inputs:</p>
               {inputVariables.length > 0 ? (
                 <div className="space-y-6 text-xs">
@@ -721,7 +722,7 @@ export default function ExecutionPanel({
             {/* Node Execution Results */}
             {isRunning && Object.keys(nodeResults).length === 0 ? (
               <div className="text-center py-32">
-                <div className="w-48 h-48 mx-auto mb-16 bg-secondary border border-border rounded-full flex items-center justify-center">
+                <div className="w-48 h-48 mx-auto mb-4 bg-secondary border border-border rounded-full flex items-center justify-center">
                   <svg className="w-24 h-24 text-muted-foreground animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
@@ -729,7 +730,7 @@ export default function ExecutionPanel({
                 <p className="text-sm text-muted-foreground">Starting workflow...</p>
               </div>
             ) : (
-              <div className="space-y-20">
+              <div className="space-y-3">
                 {Object.entries(nodeResults).map(([nodeId, result]) => {
                   const node = workflow?.nodes.find(n => n.id === nodeId);
                   const nodeData = node?.data as any;
@@ -745,7 +746,7 @@ export default function ExecutionPanel({
                       key={nodeId}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`rounded-xl p-16 border transition-all ${isActive
+                      className={`rounded-xl p-3 border transition-all ${isActive
                         ? 'border-border bg-accent-white shadow-sm'
                         : result.status === 'completed'
                           ? 'border-primary bg-accent-white'
@@ -755,30 +756,30 @@ export default function ExecutionPanel({
                         }`}
                     >
                       {/* Node Header */}
-                      <div className="flex items-center justify-between mb-12">
-                        <div className="flex items-center gap-8">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
                           {/* Node Type Icon */}
-                          <div className={`w-20 h-20 rounded-3 ${nodeColor} flex items-center justify-center flex-shrink-0`}>
-                            <NodeIcon className="w-12 h-12 text-white" strokeWidth={2.5} />
+                          <div className={`w-8 h-8 rounded-3 ${nodeColor} flex items-center justify-center flex-shrink-0`}>
+                            <NodeIcon className="w-6 h-6 text-white" strokeWidth={2.5} />
                           </div>
 
                           {/* Status Icon */}
                           {isActive && (
-                            <div className="w-16 h-16 bg-secondary border border-border rounded-full flex items-center justify-center">
+                            <div className="w-4 h-4 bg-secondary border border-border rounded-full flex items-center justify-center">
                               <svg className="w-10 h-10 text-muted-foreground animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
                             </div>
                           )}
                           {result.status === 'completed' && !isActive && (
-                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                            <div className="w-4 h-4 bg-muted rounded-full flex items-center justify-center">
                               <svg className="w-10 h-10 text-foreground/64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                             </div>
                           )}
                           {result.status === 'failed' && (
-                            <div className="w-16 h-16 bg-secondary0 rounded-full flex items-center justify-center">
+                            <div className="w-4 h-4 bg-secondary0 rounded-full flex items-center justify-center">
                               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
@@ -788,7 +789,7 @@ export default function ExecutionPanel({
                             {typeof nodeName === 'string' ? nodeName : 'Node'}
                           </h3>
                         </div>
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-2">
                           {/* Inspect Button - Only show for completed nodes */}
                           {result.status === 'completed' && (
                             <button
@@ -796,7 +797,7 @@ export default function ExecutionPanel({
                               className="px-8 py-4 bg-primary hover:bg-primary/90 text-white rounded-6 text-xs font-medium transition-colors flex items-center gap-4"
                               title="Inspect node execution"
                             >
-                              <Eye className="w-12 h-12" />
+                              <Eye className="w-6 h-6" />
                               Inspect
                             </button>
                           )}
@@ -814,7 +815,7 @@ export default function ExecutionPanel({
                             className="px-8 py-4 bg-background hover:bg-secondary border border-border rounded-6 text-xs text-foreground transition-colors flex items-center gap-4"
                             title="View data flow schema"
                           >
-                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
                             Schema
@@ -836,7 +837,7 @@ export default function ExecutionPanel({
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mt-12 p-12 bg-accent-white rounded-md border border-border"
+                          className="mt-3 p-3 bg-accent-white rounded-md border border-border"
                         >
                           <div className="flex items-center justify-between mb-8">
                             <h4 className="text-label-small text-foreground font-medium">Data Flow Schema</h4>
@@ -869,13 +870,13 @@ export default function ExecutionPanel({
                               }}
                               className="text-xs text-foreground/64 hover:text-foreground transition-colors flex items-center gap-4"
                             >
-                              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
                               Copy Schema
                             </button>
                           </div>
-                          <div className="space-y-12">
+                          <div className="space-y-3">
                             {/* Incoming Data */}
                             {(() => {
                               const incomingEdges = workflow?.edges.filter(e => e.target === nodeId) || [];
@@ -899,7 +900,7 @@ export default function ExecutionPanel({
                                           </div>
                                           {sourceOutput && (
                                             <div className="bg-background rounded-6 p-8 border border-border ml-16">
-                                              <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap overflow-auto max-h-100">
+                                              <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[100px]">
                                                 {typeof sourceOutput === 'string' ? sourceOutput : JSON.stringify(sourceOutput, null, 2)}
                                               </pre>
                                             </div>
@@ -917,7 +918,7 @@ export default function ExecutionPanel({
                               <div>
                                 <p className="text-xs text-muted-foreground mb-6 font-medium">Node Arguments:</p>
                                 <div className="bg-background rounded-6 p-8 border border-border">
-                                  <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap">
+                                  <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all">
                                     {JSON.stringify((node?.data as any)?.arguments, null, 2)}
                                   </pre>
                                 </div>
@@ -929,7 +930,7 @@ export default function ExecutionPanel({
                               <div>
                                 <p className="text-xs text-muted-foreground mb-6 font-medium">Output Data:</p>
                                 <div className="bg-background rounded-6 p-8 border border-border">
-                                  <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap overflow-auto max-h-150">
+                                  <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[150px]">
                                     {typeof result.output === 'string' ? result.output : JSON.stringify(result.output, null, 2)}
                                   </pre>
                                 </div>
@@ -939,9 +940,9 @@ export default function ExecutionPanel({
                             {/* Tool Call Details */}
                             {result.toolCalls && result.toolCalls.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-8 mb-8">
-                                  <div className="w-20 h-20 rounded-4 bg-[#FFEFA4] dark:bg-[#FFDD40] flex items-center justify-center flex-shrink-0">
-                                    <Plug className="w-12 h-12 text-white" strokeWidth={2.5} />
+                                <div className="flex items-center gap-2 mb-8">
+                                  <div className="w-8 h-8 rounded-4 bg-[#FFEFA4] dark:bg-[#FFDD40] flex items-center justify-center flex-shrink-0">
+                                    <Plug className="w-6 h-6 text-white" strokeWidth={2.5} />
                                   </div>
                                   <p className="text-label-medium font-medium text-foreground">MCP Tool Calls:</p>
                                 </div>
@@ -957,7 +958,7 @@ export default function ExecutionPanel({
                                       {call.arguments && (
                                         <div className="mb-6">
                                           <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wide">Arguments</p>
-                                          <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap bg-accent-white border border-border rounded-4 p-6 overflow-auto max-h-120">
+                                          <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all bg-accent-white border border-border rounded-4 p-6 overflow-y-auto max-h-[120px]">
                                             {typeof call.arguments === 'string'
                                               ? call.arguments
                                               : JSON.stringify(call.arguments, null, 2)}
@@ -967,7 +968,7 @@ export default function ExecutionPanel({
                                       {call.output && (
                                         <div>
                                           <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wide">Output</p>
-                                          <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap bg-accent-white border border-border rounded-4 p-6 overflow-auto max-h-150">
+                                          <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all bg-accent-white border border-border rounded-4 p-6 overflow-y-auto max-h-[150px]">
                                             {typeof call.output === 'string'
                                               ? call.output
                                               : JSON.stringify(call.output, null, 2)}
@@ -1013,7 +1014,7 @@ export default function ExecutionPanel({
 
                       {/* Node Error */}
                       {result.error && (
-                        <div className="mt-12">
+                        <div className="mt-3">
                           <div className="flex items-center justify-between mb-6">
                             <p className="text-xs text-foreground font-medium">Error:</p>
                             <button
@@ -1022,14 +1023,14 @@ export default function ExecutionPanel({
                             >
                               {copiedError === nodeId ? (
                                 <>
-                                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                   </svg>
                                   Copied
                                 </>
                               ) : (
                                 <>
-                                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                   </svg>
                                   Copy
@@ -1037,8 +1038,8 @@ export default function ExecutionPanel({
                               )}
                             </button>
                           </div>
-                          <div className="bg-secondary rounded-md p-12 border border-border">
-                            <pre className="text-xs text-foreground whitespace-pre-wrap overflow-auto max-h-200 font-mono">
+                          <div className="bg-secondary rounded-md p-3 border border-border">
+                            <pre className="text-xs text-foreground whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] font-mono">
                               {result.error}
                             </pre>
                           </div>
@@ -1047,7 +1048,7 @@ export default function ExecutionPanel({
 
 
                       {result.pendingAuth && (
-                        <div className="mt-12 p-12 bg-secondary border border-primary rounded-md">
+                        <div className="mt-3 p-3 bg-secondary border border-primary rounded-md">
                           <p className="text-xs font-medium text-foreground">
                             Authorization required for {result.pendingAuth.toolName}
                           </p>
@@ -1061,7 +1062,7 @@ export default function ExecutionPanel({
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-6 mt-10 px-12 py-6 bg-accent-black hover:bg-secondary/808 text-white rounded-6 text-xs font-medium transition-colors"
                             >
-                              <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
                               Open authorization
@@ -1072,7 +1073,7 @@ export default function ExecutionPanel({
 
                       {/* Node Output */}
                       {result.output && !result.error && (
-                        <div className="mt-12">
+                        <div className="mt-3">
                           <p className="text-xs text-muted-foreground mb-6">Output:</p>
 
                           {/* Special handling for Google Docs results */}
@@ -1111,11 +1112,11 @@ export default function ExecutionPanel({
 
                               if (docUrl) {
                                 return (
-                                  <div className="space-y-12">
+                                  <div className="space-y-3">
                                     {/* Success notification */}
-                                    <div className="bg-background border border-border rounded-md p-12">
-                                      <div className="flex items-center gap-8 mb-8">
-                                        <div className="w-16 h-16 bg-accent-black rounded-full flex items-center justify-center">
+                                    <div className="bg-background border border-border rounded-md p-3">
+                                      <div className="flex items-center gap-2 mb-8">
+                                        <div className="w-4 h-4 bg-accent-black rounded-full flex items-center justify-center">
                                           <svg className="w-10 h-10 text-accent-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                           </svg>
@@ -1124,7 +1125,7 @@ export default function ExecutionPanel({
                                           Document Updated
                                         </span>
                                       </div>
-                                      <p className="text-xs text-muted-foreground mb-12">
+                                      <p className="text-xs text-muted-foreground mb-3">
                                         Your executive summary has been created in Google Docs.
                                       </p>
 
@@ -1133,9 +1134,9 @@ export default function ExecutionPanel({
                                         href={docUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-8 px-16 py-10 bg-accent-black hover:bg-secondary/808 text-accent-white rounded-md text-xs font-medium transition-colors"
+                                        className="inline-flex items-center gap-2 px-16 py-10 bg-accent-black hover:bg-secondary/808 text-accent-white rounded-md text-xs font-medium transition-colors"
                                       >
-                                        <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>
                                         Open {docTitle}
@@ -1146,12 +1147,12 @@ export default function ExecutionPanel({
                                     <details className="group">
                                       <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-4">
                                         <span>View Raw Output</span>
-                                        <svg className="w-12 h-12 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-6 h-6 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
                                       </summary>
-                                      <div className="mt-8 bg-background rounded-md p-12 border border-border">
-                                        <pre className="text-[11px] leading-relaxed text-foreground whitespace-pre-wrap overflow-auto max-h-200 font-mono">
+                                      <div className="mt-8 bg-background rounded-md p-3 border border-border">
+                                        <pre className="text-[11px] leading-relaxed text-foreground whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] font-mono">
                                           {outputStr}
                                         </pre>
                                       </div>
@@ -1163,8 +1164,8 @@ export default function ExecutionPanel({
 
                             // Default output display
                             return (
-                              <div className="bg-background rounded-md p-12 border border-border">
-                                <pre className="text-[11px] leading-relaxed text-foreground whitespace-pre-wrap overflow-auto max-h-200 font-mono">
+                              <div className="bg-background rounded-md p-3 border border-border">
+                                <pre className="text-[11px] leading-relaxed text-foreground whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] font-mono">
                                   {outputStr}
                                 </pre>
                               </div>
@@ -1174,16 +1175,16 @@ export default function ExecutionPanel({
                       )}
                       {/* MCP Tool Calls */}
                       {result.toolCalls && result.toolCalls.length > 0 && (
-                        <div className="mt-12">
-                          <div className="flex items-center gap-8 mb-8">
-                            <div className="w-20 h-20 rounded-4 bg-[#FFEFA4] dark:bg-[#FFDD40] flex items-center justify-center flex-shrink-0">
-                              <Plug className="w-12 h-12 text-white" strokeWidth={2.5} />
+                        <div className="mt-3">
+                          <div className="flex items-center gap-2 mb-8">
+                            <div className="w-8 h-8 rounded-4 bg-[#FFEFA4] dark:bg-[#FFDD40] flex items-center justify-center flex-shrink-0">
+                              <Plug className="w-6 h-6 text-white" strokeWidth={2.5} />
                             </div>
                             <p className="text-label-medium font-medium text-foreground">MCP Tool Calls:</p>
                           </div>
-                          <div className="space-y-8">
+                          <div className="space-y-3">
                             {result.toolCalls.map((call, index) => (
-                              <div key={index} className="bg-background rounded-md p-12 border border-border">
+                              <div key={index} className="bg-background rounded-md p-3 border border-border">
                                 <div className="flex items-center justify-between mb-8">
                                   <span className="text-xs font-medium text-foreground">
                                     {call.name || `Tool ${index + 1}`}
@@ -1193,7 +1194,7 @@ export default function ExecutionPanel({
                                 {call.arguments && (
                                   <div className="mb-8">
                                     <p className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wide">Arguments</p>
-                                    <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap bg-accent-white border border-border rounded-6 p-8 overflow-auto max-h-120">
+                                    <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all bg-accent-white border border-border rounded-6 p-8 overflow-y-auto max-h-[120px]">
                                       {typeof call.arguments === 'string'
                                         ? call.arguments
                                         : JSON.stringify(call.arguments, null, 2)}
@@ -1203,7 +1204,7 @@ export default function ExecutionPanel({
                                 {call.output && (
                                   <div>
                                     <p className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wide">Output</p>
-                                    <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap bg-accent-white border border-border rounded-6 p-8 overflow-auto max-h-150">
+                                    <pre className="text-[10px] text-foreground font-mono whitespace-pre-wrap break-all bg-accent-white border border-border rounded-6 p-8 overflow-y-auto max-h-[150px]">
                                       {typeof call.output === 'string'
                                         ? call.output
                                         : JSON.stringify(call.output, null, 2)}
@@ -1219,8 +1220,8 @@ export default function ExecutionPanel({
 
                       {/* Timing */}
                       {result.startedAt && (
-                        <div className="flex items-center gap-8 mt-12 text-xs text-muted-foreground">
-                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           {result.completedAt ? (
@@ -1241,9 +1242,9 @@ export default function ExecutionPanel({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="mt-24 p-20 bg-secondary rounded-xl border border-border"
+                    className="mt-12 p-3 bg-secondary rounded-xl border border-border"
                   >
-                    <div className="flex items-center gap-12 mb-12">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-32 h-32 bg-secondary0 rounded-full flex items-center justify-center">
                         <svg className="w-18 h-18 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1251,7 +1252,7 @@ export default function ExecutionPanel({
                       </div>
                       <h3 className="text-sm font-medium text-foreground font-medium">Workflow Failed</h3>
                     </div>
-                    <div className="mb-12">
+                    <div className="mb-3">
                       <div className="flex items-center justify-between mb-6">
                         <p className="text-xs text-foreground font-medium">Error Details:</p>
                         <button
@@ -1260,14 +1261,14 @@ export default function ExecutionPanel({
                         >
                           {copiedError === 'workflow' ? (
                             <>
-                              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                               Copied
                             </>
                           ) : (
                             <>
-                              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
                               Copy Error
@@ -1275,13 +1276,13 @@ export default function ExecutionPanel({
                           )}
                         </button>
                       </div>
-                      <div className="bg-secondary/80 rounded-md p-12 border border-border">
-                        <pre className="text-xs text-foreground whitespace-pre-wrap overflow-auto max-h-200 font-mono">
+                      <div className="bg-secondary/80 rounded-md p-3 border border-border">
+                        <pre className="text-xs text-foreground whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] font-mono">
                           {execution.error}
                         </pre>
                       </div>
                     </div>
-                    <div className="flex gap-12 mt-8 w-full">
+                    <div className="flex gap-3 mt-8 w-full">
                       {execution?.threadId && (
                         <button
                           onClick={() => onRetry(execution.threadId!, execution.id)}
@@ -1309,9 +1310,9 @@ export default function ExecutionPanel({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="mt-24 p-20 bg-accent-white rounded-xl border border-border"
+                    className="mt-12 p-3 bg-accent-white rounded-xl border border-border"
                   >
-                    <div className="flex items-center gap-12 mb-12">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-32 h-32 bg-muted rounded-full flex items-center justify-center">
                         <svg className="w-18 h-18 text-foreground/64" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1324,7 +1325,7 @@ export default function ExecutionPanel({
                     </p>
                     <button
                       onClick={handleReset}
-                      className="mt-16 w-full px-16 py-10 bg-accent-black hover:bg-secondary/800 text-white rounded-md text-xs font-medium transition-colors"
+                      className="mt-4 w-full px-16 py-10 bg-accent-black hover:bg-secondary/800 text-white rounded-md text-xs font-medium transition-colors"
                     >
                       Run Again
                     </button>

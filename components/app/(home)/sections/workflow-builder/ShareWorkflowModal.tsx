@@ -95,7 +95,7 @@ while (true) {
           >
             {/* Header */}
             <div className="p-24 border-b border-border sticky top-0 bg-accent-white rounded-t-16">
-              <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="text-title-h3 text-foreground mb-4">Workflow Saved!</h2>
                   <p className="text-sm text-muted-foreground">
@@ -106,7 +106,7 @@ while (true) {
                   onClick={onClose}
                   className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -114,9 +114,9 @@ while (true) {
             </div>
 
             {/* Content */}
-            <div className="p-24 space-y-20">
+            <div className="p-24 space-y-6">
               {/* URLs Section */}
-              <div className="space-y-16">
+              <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-8">
                     <label className="text-label-medium text-foreground font-medium">
@@ -133,7 +133,7 @@ while (true) {
                     type="text"
                     value={executeUrl}
                     readOnly
-                    className="w-full px-12 py-10 bg-background border border-border rounded-md text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-xs text-foreground font-mono"
                   />
                 </div>
 
@@ -153,7 +153,7 @@ while (true) {
                     type="text"
                     value={streamUrl}
                     readOnly
-                    className="w-full px-12 py-10 bg-background border border-border rounded-md text-xs text-foreground font-mono"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-xs text-foreground font-mono"
                   />
                   <p className="text-xs text-muted-foreground mt-6">Real-time updates as each node executes</p>
                 </div>
@@ -162,7 +162,7 @@ while (true) {
               <div className="border-t border-border my-20"></div>
 
               {/* Code Examples */}
-              <div className="space-y-16">
+              <div className="space-y-4">
                 <h3 className="text-sm font-medium text-foreground font-medium">Code Examples</h3>
 
                 {/* cURL */}
@@ -178,7 +178,7 @@ while (true) {
                       {copied === 'curl' ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
-                  <pre className="p-16 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto">
+                  <pre className="p-4 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto">
 {curlExample}
                   </pre>
                 </div>
@@ -196,30 +196,30 @@ while (true) {
                       {copied === 'fetch' ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
-                  <pre className="p-16 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto whitespace-pre-wrap">
+                  <pre className="p-4 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto whitespace-pre-wrap">
 {fetchExample}
                   </pre>
                 </div>
 
                 {/* Streaming Info */}
-                <div className="p-16 bg-background rounded-xl border border-border">
-                  <div className="flex items-center gap-8 mb-8">
+                <div className="p-4 bg-background rounded-xl border border-border">
+                  <div className="flex items-center gap-2 mb-8">
                     <div className="w-6 h-6 bg-primary rounded-full"></div>
                     <p className="text-label-small text-foreground font-medium">Streaming Available</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-12">
+                  <p className="text-xs text-muted-foreground mb-3">
                     Use <code className="px-6 py-2 bg-white rounded-4 text-foreground font-mono text-xs">execute-stream</code> endpoint for real-time updates
                   </p>
                   <div className="space-y-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2">
                       <code className="px-6 py-2 bg-white rounded-4 text-foreground font-mono text-xs">node_started</code>
                       <span>Node begins</span>
                     </div>
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2">
                       <code className="px-6 py-2 bg-white rounded-4 text-foreground font-mono text-xs">node_completed</code>
                       <span>Node finishes</span>
                     </div>
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2">
                       <code className="px-6 py-2 bg-white rounded-4 text-foreground font-mono text-xs">workflow_completed</code>
                       <span>All done</span>
                     </div>
@@ -229,7 +229,7 @@ while (true) {
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 p-20 bg-accent-white border-t border-border rounded-b-16">
+            <div className="sticky bottom-0 p-6 bg-accent-white border-t border-border rounded-b-16">
               <button
                 onClick={onClose}
                 className="w-full px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98]"

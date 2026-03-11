@@ -51,7 +51,26 @@ export default function WorkflowsPage() {
         projectId: activeProjectId || undefined,
         name: newWorkflowName.trim(),
         description: newWorkflowDesc.trim(),
-        nodes: [],
+        nodes: [
+          {
+            id: "start-node",
+            type: "start",
+            position: { x: 100, y: 100 },
+            data: {
+              label: "Start",
+              nodeType: "start",
+              inputVariables: [
+                {
+                  name: "input_as_text",
+                  type: "string",
+                  required: false,
+                  defaultValue: "",
+                  description: "",
+                },
+              ],
+            },
+          },
+        ],
         edges: [],
       });
       toast.success("Workflow created successfully");
@@ -205,11 +224,11 @@ export default function WorkflowsPage() {
                 <DialogTrigger asChild>
                   <Card
                     className={cn(
-                      "group relative flex flex-col items-center justify-center gap-6 border-2 border-dashed p-8 h-full min-h-[200px] rounded-[32px] cursor-pointer hover:border-primary/50 hover:bg-primary/5"
+                      "group relative flex flex-col items-center justify-center gap-6 border border-border p-8 h-full min-h-[200px] rounded-[32px] cursor-pointer bg-muted/50"
                     )}
                   >
                     <div className={cn(
-                      "flex h-16 w-16 items-center justify-center rounded-[24px] shadow-sm bg-muted text-foreground group-hover:bg-primary group-hover:text-primary-foreground"
+                      "flex h-16 w-16 items-center justify-center rounded-[24px] shadow-sm bg-background text-foreground"
                     )}>
                       <Plus className="h-8 w-8" />
                     </div>
@@ -294,7 +313,7 @@ export default function WorkflowsPage() {
           <section className="mt-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pt-8 border-t border-border/50">
               <div className="space-y-1">
-                <h2 className="text-lg font-semibold">All Workflows</h2>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/50">All Workflows</h2>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-muted-foreground uppercase">
                     {filteredAllWorkflows.length} TOTAL FLOW{filteredAllWorkflows.length !== 1 ? "S" : ""}

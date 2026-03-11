@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, ChevronDown, Check, AlertTriangle, XCircle } from "lucide-react";
 
@@ -103,10 +104,10 @@ export default function GuardrailsNodePanel({
   };
 
   return (
-    <div className="p-20 space-y-20">
+    <div className="p-2 space-y-2">
       {/* Header Description */}
-      <div className="p-12 bg-secondary rounded-lg border border-heat-12 flex gap-12 items-start">
-        <Shield className="w-16 h-16 text-primary mt-2 shrink-0" />
+      <div className="p-3 bg-secondary rounded-lg border border-heat-12 flex gap-3 items-start">
+        <Shield className="w-4 h-4 text-primary mt-1 shrink-0" />
         <p className="text-xs text-primary leading-relaxed">
           Guardrails inspect content for safety violations before passing it to the next node.
         </p>
@@ -116,22 +117,22 @@ export default function GuardrailsNodePanel({
       <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab("checks")}
-          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "checks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === "checks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
         >
           Safety Checks
           {activeTab === "checks" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
+            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
           )}
         </button>
         <button
           onClick={() => setActiveTab("actions")}
-          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "actions" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === "actions" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
         >
           Actions
           {activeTab === "actions" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
+            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
           )}
         </button>
       </div>
@@ -143,10 +144,10 @@ export default function GuardrailsNodePanel({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
-            className="space-y-16"
+            className="space-y-2"
           >
             {/* Main Toggles */}
-            <div className="space-y-12">
+            <div className="space-y-3">
               {[
                 { id: 'moderation', label: 'Moderation', desc: 'Hate speech, violence, harassment' },
                 { id: 'jailbreak', label: 'Jailbreak Detection', desc: 'Attempts to bypass AI safety' },
@@ -158,36 +159,31 @@ export default function GuardrailsNodePanel({
                     <label className="text-sm font-medium text-foreground block">{item.label}</label>
                     <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
-                  <button
-                    onClick={() => toggleCheck(item.id as keyof typeof config.checks)}
-                    className={`w-40 h-24 rounded-full transition-colors relative shrink-0 ${config.checks[item.id as keyof typeof config.checks] ? "bg-primary" : "bg-muted"
-                      }`}
-                  >
-                    <motion.div
-                      className="w-20 h-20 bg-white rounded-full absolute top-2 shadow-sm"
-                      animate={{ left: config.checks[item.id as keyof typeof config.checks] ? "18px" : "2px" }}
-                    />
-                  </button>
+                  <Switch
+                    checked={config.checks[item.id as keyof typeof config.checks]}
+                    onCheckedChange={() => toggleCheck(item.id as keyof typeof config.checks)}
+                    className="scale-75 origin-right"
+                  />
                 </div>
               ))}
             </div>
 
             {/* Custom Rules */}
-            <div className="pt-16 border-t border-border">
-              <label className="block text-sm font-medium text-muted-foreground mb-8">
+            <div className="pt-4 border-t border-border">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Custom Rules
               </label>
-              <div className="flex gap-8 mb-8">
+              <div className="flex gap-2 mb-8">
                 <input
                   value={newRule}
                   onChange={(e) => setNewRule(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addRule()}
                   placeholder="e.g. No mention of competitors"
-                  className="flex-1 px-12 py-8 bg-background border border-border rounded-md text-sm focus:outline-none focus:border-primary"
+                  className="flex-1 px-3 py-1.5 bg-background border border-border rounded-md text-sm focus:outline-none focus:border-primary"
                 />
                 <button
                   onClick={addRule}
-                  className="px-12 py-8 bg-secondary text-primary rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 bg-secondary text-primary rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors"
                 >
                   Add
                 </button>
@@ -197,7 +193,7 @@ export default function GuardrailsNodePanel({
                   <div key={idx} className="flex items-center justify-between p-8 bg-background rounded-md group">
                     <span className="text-sm text-foreground">{rule}</span>
                     <button onClick={() => removeRule(idx)} className="text-black-alpha-32 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      <XCircle className="w-16 h-16" />
+                      <XCircle className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -213,23 +209,23 @@ export default function GuardrailsNodePanel({
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -10 }}
-            className="space-y-20"
+            className="space-y-6"
           >
             {/* Action on Violation */}
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-8">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Action on Violation
               </label>
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'block' }))}
-                  className={`p-12 rounded-lg border text-left transition-all ${config.actionOnViolation === 'block'
+                  className={`p-2 rounded-lg border text-left transition-all ${config.actionOnViolation === 'block'
                     ? 'border-primary bg-secondary'
                     : 'border-border hover:border-black-alpha-20'
                     }`}
                 >
-                  <div className="flex items-center gap-8 mb-4">
-                    <XCircle className={`w-16 h-16 ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="flex items-center gap-2 mb-4">
+                    <XCircle className={`w-4 h-4 ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-muted-foreground'}`} />
                     <span className={`text-sm font-medium ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-foreground'}`}>Block</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Stop execution and throw error.</p>
@@ -237,13 +233,13 @@ export default function GuardrailsNodePanel({
 
                 <button
                   onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'fallback' }))}
-                  className={`p-12 rounded-lg border text-left transition-all ${config.actionOnViolation === 'fallback'
+                  className={`p-3 rounded-lg border text-left transition-all ${config.actionOnViolation === 'fallback'
                     ? 'border-primary bg-secondary'
                     : 'border-border hover:border-black-alpha-20'
                     }`}
                 >
-                  <div className="flex items-center gap-8 mb-4">
-                    <AlertTriangle className={`w-16 h-16 ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="flex items-center gap-2 mb-4">
+                    <AlertTriangle className={`w-4 h-4 ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-muted-foreground'}`} />
                     <span className={`text-sm font-medium ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-foreground'}`}>Fallback</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Return static response.</p>
@@ -258,13 +254,13 @@ export default function GuardrailsNodePanel({
                 animate={{ opacity: 1, height: 'auto' }}
                 className="overflow-hidden"
               >
-                <label className="block text-sm font-medium text-muted-foreground mb-8">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Fallback Response
                 </label>
                 <textarea
                   value={config.fallbackResponse}
                   onChange={(e) => setConfig(prev => ({ ...prev, fallbackResponse: e.target.value }))}
-                  className="w-full px-12 py-8 bg-background border border-border rounded-md text-sm h-80 focus:outline-none focus:border-primary resize-none"
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-sm h-20 focus:outline-none focus:border-primary resize-none"
                 />
               </motion.div>
             )}

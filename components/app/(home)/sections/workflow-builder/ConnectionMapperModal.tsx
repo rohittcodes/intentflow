@@ -120,7 +120,7 @@ export default function ConnectionMapperModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-6"
           onClick={onClose}
         >
           <motion.div
@@ -144,7 +144,7 @@ export default function ConnectionMapperModal({
                   onClick={onClose}
                   className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -152,31 +152,31 @@ export default function ConnectionMapperModal({
             </div>
 
             {/* Content */}
-            <div className="p-24 space-y-20">
+            <div className="p-24 space-y-6">
               {/* Quick Auto-Map */}
               <button
                 onClick={handleQuickConnect}
-                className="w-full px-16 py-10 bg-secondary hover:bg-secondary/80 border border-primary rounded-md text-sm text-primary transition-colors flex items-center justify-center gap-8"
+                className="w-full px-16 py-10 bg-secondary hover:bg-secondary/80 border border-primary rounded-md text-sm text-primary transition-colors flex items-center justify-center gap-2"
               >
-                <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 Auto-Map Fields
               </button>
 
               {/* Mapping Grid */}
-              <div className="space-y-12">
-                <div className="grid grid-cols-2 gap-12 pb-12 border-b border-border">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 pb-12 border-b border-border">
                   <p className="text-label-small text-muted-foreground">From ({sourceData.nodeName})</p>
                   <p className="text-label-small text-muted-foreground">To ({targetData.nodeName})</p>
                 </div>
 
                 {targetKeys.map((targetKey) => (
-                  <div key={targetKey} className="grid grid-cols-2 gap-12 items-center">
+                  <div key={targetKey} className="grid grid-cols-2 gap-3 items-center">
                     <select
                       value={mapping[targetKey] || ''}
                       onChange={(e) => setMapping({ ...mapping, [targetKey]: e.target.value })}
-                      className="px-12 py-8 bg-background border border-border rounded-6 text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+                      className="px-3 py-1.5 bg-background border border-border rounded-6 text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
                     >
                       <option value="">-- Select source --</option>
                       <option value="__full__">Full Output</option>
@@ -187,8 +187,8 @@ export default function ConnectionMapperModal({
                       ))}
                     </select>
 
-                    <div className="flex items-center gap-8">
-                      <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                       <code className="text-xs text-foreground font-mono">{targetKey}</code>
@@ -199,7 +199,7 @@ export default function ConnectionMapperModal({
 
               {/* Preview */}
               {Object.keys(mapping).length > 0 && (
-                <div className="p-16 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
                   <h3 className="text-label-small text-blue-900 mb-8 font-medium">Connection Preview</h3>
                   <div className="space-y-4 text-xs text-blue-800 font-mono">
                     {Object.entries(mapping).map(([target, source]) => (

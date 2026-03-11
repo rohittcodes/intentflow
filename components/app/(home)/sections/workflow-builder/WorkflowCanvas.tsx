@@ -337,8 +337,16 @@ export default function WorkflowCanvas({
   }, [nodes, edges, pushState, updateNodes]);
 
   const onNodesDelete = useCallback((deleted: Node[]) => {
-    const updated = nodes.filter(n => !deleted.find(d => d.id === n.id));
-    pushState(updated, edges.filter(e => !deleted.find(d => d.id === e.source || d.id === e.target)));
+    // Prevent deletion of start nodes
+    const filteredDeleted = deleted.filter(d => d.type !== 'start');
+    if (filteredDeleted.length === 0 && deleted.some(d => d.type === 'start')) {
+      toast.error('Cannot delete the start node');
+    }
+
+    if (filteredDeleted.length === 0) return;
+
+    const updated = nodes.filter(n => !filteredDeleted.find(d => d.id === n.id));
+    pushState(updated, edges.filter(e => !filteredDeleted.find(d => d.id === e.source || d.id === e.target)));
     updateNodes(updated as any);
   }, [nodes, edges, pushState, updateNodes]);
 
@@ -459,20 +467,22 @@ export default function WorkflowCanvas({
     setConfirmDialog({
       isOpen: true,
       title: "Clear Canvas",
-      description: "Are you sure you want to clear the entire canvas? This cannot be undone.",
+      description: "Are you sure you want to clear the canvas? All nodes except the Start node will be removed.",
       variant: "danger",
       onConfirm: () => {
-        setNodes([]);
+        const startNode = nodes.find(n => n.type === 'start');
+        const nextNodes = startNode ? [startNode] : [];
+        setNodes(nextNodes);
         setEdges([]);
-        pushState([], []);
-        updateNodes([]);
+        pushState(nextNodes, []);
+        updateNodes(nextNodes as any);
         updateEdges([]);
         onSelectNode(null, instanceId);
         setConfirmDialog(p => ({ ...p, isOpen: false }));
-        toast.success('Canvas cleared');
+        toast.success('Canvas cleared (Start node preserved)');
       },
     });
-  }, [setNodes, setEdges, updateNodes, updateEdges, onSelectNode, instanceId]);
+  }, [nodes, setNodes, setEdges, updateNodes, updateEdges, onSelectNode, instanceId]);
 
   // Keyboard listeners for Ctrl
   useEffect(() => {
@@ -579,17 +589,17 @@ export default function WorkflowCanvas({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-16 left-16 right-16 z-50 flex items-center justify-between"
+            className="absolute top-4 left-16 right-16 z-50 flex items-center justify-between"
           >
-            <div className="flex items-center gap-8 px-12 py-6 rounded-lg bg-accent-white border border-black-alpha-8 text-[11px] font-bold uppercase tracking-wider text-black-alpha-56 shadow-sm">
-              <Globe className="w-12 h-12 text-teal-600" />
+            <div className="flex items-center gap-2 px-12 py-6 rounded-lg bg-accent-white border border-black-alpha-8 text-[11px] font-bold uppercase tracking-wider text-black-alpha-56 shadow-sm">
+              <Globe className="w-6 h-6 text-teal-600" />
               {workflow?.name || 'Loading Workflow...'}
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onClose?.(); }}
               className="w-32 h-32 rounded-lg bg-accent-white hover:bg-red-50 hover:text-red-500 border border-black-alpha-8 flex items-center justify-center transition-all shadow-sm"
             >
-              <X className="w-16 h-16" />
+              <X className="w-4 h-4" />
             </button>
           </motion.div>
         )}
@@ -640,7 +650,7 @@ export default function WorkflowCanvas({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed bg-accent-white border border-black-alpha-8 rounded-xl shadow-2xl z-[500] p-4 min-w-[180px] backdrop-blur-xl"
+          className="fixed bg-accent-white border border-black-alpha-8 rounded-xl shadow-2xl z-[500] p-2 min-w-[180px] backdrop-blur-xl"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -651,10 +661,10 @@ export default function WorkflowCanvas({
                   handleDuplicateNode(contextMenu.nodeId);
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-blue-500/20 text-blue-500 rounded-4">
-                  <Copy className="w-12 h-12" />
+                <div className="w-8 h-8 flex items-center justify-center bg-blue-500/20 text-blue-500 rounded-4">
+                  <Copy className="w-6 h-6" />
                 </div>
                 Duplicate
               </button>
@@ -662,23 +672,29 @@ export default function WorkflowCanvas({
                 onClick={() => {
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-indigo-500/20 text-indigo-500 rounded-4">
-                  <Settings2 className="w-12 h-12" />
+                <div className="w-8 h-8 flex items-center justify-center bg-indigo-500/20 text-indigo-500 rounded-4">
+                  <Settings2 className="w-6 h-6" />
                 </div>
                 Edit Properties
               </button>
               <div className="h-1 bg-secondary/80 my-4 mx-8 opacity-50" />
               <button
                 onClick={() => {
+                  const node = nodes.find(n => n.id === contextMenu.nodeId);
+                  if (node?.type === 'start') {
+                    toast.error('Cannot delete the start node');
+                    return;
+                  }
                   handleDeleteNode(contextMenu.nodeId);
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                disabled={nodes.find(n => n.id === contextMenu.nodeId)?.type === 'start'}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-red-500/10 rounded-4">
-                  <Trash2 className="w-12 h-12" />
+                <div className="w-8 h-8 flex items-center justify-center bg-red-500/10 rounded-4">
+                  <Trash2 className="w-6 h-6" />
                 </div>
                 Delete
               </button>
@@ -690,19 +706,19 @@ export default function WorkflowCanvas({
                   handleAutoLayout();
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
+                className="w-full flex items-center gap-2 p-1 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-teal-500/20 text-teal-500 rounded-4">
-                  <Maximize className="w-12 h-12" />
+                <div className="w-8 h-8 flex items-center justify-center bg-teal-500/20 text-teal-500 rounded-4">
+                  <Maximize className="w-4 h-4" />
                 </div>
                 Auto-layout
               </button>
               <button
                 onClick={() => setContextMenu(null)}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-black-alpha-56 hover:bg-secondary rounded-md transition-colors"
+                className="w-full flex items-center gap-2 p-1 text-xs font-semibold text-black-alpha-56 hover:bg-secondary rounded-md transition-colors"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-secondary/80 rounded-4">
-                  <Activity className="w-12 h-12" />
+                <div className="w-8 h-8 flex items-center justify-center bg-secondary/80 rounded-4">
+                  <Activity className="w-4 h-4" />
                 </div>
                 Cancel
               </button>
@@ -721,7 +737,7 @@ export default function WorkflowCanvas({
             className="fixed z-[200] w-220 bg-accent-white/80 backdrop-blur-xl border border-black-alpha-8 rounded-16 shadow-2xl p-6 nav-menu"
             style={{ left: navMenu.x, top: navMenu.y }}
           >
-            <div className="px-12 py-8 border-b border-black-alpha-8 mb-4">
+            <div className="px-3 py-1.5 border-b border-black-alpha-8 mb-4">
               <p className="text-[10px] font-bold text-black-alpha-40 uppercase tracking-widest">Navigation</p>
             </div>
             <button
@@ -730,10 +746,10 @@ export default function WorkflowCanvas({
                 onOpenNestedWorkflow(navMenu.workflowId);
                 setNavMenu(null);
               }}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-foreground hover:bg-primary hover:text-white rounded-lg transition-all group"
+              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-foreground hover:bg-primary hover:text-white rounded-lg transition-all group"
             >
               <div className="w-24 h-24 flex items-center justify-center bg-primary/10 group-hover:bg-white/20 rounded-6 transition-colors">
-                <Columns className="w-14 h-14" />
+                <Columns className="w-3.5 h-3.5" />
               </div>
               Open in Side Canvas
             </button>
@@ -743,17 +759,17 @@ export default function WorkflowCanvas({
                 window.open(`/flow/${navMenu.workflowId}`, '_blank');
                 setNavMenu(null);
               }}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-foreground hover:bg-secondary rounded-lg transition-all group"
+              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary rounded-lg transition-all group"
             >
               <div className="w-24 h-24 flex items-center justify-center bg-secondary/80 rounded-6 transition-colors">
-                <ExternalLink className="w-14 h-14" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </div>
               Open in New Tab
             </button>
             <div className="h-1 bg-secondary/80 my-4 mx-8" />
             <button
               onClick={() => setNavMenu(null)}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-black-alpha-40 hover:bg-secondary hover:text-black-alpha-80 rounded-lg transition-all"
+              className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-black-alpha-40 hover:bg-secondary hover:text-black-alpha-80 rounded-lg transition-all"
             >
               <div className="w-24 h-24" />
               Dismiss
@@ -770,13 +786,6 @@ export default function WorkflowCanvas({
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(p => ({ ...p, isOpen: false }))}
       />
-
-      {isSaving && (
-        <div className="absolute bottom-16 left-16 z-50 flex items-center gap-8 px-12 py-6 rounded-full bg-accent-white border border-black-alpha-8 text-[10px] font-bold uppercase tracking-wider text-teal-600 shadow-sm animate-pulse">
-          <Wand2 className="w-12 h-12" />
-          Saving...
-        </div>
-      )}
     </div>
   );
 }

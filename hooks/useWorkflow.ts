@@ -36,6 +36,25 @@ export function useWorkflow(workflowId?: string) {
         if (cleaned.removedCount > 0) {
           workflowData = { ...workflowData, nodes: cleaned.nodes, edges: cleaned.edges };
         }
+
+        // Ensure start node exists
+        const hasStartNode = workflowData.nodes.some((n: any) => n.type === 'start');
+        if (!hasStartNode) {
+          const startNode = {
+            id: 'node_0',
+            type: 'start',
+            position: { x: 250, y: 250 },
+            data: { 
+              label: 'Start',
+              nodeType: 'start',
+              nodeName: 'Start'
+            }
+          };
+          workflowData = {
+            ...workflowData,
+            nodes: [startNode, ...workflowData.nodes]
+          };
+        }
       }
       return workflowData as Workflow;
     },
@@ -45,6 +64,7 @@ export function useWorkflow(workflowId?: string) {
 
   // Mutation for saving
   const saveMutation = useMutation({
+    mutationKey: ['workflow-save'],
     mutationFn: async (updated: Workflow) => {
       const response = await fetch('/api/workflows', {
         method: 'POST',
@@ -82,7 +102,16 @@ export function useWorkflow(workflowId?: string) {
       id: `workflow_${Date.now()}`,
       name: 'New Workflow',
       nodes: [
-        { id: 'node_0', type: 'start', position: { x: 250, y: 150 }, data: { label: 'Start' } },
+        { 
+          id: 'node_0', 
+          type: 'start', 
+          position: { x: 250, y: 150 }, 
+          data: { 
+            label: 'Start',
+            nodeType: 'start',
+            nodeName: 'Start'
+          } 
+        },
       ],
       edges: [],
       createdAt: new Date().toISOString(),

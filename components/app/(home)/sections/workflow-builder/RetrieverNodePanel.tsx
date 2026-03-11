@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Database, Search, ChevronDown, Loader2 } from "lucide-react";
@@ -48,10 +49,10 @@ export default function RetrieverNodePanel({
   const selectedNamespace = namespaces?.find((n) => n._id === namespaceId);
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-20">
+    <div className="flex-1 overflow-y-auto p-2 space-y-2 w-[260px]">
       {/* Node Name */}
       <div>
-        <label className="block text-sm font-medium text-muted-foreground mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Node Name
         </label>
         <input
@@ -59,37 +60,37 @@ export default function RetrieverNodePanel({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Fetch Documents"
-          className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+          className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
       {/* Namespace Selection */}
       <div>
-        <label className="block text-sm font-medium text-muted-foreground mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Knowledge Base (Namespace)
         </label>
         <div className="relative">
           <button
             onClick={() => setShowNamespaceDropdown(!showNamespaceDropdown)}
-            className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors flex items-center justify-between hover:bg-secondary"
+            className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors flex items-center justify-between hover:bg-secondary"
           >
-            <div className="flex items-center gap-8 truncate">
-              <Database className="w-16 h-16 text-black-alpha-32" />
+            <div className="flex items-center gap-2 truncate">
+              <Database className="w-4 h-4 text-black-alpha-32" />
               <span className="truncate">
                 {selectedNamespace ? selectedNamespace.name : "Select a namespace..."}
               </span>
             </div>
-            <ChevronDown className={`w-16 h-16 text-muted-foreground transition-transform ${showNamespaceDropdown ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showNamespaceDropdown ? 'rotate-180' : ''}`} />
           </button>
 
           {showNamespaceDropdown && (
             <div className="absolute z-10 w-full mt-8 bg-accent-white border border-border rounded-xl shadow-xl overflow-hidden max-h-200 overflow-y-auto">
               {namespaces === undefined ? (
-                <div className="p-16 flex items-center justify-center">
-                  <Loader2 className="w-20 h-20 animate-spin text-primary" />
+                <div className="p-4 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : namespaces.length === 0 ? (
-                <div className="p-16 text-center text-sm text-muted-foreground">
+                <div className="p-4 text-center text-sm text-muted-foreground">
                   No namespaces found. Create one in the Knowledge Base dashboard.
                 </div>
               ) : (
@@ -115,11 +116,11 @@ export default function RetrieverNodePanel({
 
       {/* Search Query */}
       <div>
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-1">
           <label className="block text-sm font-medium text-muted-foreground">
             Search Query
           </label>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2">
             {nodes && (
               <VariableReferencePicker
                 nodes={nodes}
@@ -135,21 +136,21 @@ export default function RetrieverNodePanel({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search text or {{variable}}..."
             rows={4}
-            className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-primary transition-colors resize-y pr-40"
+            className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-primary transition-colors resize-y pr-40"
           />
-          <Search className="absolute right-12 top-12 w-16 h-16 text-black-alpha-24" />
+          <Search className="absolute right-12 top-3 w-4 h-4 text-black-alpha-24" />
         </div>
-        <p className="text-[10px] text-black-alpha-40 mt-6">
+        <p className="text-[10px] text-black-alpha-40 mt-1">
           The retriever will find the most relevant chunks based on this text.
         </p>
       </div>
 
       {/* Limit */}
       <div>
-        <label className="block text-sm font-medium text-muted-foreground mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-1">
           Result Limit
         </label>
-        <div className="flex items-center gap-12">
+        <div className="flex items-center gap-3">
           <input
             type="range"
             min="1"
@@ -168,7 +169,7 @@ export default function RetrieverNodePanel({
       </div>
 
       {/* Re-Ranking Toggle */}
-      <div className="flex items-center justify-between p-12 bg-secondary rounded-lg border border-border">
+      <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-border">
         <div className="space-y-2">
           <label className="block text-xs font-semibold text-foreground">
             Enable Re-ranking
@@ -177,21 +178,16 @@ export default function RetrieverNodePanel({
             Uses LLM to re-score results for significantly better accuracy (+ latency).
           </p>
         </div>
-        <button
-          onClick={() => setReRank(!reRank)}
-          className={`relative inline-flex h-20 w-36 items-center rounded-full transition-colors focus:outline-none ${reRank ? "bg-primary" : "bg-black-alpha-16"
-            }`}
-        >
-          <span
-            className={`inline-block h-14 w-14 transform rounded-full bg-white transition-transform ${reRank ? "translate-x-18" : "translate-x-4"
-              }`}
-          />
-        </button>
+        <Switch
+          checked={reRank}
+          onCheckedChange={setReRank}
+          className="scale-75 origin-right"
+        />
       </div>
 
       <div className="pt-20 border-t border-border">
-        <div className="p-12 bg-secondary border border-primary/20 rounded-lg flex gap-12">
-          <Search className="w-16 h-16 text-primary shrink-0" />
+        <div className="p-3 bg-secondary border border-primary/20 rounded-lg flex gap-3">
+          <Search className="w-4 h-4 text-primary shrink-0" />
           <p className="text-xs text-heat-120 leading-relaxed font-medium">
             This node will output a list of documents found in the selected Knowledge Base.
           </p>

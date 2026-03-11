@@ -47,10 +47,10 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
   }, [instructions, timeoutMinutes, actionOnDeny, node?.id, node?.data, updateNodeData]);
 
   return (
-    <div className="p-20 space-y-20">
+    <div className="p-2 space-y-2 w-[260px]">
       {/* Header info banner */}
-      <div className="p-12 bg-amber-50 rounded-lg border border-amber-200 flex gap-12 items-start">
-        <CheckCircle className="w-16 h-16 text-amber-600 mt-2 shrink-0" />
+      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 flex gap-3 items-start">
+        <CheckCircle className="w-4 h-4 text-amber-600 mt-2 shrink-0" />
         <p className="text-xs text-amber-700 leading-relaxed">
           Execution pauses here and waits for a human to approve before continuing. The approver
           sees the message below in the preview panel.
@@ -70,14 +70,14 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
           onChange={(e) => setInstructions(e.target.value)}
           rows={4}
           placeholder="Describe what the approver should review…"
-          className="w-full px-12 py-10 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-amber-400 transition-colors resize-none"
         />
       </div>
 
       {/* Timeout */}
       <div className="space-y-8">
-        <label className="block text-sm font-medium text-foreground flex items-center gap-8">
-          <Clock className="w-14 h-14" />
+        <label className="block text-sm font-medium text-foreground flex items-center gap-2">
+          <Clock className="w-3.5 h-3.5" />
           Timeout (minutes)
         </label>
         <p className="text-xs text-muted-foreground">
@@ -89,7 +89,7 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
           onChange={(e) => setTimeoutMinutes(Number(e.target.value))}
           min={0}
           step={5}
-          className="w-full px-12 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-amber-400 transition-colors"
+          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
 
@@ -98,17 +98,17 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
         <label className="block text-sm font-medium text-foreground">
           Action on Deny / Timeout
         </label>
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setActionOnDeny("stop")}
-            className={`p-12 rounded-lg border text-left transition-all ${actionOnDeny === "stop"
-                ? "border-amber-400 bg-amber-50"
-                : "border-border hover:border-black-alpha-20"
+            className={`p-3 rounded-lg border text-left transition-all ${actionOnDeny === "stop"
+              ? "border-amber-400 bg-amber-50"
+              : "border-border hover:border-black-alpha-20"
               }`}
           >
-            <div className="flex items-center gap-8 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <XCircle
-                className={`w-16 h-16 ${actionOnDeny === "stop" ? "text-amber-600" : "text-muted-foreground"}`}
+                className={`w-4 h-4 ${actionOnDeny === "stop" ? "text-amber-600" : "text-muted-foreground"}`}
               />
               <span
                 className={`text-sm font-medium ${actionOnDeny === "stop" ? "text-amber-700" : "text-foreground"}`}
@@ -121,14 +121,14 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
 
           <button
             onClick={() => setActionOnDeny("skip")}
-            className={`p-12 rounded-lg border text-left transition-all ${actionOnDeny === "skip"
-                ? "border-amber-400 bg-amber-50"
-                : "border-border hover:border-black-alpha-20"
+            className={`p-3 rounded-lg border text-left transition-all ${actionOnDeny === "skip"
+              ? "border-amber-400 bg-amber-50"
+              : "border-border hover:border-black-alpha-20"
               }`}
           >
-            <div className="flex items-center gap-8 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <AlertTriangle
-                className={`w-16 h-16 ${actionOnDeny === "skip" ? "text-amber-600" : "text-muted-foreground"}`}
+                className={`w-4 h-4 ${actionOnDeny === "skip" ? "text-amber-600" : "text-muted-foreground"}`}
               />
               <span
                 className={`text-sm font-medium ${actionOnDeny === "skip" ? "text-amber-700" : "text-foreground"}`}
@@ -142,14 +142,14 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
       </div>
 
       {/* Live preview */}
-      <div className="pt-16 border-t border-border space-y-8">
+      <div className="pt-4 border-t border-border space-y-8">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Preview</p>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="p-16 rounded-xl border-2 border-amber-300 bg-amber-50"
+          className="p-4 rounded-xl border-2 border-amber-300 bg-amber-50"
         >
-          <div className="flex items-center gap-10 mb-10">
+          <div className="flex items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-sm font-semibold text-amber-800">Waiting for Approval</span>
           </div>
@@ -158,7 +158,7 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
           </p>
           {timeoutMinutes > 0 && (
             <p className="text-xs text-amber-600 mt-8 flex items-center gap-4">
-              <Clock className="w-12 h-12" />
+              <Clock className="w-6 h-6" />
               Auto-{actionOnDeny === "stop" ? "denied" : "skipped"} after {timeoutMinutes}m
             </p>
           )}

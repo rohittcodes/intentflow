@@ -122,7 +122,7 @@ export default function SaveAsTemplateModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-20"
+        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-6"
         onClick={onClose}
       >
         <motion.div
@@ -136,9 +136,9 @@ export default function SaveAsTemplateModal({
           {/* Header */}
           <div className="p-24 border-b border-border">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-12">
+              <div className="flex items-center gap-3">
                 <div className="w-40 h-40 rounded-lg bg-primary flex items-center justify-center">
-                  <Save className="w-20 h-20 text-white" />
+                  <Save className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h2 className="text-title-h4 text-foreground">Save as Template</h2>
@@ -151,13 +151,13 @@ export default function SaveAsTemplateModal({
                 onClick={onClose}
                 className="w-32 h-32 rounded-md hover:bg-secondary transition-colors flex items-center justify-center"
               >
-                <X className="w-16 h-16" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-24 overflow-y-auto flex-1 space-y-20">
+          <div className="p-24 overflow-y-auto flex-1 space-y-6">
             {/* Template Name */}
             <div>
               <label className="text-xs font-medium text-foreground mb-8 block">
@@ -168,7 +168,7 @@ export default function SaveAsTemplateModal({
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Enter template name"
-                className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
+                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
               />
             </div>
 
@@ -182,20 +182,20 @@ export default function SaveAsTemplateModal({
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe what this template does and when to use it"
                 rows={3}
-                className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100 resize-none"
+                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100 resize-none"
               />
             </div>
 
             {/* Category */}
             <div>
               <label className="text-xs font-medium text-foreground mb-8 flex items-center gap-6">
-                <FolderOpen className="w-14 h-14" />
+                <FolderOpen className="w-3.5 h-3.5" />
                 Category
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-heat-100"
+                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-heat-100"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -208,10 +208,10 @@ export default function SaveAsTemplateModal({
             {/* Tags */}
             <div>
               <label className="text-xs font-medium text-foreground mb-8 flex items-center gap-6">
-                <Tag className="w-14 h-14" />
+                <Tag className="w-3.5 h-3.5" />
                 Tags
               </label>
-              <div className="flex gap-8 mb-8">
+              <div className="flex gap-2 mb-8">
                 <input
                   type="text"
                   value={currentTag}
@@ -223,7 +223,7 @@ export default function SaveAsTemplateModal({
                     }
                   }}
                   placeholder="Add tags (press Enter)"
-                  className="flex-1 px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
+                  className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
                 />
                 <button
                   onClick={handleAddTag}
@@ -244,7 +244,7 @@ export default function SaveAsTemplateModal({
                         onClick={() => handleRemoveTag(tag)}
                         className="hover:text-heat-200"
                       >
-                        <X className="w-12 h-12" />
+                        <X className="w-6 h-6" />
                       </button>
                     </span>
                   ))}
@@ -253,16 +253,16 @@ export default function SaveAsTemplateModal({
             </div>
 
             {/* Difficulty & Time */}
-            <div className="grid grid-cols-2 gap-16">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-medium text-foreground mb-8 flex items-center gap-6">
-                  <BarChart3 className="w-14 h-14" />
+                  <BarChart3 className="w-3.5 h-3.5" />
                   Difficulty
                 </label>
                 <select
                   value={formData.difficulty}
                   onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                  className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-heat-100"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-heat-100"
                 >
                   {difficultyLevels.map((level) => (
                     <option key={level.value} value={level.value}>
@@ -274,7 +274,7 @@ export default function SaveAsTemplateModal({
 
               <div>
                 <label className="text-xs font-medium text-foreground mb-8 flex items-center gap-6">
-                  <Clock className="w-14 h-14" />
+                  <Clock className="w-3.5 h-3.5" />
                   Estimated Time
                 </label>
                 <input
@@ -282,27 +282,27 @@ export default function SaveAsTemplateModal({
                   value={formData.estimatedTime}
                   onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
                   placeholder="e.g., 5-10 minutes"
-                  className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:ring-2 focus:ring-heat-100"
                 />
               </div>
             </div>
 
             {/* Visibility */}
-            <div className="p-16 bg-background rounded-md border border-border">
-              <div className="flex items-start gap-12">
+            <div className="p-4 bg-background rounded-md border border-border">
+              <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
                   id="isPublic"
                   checked={formData.isPublic}
                   onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
-                  className="mt-4 w-16 h-16 rounded-4 border-border text-primary focus:ring-heat-100"
+                  className="mt-4 w-4 h-4 rounded-4 border-border text-primary focus:ring-heat-100"
                 />
                 <label htmlFor="isPublic" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-8 mb-4">
+                  <div className="flex items-center gap-2 mb-4">
                     {formData.isPublic ? (
-                      <Globe className="w-16 h-16 text-primary" />
+                      <Globe className="w-4 h-4 text-primary" />
                     ) : (
-                      <Lock className="w-16 h-16 text-muted-foreground" />
+                      <Lock className="w-4 h-4 text-muted-foreground" />
                     )}
                     <span className="text-sm font-medium text-foreground">
                       {formData.isPublic ? "Public Template" : "Private Template"}
@@ -318,9 +318,9 @@ export default function SaveAsTemplateModal({
             </div>
 
             {/* Info Box */}
-            <div className="p-16 bg-secondary border border-primary rounded-md">
-              <div className="flex items-start gap-12">
-                <Info className="w-16 h-16 text-primary flex-shrink-0 mt-2" />
+            <div className="p-4 bg-secondary border border-primary rounded-md">
+              <div className="flex items-start gap-3">
+                <Info className="w-4 h-4 text-primary flex-shrink-0 mt-2" />
                 <div>
                   <p className="text-xs text-foreground">
                     Templates allow you to save and reuse workflow configurations. You can create
@@ -332,7 +332,7 @@ export default function SaveAsTemplateModal({
           </div>
 
           {/* Footer */}
-          <div className="p-20 border-t border-border bg-background-lighter flex justify-between">
+          <div className="p-6 border-t border-border bg-background-lighter flex justify-between">
             <button
               onClick={onClose}
               className="px-20 py-10 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all"
@@ -342,16 +342,16 @@ export default function SaveAsTemplateModal({
             <button
               onClick={handleSave}
               disabled={isSaving || !formData.name.trim()}
-              className="px-20 py-10 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-8"
+              className="px-20 py-10 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSaving ? (
                 <>
-                  <div className="w-16 h-16 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="w-16 h-16" />
+                  <Save className="w-4 h-4" />
                   Save as Template
                 </>
               )}

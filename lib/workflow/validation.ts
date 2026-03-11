@@ -6,6 +6,7 @@ export interface ValidationError {
   nodeId?: string;
   field?: string;
   message: string;
+  description?: string;
   severity: ValidationSeverity;
   type: 'structural' | 'configuration' | 'auth' | 'other';
 }
@@ -30,6 +31,7 @@ export function validateWorkflow(workflow: Workflow, apiKeys: ApiKeys = {}): Val
   if (nodes.length === 0) {
     errors.push({
       message: 'Workflow has no nodes.',
+      description: 'Drag and drop components from the sidebar to start building your workflow.',
       severity: 'error',
       type: 'structural'
     });
@@ -55,6 +57,7 @@ export function validateWorkflow(workflow: Workflow, apiKeys: ApiKeys = {}): Val
         errors.push({
           nodeId: node.id,
           message: `Node "${node.data.label || node.id}" has no incoming connections.`,
+          description: 'This node will never be executed because it has no path from a trigger.',
           severity: 'warning',
           type: 'structural'
         });
@@ -64,6 +67,7 @@ export function validateWorkflow(workflow: Workflow, apiKeys: ApiKeys = {}): Val
         errors.push({
           nodeId: node.id,
           message: `Node "${node.data.label || node.id}" has no outgoing connections.`,
+          description: 'The results from this node are not being used. Connect it to another component or an "End" node.',
           severity: 'warning',
           type: 'structural'
         });
@@ -96,6 +100,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
           nodeId: node.id,
           field: 'mcpTool',
           message: 'No MCP tool selected.',
+          description: 'Open the inspector panel and select a tool from your connected MCP servers.',
           severity: 'error',
           type: 'configuration'
         });
@@ -108,6 +113,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
           nodeId: node.id,
           field: 'condition',
           message: 'If/Else must have a condition.',
+          description: 'Define a logic rule (e.g., {{variable}} > 10) to determine which branch to follow.',
           severity: 'error',
           type: 'configuration'
         });
@@ -120,6 +126,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
           nodeId: node.id,
           field: 'whileCondition',
           message: 'While loop must have a condition.',
+          description: 'Specify when the loop should terminate to prevent infinite execution.',
           severity: 'error',
           type: 'configuration'
         });
@@ -132,6 +139,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
           nodeId: node.id,
           field: 'transformScript',
           message: 'Transform must have a script.',
+          description: 'Write a JavaScript snippet to process or reformat your data.',
           severity: 'error',
           type: 'configuration'
         });
@@ -144,6 +152,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
           nodeId: node.id,
           field: 'arcadeTool',
           message: 'No Arcade tool selected.',
+          description: 'Select an integration action from the Arcade tool library.',
           severity: 'error',
           type: 'configuration'
         });
@@ -152,6 +161,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
         errors.push({
           nodeId: node.id,
           message: 'Arcade API key is missing.',
+          description: 'Add your Arcade API key in the project settings or user profile.',
           severity: 'error',
           type: 'auth'
         });
@@ -163,6 +173,7 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
         errors.push({
           nodeId: node.id,
           message: 'Data Query node has no URL or search query.',
+          description: 'Provide a URL to scrape or a query to search the web.',
           severity: 'error',
           type: 'configuration'
         });
@@ -170,7 +181,8 @@ export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): Validat
       if (!apiKeys.firecrawl && data.scrapeUrl) {
         errors.push({
           nodeId: node.id,
-          message: 'Firecrawl API key is missing (required for scraping).',
+          message: 'Firecrawl API key is missing.',
+          description: 'A Firecrawl API key is required for web scraping. Add it in settings.',
           severity: 'error',
           type: 'auth'
         });
@@ -191,6 +203,7 @@ function validateAgentNode(node: WorkflowNode, apiKeys: ApiKeys, errors: Validat
       nodeId: node.id,
       field: 'model',
       message: 'OpenAI API key is missing.',
+      description: 'An OpenAI API key is required for GPT models. Configure it in settings.',
       severity: 'error',
       type: 'auth'
     });
@@ -199,6 +212,7 @@ function validateAgentNode(node: WorkflowNode, apiKeys: ApiKeys, errors: Validat
       nodeId: node.id,
       field: 'model',
       message: 'Anthropic API key is missing.',
+      description: 'An Anthropic API key is required for Claude models. Configure it in settings.',
       severity: 'error',
       type: 'auth'
     });
@@ -207,6 +221,7 @@ function validateAgentNode(node: WorkflowNode, apiKeys: ApiKeys, errors: Validat
       nodeId: node.id,
       field: 'model',
       message: 'Groq API key is missing.',
+      description: 'A Groq API key is required for Llama/Mixtral models. Configure it in settings.',
       severity: 'error',
       type: 'auth'
     });
@@ -217,7 +232,8 @@ function validateAgentNode(node: WorkflowNode, apiKeys: ApiKeys, errors: Validat
     errors.push({
       nodeId: node.id,
       field: 'instructions',
-      message: 'Agent has no instructions or system prompt.',
+      message: 'Agent has no instructions.',
+      description: 'Provide a clear prompt describing the task this agent should perform.',
       severity: 'warning',
       type: 'configuration'
     });

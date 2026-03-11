@@ -74,30 +74,30 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-20">
+    <div className="flex-1 overflow-y-auto p-2 space-y-4 w-[260px]">
       {/* Input Variables List */}
       <div>
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-foreground">
             Input variables
           </h3>
           <button
             onClick={addVariable}
-            className="px-12 py-6 bg-background hover:bg-secondary border border-border rounded-md text-xs text-foreground transition-colors flex items-center gap-6"
+            className="px-3 py-1.5 bg-background hover:bg-secondary border border-border rounded-md text-xs text-foreground transition-colors flex items-center gap-1.5"
           >
-            <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Variable
           </button>
         </div>
-        <div className="space-y-12">
+        <div className="space-y-3">
           {inputVariables.length === 0 ? (
-            <div className="p-20 bg-accent-white border border-border border-dashed rounded-xl text-center">
-              <svg className="w-32 h-32 mx-auto mb-12 text-black-alpha-32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-4 bg-accent-white border border-border border-dashed rounded-xl text-center">
+              <svg className="w-8 h-8 mx-auto mb-2 text-black-alpha-32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <p className="text-sm text-muted-foreground mb-12">No input variables defined</p>
+              <p className="text-sm text-muted-foreground mb-3">No input variables defined</p>
               <button
                 onClick={addVariable}
                 className="px-16 py-8 bg-accent-black hover:bg-secondary/808 text-white rounded-md text-sm font-medium transition-colors"
@@ -107,8 +107,8 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
             </div>
           ) : (
             inputVariables.map((variable, index) => (
-              <div key={index} className="p-16 bg-background rounded-xl border border-border">
-                <div className="space-y-12">
+              <div key={index} className="p-4 bg-background rounded-xl border border-border">
+                <div className="space-y-3">
                   {/* Name */}
                   <div>
                     <label className="block text-xs text-muted-foreground mb-6">Variable Name</label>
@@ -116,7 +116,7 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
                       type="text"
                       value={variable.name}
                       onChange={(e) => updateVariable(index, { name: e.target.value })}
-                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary"
                       placeholder="variable_name"
                     />
                   </div>
@@ -127,7 +127,7 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
                     <select
                       value={variable.type}
                       onChange={(e) => updateVariable(index, { type: e.target.value as any })}
-                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
                     >
                       <option value="string">String</option>
                       <option value="number">Number</option>
@@ -144,7 +144,7 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
                       type="text"
                       value={variable.description || ''}
                       onChange={(e) => updateVariable(index, { description: e.target.value })}
-                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
                       placeholder="Describe this input..."
                     />
                   </div>
@@ -156,19 +156,19 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
                       type="text"
                       value={variable.defaultValue || ''}
                       onChange={(e) => updateVariable(index, { defaultValue: e.target.value })}
-                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
+                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
                       placeholder="Default value..."
                     />
                   </div>
 
                   {/* Required Toggle & Delete */}
                   <div className="flex items-center justify-between pt-8">
-                    <label className="flex items-center gap-8 cursor-pointer">
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={variable.required}
                         onChange={(e) => updateVariable(index, { required: e.target.checked })}
-                        className="w-16 h-16 rounded-4 border border-border text-primary focus:ring-heat-100"
+                        className="w-4 h-4 rounded-4 border border-border text-primary focus:ring-heat-100"
                       />
                       <span className="text-xs text-foreground">Required</span>
                     </label>
@@ -176,7 +176,7 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
                       onClick={() => removeVariable(index)}
                       className="px-12 py-6 text-xs text-foreground hover:bg-secondary rounded-6 transition-colors flex items-center gap-6"
                     >
-                      <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                       Remove
@@ -190,7 +190,7 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
       </div>
 
       {/* Help Text */}
-      <div className="p-16 bg-secondary border border-primary rounded-xl">
+      <div className="p-4 bg-secondary border border-primary rounded-xl">
         <h4 className="text-sm font-medium text-foreground mb-8">Input Variables</h4>
         <p className="text-xs text-primary leading-relaxed">
           Input variables define the data your workflow accepts when it starts.

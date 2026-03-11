@@ -16,10 +16,21 @@ import {
   Globe,
   Plus,
   Server,
-  Zap
+  Zap,
+  MousePointer2,
+  StopCircle,
+  FileText,
+  GitBranch,
+  Repeat,
+  CheckCircle,
+  Shield,
+  Braces,
+  Activity,
+  Layers
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface LibraryPanelProps {
   onAddSource?: () => void;
@@ -87,15 +98,15 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-accent-white">
       {/* Search Bar */}
-      <div className="p-16 border-b border-border">
+      <div className="p-3 border-b border-border">
         <div className="relative">
-          <Search className="absolute left-12 top-1/2 -translate-y-1/2 w-16 h-16 text-black-alpha-32" />
-          <input
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black-alpha-32" />
+          <Input
             type="text"
             placeholder="Search library..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-36 pr-12 py-8 bg-background border border-border rounded-md text-xs text-foreground outline-none focus:border-primary transition-colors"
+            className="w-full pl-32 pr-10 py-1.5 bg-background border border-border rounded-md text-[11px] text-foreground outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -104,10 +115,32 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         {/* Common Tools Section */}
         {(() => {
           const allTools = [
-            { label: "Database Query", description: "Query external databases", icon: <Database className="w-16 h-16 text-amber-500" />, type: "data-query", nodeLabel: "Database" },
-            { label: "HTTP Request", description: "Make API calls", icon: <Server className="w-16 h-16 text-blue-500" />, type: "http", nodeLabel: "HTTP" },
-            { label: "Knowledge Retriever", description: "Search knowledge bases", icon: <Brain className="w-16 h-16 text-purple-500" />, type: "retriever", nodeLabel: "Retriever" },
-            { label: "Memory Node", description: "Persistent context storage", icon: <Zap className="w-16 h-16 text-purple-400" />, type: "memory", nodeLabel: "Memory" },
+            // Triggers & Essentials
+            { label: "Trigger Node", description: "Standard workflow entry point", icon: <Activity className="w-3.5 h-3.5 text-white" />, type: "start", nodeLabel: "Start", color: "bg-gray-600" },
+            { label: "Agent Node", description: "AI Agent with specific instructions", icon: <MousePointer2 className="w-3.5 h-3.5 text-white" />, type: "agent", nodeLabel: "Agent", color: "bg-blue-500" },
+            { label: "Note Node", description: "Contextual documentation on canvas", icon: <FileText className="w-3.5 h-3.5 text-white" />, type: "note", nodeLabel: "Note", color: "bg-[#EAB308]" },
+            
+            // Logic & Flow
+            { label: "If / Else", description: "Branch based on conditions", icon: <GitBranch className="w-3.5 h-3.5 text-white" />, type: "if-else", nodeLabel: "Condition", color: "bg-[#F59E0B]" },
+            { label: "Router", description: "Multi-path semantic routing", icon: <GitBranch className="w-3.5 h-3.5 text-white" />, type: "router", nodeLabel: "Router", color: "bg-[#EA580C]" },
+            { label: "While Loop", description: "Iterate until condition is met", icon: <Repeat className="w-3.5 h-3.5 text-white" />, type: "while", nodeLabel: "Loop", color: "bg-[#EF4444]" },
+            { label: "Guardrails", description: "Input/Output safety filters", icon: <Shield className="w-3.5 h-3.5 text-white" />, type: "guardrails", nodeLabel: "Guardrails", color: "bg-[#F43F5E]" },
+            { label: "Approval", description: "Wait for human verification", icon: <CheckCircle className="w-3.5 h-3.5 text-white" />, type: "user-approval", nodeLabel: "Approval", color: "bg-[#9CA3AF]" },
+
+            // Tools & Integration
+            { label: "Database Query", description: "Query external databases", icon: <Database className="w-3.5 h-3.5 text-white" />, type: "data-query", nodeLabel: "Database", color: "bg-amber-500" },
+            { label: "HTTP Request", description: "Make REST API calls", icon: <Server className="w-3.5 h-3.5 text-white" />, type: "http", nodeLabel: "HTTP", color: "bg-[#9665FF]" },
+            { label: "MCP Tool", description: "Use Model Context Protocol tools", icon: <Plug className="w-3.5 h-3.5 text-white" />, type: "mcp", nodeLabel: "MCP Tool", color: "bg-[#FFDD40]" },
+            { label: "Memory Node", description: "Persistent context storage", icon: <Zap className="w-3.5 h-3.5 text-white" />, type: "memory", nodeLabel: "Memory", color: "bg-purple-500" },
+
+            // Data Processing
+            { label: "Knowledge Retriever", description: "Semantic search in knowledge base", icon: <Brain className="w-3.5 h-3.5 text-white" />, type: "retriever", nodeLabel: "Retriever", color: "bg-[#0EA5E9]" },
+            { label: "Transform", description: "Manipulate data with script", icon: <Braces className="w-3.5 h-3.5 text-white" />, type: "transform", nodeLabel: "Transform", color: "bg-[#8B5CF6]" },
+            { label: "Extract", description: "Extract structured data from text", icon: <Search className="w-3.5 h-3.5 text-white" />, type: "extract", nodeLabel: "Extract", color: "bg-[#EC4899]" },
+            { label: "Set State", description: "Update workflow variables", icon: <Braces className="w-3.5 h-3.5 text-white" />, type: "set-state", nodeLabel: "State", color: "bg-[#10B981]" },
+            
+            // Ending
+            { label: "End Node", description: "Workflow termination point", icon: <StopCircle className="w-3.5 h-3.5 text-white" />, type: "end", nodeLabel: "End", color: "bg-teal-500" },
           ];
 
           const filteredTools = allTools.filter(tool =>
@@ -121,17 +154,18 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
             <LibrarySection
               id="tools"
               label={`Common Tools (${filteredTools.length})`}
-              icon={<Plus className="w-18 h-18" />}
+              icon={<Plus className="w-6 h-6" />}
               isOpen={expandedSections.has("tools") || (!!searchQuery && filteredTools.length > 0)}
               onToggle={() => toggleSection("tools")}
             >
-              <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+              <div className="grid grid-cols-1 gap-2 p-3 pt-0">
                 {filteredTools.map((tool) => (
                   <LibraryItem
                     key={tool.type}
                     label={tool.label}
                     description={tool.description}
                     icon={tool.icon}
+                    color={tool.color}
                     onDragStart={(e) => handleDragStandardNode(e, tool.type, tool.nodeLabel)}
                   />
                 ))}
@@ -144,17 +178,17 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         <LibrarySection
           id="workflows"
           label={`My Workflows (${filteredWorkflows?.length || 0})`}
-          icon={<Globe className="w-18 h-18" />}
+          icon={<Globe className="w-6 h-6" />}
           isOpen={expandedSections.has("workflows")}
           onToggle={() => toggleSection("workflows")}
         >
-          <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
             {filteredWorkflows?.map((wf) => (
               <LibraryItem
                 key={wf._id}
                 label={wf.name}
                 description={wf.description}
-                icon={<Globe className="w-16 h-16 text-primary" />}
+                icon={<Globe className="w-3.5 h-3.5 text-primary" />}
                 onDragStart={(e) => handleDragStart(e, "workflow", wf)}
               />
             ))}
@@ -168,17 +202,17 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         <LibrarySection
           id="templates"
           label={`Templates (${filteredTemplates?.length || 0})`}
-          icon={<LayoutTemplate className="w-18 h-18" />}
+          icon={<LayoutTemplate className="w-6 h-6" />}
           isOpen={expandedSections.has("templates")}
           onToggle={() => toggleSection("templates")}
         >
-          <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
             {filteredTemplates?.map((template) => (
               <LibraryItem
                 key={template._id}
                 label={template.name}
                 description={template.description}
-                icon={<FileCode className="w-16 h-16 text-blue-500" />}
+                icon={<FileCode className="w-3.5 h-3.5 text-blue-500" />}
                 onDragStart={(e) => handleDragStart(e, "template", template)}
               />
             ))}
@@ -192,7 +226,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         <LibrarySection
           id="connectors"
           label={`Data Sources (${filteredConnectors?.length || 0})`}
-          icon={<Database className="w-18 h-18" />}
+          icon={<Database className="w-6 h-6" />}
           isOpen={expandedSections.has("connectors")}
           onToggle={() => toggleSection("connectors")}
           action={
@@ -201,20 +235,20 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 e.stopPropagation();
                 onAddSource?.();
               }}
-              className="p-4 hover:bg-secondary/80 rounded-4 text-primary transition-colors"
+              className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
               title="Add new data source"
             >
-              <Plus className="w-16 h-16" />
+              <Plus className="w-4 h-4" />
             </button>
           }
         >
-          <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
             {filteredConnectors?.map((connector) => (
               <LibraryItem
                 key={connector._id}
                 label={connector.name}
                 description={connector.type}
-                icon={<Globe className="w-16 h-16 text-green-500" />}
+                icon={<Globe className="w-3.5 h-3.5 text-green-500" />}
                 onDragStart={(e) => handleDragStart(e, "connector", connector)}
               />
             ))}
@@ -228,17 +262,17 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         <LibrarySection
           id="namespaces"
           label={`Knowledge Bases (${filteredNamespaces?.length || 0})`}
-          icon={<Brain className="w-18 h-18" />}
+          icon={<Brain className="w-6 h-6" />}
           isOpen={expandedSections.has("namespaces")}
           onToggle={() => toggleSection("namespaces")}
         >
-          <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
             {filteredNamespaces?.map((ns) => (
               <LibraryItem
                 key={ns._id}
                 label={ns.name}
                 description={`${ns.documentCount || 0} documents`}
-                icon={<Brain className="w-16 h-16 text-purple-500" />}
+                icon={<Brain className="w-3.5 h-3.5 text-purple-500" />}
                 onDragStart={(e) => handleDragStart(e, "namespace", ns)}
               />
             ))}
@@ -252,7 +286,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
         <LibrarySection
           id="mcp"
           label={`MCP Servers (${filteredMCP?.length || 0})`}
-          icon={<Plug className="w-18 h-18" />}
+          icon={<Plug className="w-6 h-6" />}
           isOpen={expandedSections.has("mcp")}
           onToggle={() => toggleSection("mcp")}
           action={
@@ -261,20 +295,20 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 e.stopPropagation();
                 onAddMCPServer?.();
               }}
-              className="p-4 hover:bg-secondary/80 rounded-4 text-primary transition-colors"
+              className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
               title="Add new MCP server"
             >
-              <Plus className="w-16 h-16" />
+              <Plus className="w-4 h-4" />
             </button>
           }
         >
-          <div className="grid grid-cols-1 gap-8 p-12 pt-0">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
             {filteredMCP?.map((mcp) => (
               <LibraryItem
                 key={mcp._id}
                 label={mcp.name}
                 description={mcp.category}
-                icon={<Plug className="w-16 h-16 text-primary" />}
+                icon={<Plug className="w-3.5 h-3.5 text-primary" />}
                 onDragStart={(e) => handleDragStart(e, "mcp", mcp)}
               />
             ))}
@@ -286,7 +320,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
       </div>
 
       {/* Footer Info */}
-      <div className="p-12 border-t border-border bg-background">
+      <div className="p-3 border-t border-border bg-background">
         <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-4">Pro Tip</p>
         <p className="text-xs text-foreground/64 leading-relaxed">
           Drag and drop any asset directly onto the canvas to instantly create or merge nodes.
@@ -318,19 +352,27 @@ function LibrarySection({
       <div className="flex items-center hover:bg-secondary transition-colors">
         <button
           onClick={onToggle}
-          className="flex-1 flex items-center justify-between p-16 text-left"
+          className="flex-1 flex items-center p-3 text-left min-w-0"
         >
-          <div className="flex items-center gap-12">
-            <div className="text-foreground opacity-60">{icon}</div>
-            <span className="text-label-medium font-medium text-foreground">{label}</span>
+          <div className="flex-1 min-w-0 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="text-foreground opacity-60 scale-90 shrink-0">{icon}</div>
+              <span className="text-[11px] font-semibold text-foreground truncate">{label}</span>
+            </div>
+            {action && (
+              <div className="flex-shrink-0">
+                {action}
+              </div>
+            )}
           </div>
-          {isOpen ? (
-            <ChevronDown className="w-16 h-16 text-black-alpha-32" />
-          ) : (
-            <ChevronRight className="w-16 h-16 text-black-alpha-32" />
-          )}
+          <div className="flex-shrink-0 ml-1">
+            {isOpen ? (
+              <ChevronDown className="w-3.5 h-3.5 text-black-alpha-32" />
+            ) : (
+              <ChevronRight className="w-3.5 h-3.5 text-black-alpha-32" />
+            )}
+          </div>
         </button>
-        {action && <div className="pr-16">{action}</div>}
       </div>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -353,25 +395,29 @@ function LibraryItem({
   label,
   description,
   icon,
+  color,
   onDragStart
 }: {
   label: string;
   description?: string;
   icon: React.ReactNode;
+  color?: string;
   onDragStart: (e: React.DragEvent) => void;
 }) {
   return (
     <div
       draggable
       onDragStart={onDragStart}
-      className="group p-12 bg-accent-white border border-border rounded-md hover:border-primary hover:shadow-sm cursor-grab active:cursor-grabbing transition-all"
+      className="group p-2.5 bg-accent-white border border-border rounded-lg hover:border-black-alpha-12 hover:shadow-sm cursor-grab active:cursor-grabbing transition-all"
     >
-      <div className="flex items-start gap-10">
-        <div className="mt-2 group-hover:scale-110 transition-transform">{icon}</div>
+      <div className="flex items-center gap-2.5">
+        <div className={`mt-0.5 group-hover:scale-105 transition-transform shrink-0 flex items-center justify-center rounded-md ${color || 'bg-secondary'} w-7 h-7 shadow-sm`}>
+          {icon}
+        </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-foreground truncate">{label}</p>
+          <p className="text-[11px] font-bold text-foreground/90 truncate">{label}</p>
           {description && (
-            <p className="text-xs text-muted-foreground truncate mt-1">{description}</p>
+            <p className="text-[10px] text-muted-foreground/80 truncate mt-0.5">{description}</p>
           )}
         </div>
       </div>

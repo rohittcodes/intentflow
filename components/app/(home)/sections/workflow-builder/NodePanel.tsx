@@ -321,7 +321,7 @@ export default function NodePanel({
   if (!nodeData) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-20 space-y-20">
+    <div className="flex-1 overflow-y-auto p-0 space-y-2 w-[260px]">
       {nodeData.type === "guardrails" ? (
         <GuardrailsNodePanel
           node={node}
@@ -352,9 +352,9 @@ export default function NodePanel({
         />
       ) : (
         <ScrollArea className="h-full">
-          <div className="space-y-6 pb-20">
+          <div className="space-y-2 pb-12">
             {/* Instructions Field */}
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Instructions</Label>
                 {nodes && (
@@ -369,7 +369,7 @@ export default function NodePanel({
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 placeholder="Enter agent instructions..."
-                className="min-h-[200px] resize-y bg-muted/20 focus-visible:ring-primary/20 transition-all text-sm leading-relaxed"
+                className="min-h-[140px] resize-y bg-muted/20 focus-visible:ring-primary/20 transition-all text-sm leading-relaxed"
               />
               <div className="flex items-center gap-2 px-1">
                 <Info className="h-3 w-3 text-muted-foreground" />
@@ -394,7 +394,7 @@ export default function NodePanel({
             </div>
 
             {/* Model Field */}
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Model</Label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -475,7 +475,7 @@ export default function NodePanel({
             <Separator className="opacity-50" />
 
             {/* MCP Tools Field */}
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tools</Label>
                 <div className="flex items-center gap-2">
@@ -529,7 +529,7 @@ export default function NodePanel({
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-3 pt-2"
                   >
-                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-4">
+                    <div className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-3">
                       <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-2">
                           <ListFilter className="h-3 w-3 text-muted-foreground" />
@@ -663,7 +663,7 @@ export default function NodePanel({
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-4 pt-2"
                   >
-                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-4">
+                    <div className="p-3 rounded-xl bg-muted/30 border border-border/50 space-y-3">
                       <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-2">
                           <Layers className="h-3 w-3 text-muted-foreground" />
@@ -764,7 +764,7 @@ export default function NodePanel({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 px-3 space-y-4">
-                  <div className="p-12 rounded-xl bg-muted/20 border border-dashed border-border flex flex-col items-center justify-center space-y-2 opacity-60">
+                  <div className="p-3 rounded-xl bg-muted/20 border border-dashed border-border flex flex-col items-center justify-center space-y-2 opacity-60">
                     <HelpCircle className="h-6 w-6 text-muted-foreground" />
                     <p className="text-[10px] font-medium text-center italic">Advanced configuration options will appear here in future updates.</p>
                   </div>

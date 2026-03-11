@@ -2,7 +2,19 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect } from "react";
-import { CheckCircle, XCircle, AlertCircle, Trash2, Plug, Plus, ChevronDown, ChevronRight, TestTube, Globe, Brain, Database, Package, Loader2, Shield, Lock, ClipboardPaste, Edit, Eye, EyeOff, Key } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, AlertCircle, Trash2, Plug, Plus, ChevronDown, ChevronRight, TestTube, Globe, Brain, Database, Package, Loader2, Shield, Lock, ClipboardPaste, Edit, Eye, EyeOff, Key, ArrowRight, ArrowLeft, X, CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
@@ -116,37 +128,37 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const StatusIcon = ({ configured }: { configured: boolean }) =>
     configured ? (
-      <CheckCircle className="w-16 h-16 text-primary" />
+      <CheckCircle className="w-4 h-4 text-primary" />
     ) : (
-      <XCircle className="w-16 h-16 text-black-alpha-32" />
+      <XCircle className="w-4 h-4 text-black-alpha-32" />
     );
 
   return (<>
     <div className="h-full flex flex-col bg-accent-white">
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-20 space-y-24">
+      <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {loading ? (
           <div className="text-center py-32">
             <div className="inline-block w-32 h-32 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs text-muted-foreground mt-12">Loading configuration...</p>
+            <p className="text-xs text-muted-foreground mt-3">Loading configuration...</p>
           </div>
         ) : (
-          <div className="space-y-20">
+          <div className="space-y-4">
             {/* LLM Providers */}
             <div>
-              <div className="flex items-center justify-between mb-12">
-                <h3 className="text-sm font-medium font-medium text-foreground">LLM Providers</h3>
-                <button
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">LLM Providers</h3>
+                <Button
                   onClick={() => setShowAddLLMKey(true)}
-                  className="px-12 py-6 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6"
+                  size="sm"
                 >
-                  <Plus className="w-14 h-14" />
+                  <Plus className="w-3 h-3" />
                   Add API Key
-                </button>
+                </Button>
               </div>
 
               {/* Provider Cards with Keys */}
-              <div className="space-y-8">
+              <div className="space-y-2">
                 {['anthropic', 'openai', 'groq'].map(provider => {
                   const providerKey = userLLMKeys?.find(k => k.provider === provider && k.isActive);
                   const hasEnvKey = provider === 'anthropic' ? serverConfig?.anthropicConfigured :
@@ -154,38 +166,38 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       serverConfig?.groqConfigured;
 
                   return (
-                    <div key={provider} className="p-12 bg-background rounded-md border border-border">
+                    <div key={provider} className="p-2 bg-background rounded-md border border-border">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-2">
                           <StatusIcon configured={!!(providerKey || hasEnvKey)} />
                           <div>
-                            <p className="text-xs text-foreground font-medium capitalize">{provider}</p>
+                            <p className="text-[11px] text-foreground font-semibold capitalize">{provider}</p>
                             {providerKey ? (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-[10px] text-muted-foreground">
                                 Key: {providerKey.keyPrefix} {providerKey.label && `(${providerKey.label})`}
                               </p>
                             ) : hasEnvKey ? (
-                              <p className="text-xs text-muted-foreground">Using environment variable</p>
+                              <p className="text-[10px] text-muted-foreground">Using environment variable</p>
                             ) : (
                               <p className="text-xs text-muted-foreground">Not configured</p>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-2">
                           {providerKey && (
                             <>
                               <button
                                 onClick={async () => {
                                   if (user?.id) {
-                                     await deleteLLMKey({ id: providerKey._id });
+                                    await deleteLLMKey({ id: providerKey._id });
                                     toast.success(`${provider} key removed`);
                                   }
                                 }}
-                                className="p-6 hover:bg-secondary rounded-6 transition-colors"
+                                className="p-2 hover:bg-secondary rounded-6 transition-colors"
                                 title="Remove key"
                               >
-                                <Trash2 className="w-14 h-14 text-muted-foreground hover:text-foreground" />
+                                <Trash2 className=" text-muted-foreground hover:text-foreground" />
                               </button>
                             </>
                           )}
@@ -194,13 +206,13 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                               setSelectedProvider(provider as any);
                               setShowAddLLMKey(true);
                             }}
-                            className="p-6 hover:bg-secondary rounded-6 transition-colors"
+                            className="p-2 hover:bg-secondary rounded-6 transition-colors"
                             title={providerKey ? "Update key" : "Add key"}
                           >
                             {providerKey ? (
-                              <Edit className="w-14 h-14 text-muted-foreground hover:text-foreground" />
+                              <Edit className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                             ) : (
-                              <Plus className="w-14 h-14 text-muted-foreground hover:text-foreground" />
+                              <Plus className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                             )}
                           </button>
                         </div>
@@ -210,9 +222,9 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 })}
               </div>
 
-              <div className="mt-8 p-12 bg-secondary border border-primary rounded-md">
-                <p className="text-xs text-foreground/64">
-                  <strong>Note:</strong> Your API keys take priority over environment variables.
+              <div className="mt-8 p-3 bg-secondary border border-primary rounded-md">
+                <p className="text-[10px] text-foreground/64 leading-tight">
+                  <strong className="text-primary font-bold">Note:</strong> Your API keys take priority over environment variables.
                   Keys are encrypted and stored securely per user.
                 </p>
               </div>
@@ -222,14 +234,14 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
             {/* MCP Registry */}
             <div>
-              <div className="flex items-center justify-between mb-12">
-                <h3 className="text-sm font-medium font-medium text-foreground">MCP Registry</h3>
-                <div className="flex gap-8">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">MCP Registry</h3>
+                <div className="flex gap-1.5">
                   <button
                     onClick={() => setShowPasteConfigModal(true)}
-                    className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border"
+                    className="px-2 py-1 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-[10px] font-medium transition-all active:scale-[0.98] flex items-center gap-1 border border-border"
                   >
-                    <ClipboardPaste className="w-14 h-14" />
+                    <ClipboardPaste className="w-3 h-3" />
                     Paste Config
                   </button>
                   <button
@@ -244,23 +256,23 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         }
                       }
                     }}
-                    className="px-12 py-6 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6"
+                    className="px-2 py-1 bg-primary hover:bg-primary/90 text-white rounded-md text-[10px] font-medium transition-all active:scale-[0.98] flex items-center gap-1"
                   >
-                    <Plus className="w-14 h-14" />
+                    <Plus className="w-3.5 h-3.5" />
                     Add Rube MCP
                   </button>
                   <button
                     onClick={() => setShowAddMCPModal(true)}
-                    className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border"
+                    className="px-2 py-1 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-[10px] font-medium transition-all active:scale-[0.98] flex items-center gap-1 border border-border"
                   >
-                    <Plus className="w-14 h-14" />
+                    <Plus className="w-3.5 h-3.5" />
                     Add Custom Server
                   </button>
                 </div>
               </div>
 
               {/* MCP Cards */}
-              <div className="space-y-8">
+              <div className="space-y-2">
                 {mcpServers?.map((server) => (
                   <MCPCard
                     key={server._id}
@@ -328,22 +340,22 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
             {/* Custom Integrations & Data Sources */}
             <div>
-              <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium font-medium text-foreground">Custom Integrations</h3>
               </div>
               <div className="space-y-8">
                 {connectors?.map((conn) => (
-                  <div key={conn._id} className="p-12 bg-background border border-border rounded-md flex items-center justify-between group">
-                    <div className="flex items-center gap-12">
+                  <div key={conn._id} className="p-3 bg-background border border-border rounded-md flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
                       <div className="p-8 bg-secondary rounded-md text-primary">
-                        {conn.type === 'database' ? <Database className="w-16 h-16" /> : <Globe className="w-16 h-16" />}
+                        {conn.type === 'database' ? <Database className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                       </div>
                       <div>
                         <p className="text-xs font-medium text-foreground">{conn.name}</p>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{conn.type}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={async () => {
                           if (confirm(`Remove integration "${conn.name}"?`)) {
@@ -353,7 +365,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         }}
                         className="p-6 hover:bg-secondary rounded-6 text-muted-foreground hover:text-accent-red transition-all"
                       >
-                        <Trash2 className="w-14 h-14" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -367,9 +379,9 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             {/* Info Box */}
-            <div className="p-16 bg-secondary border border-primary rounded-md">
-              <div className="flex items-start gap-12">
-                <AlertCircle className="w-20 h-20 text-primary flex-shrink-0 mt-2" />
+            <div className="p-4 bg-secondary border border-primary rounded-md">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-foreground font-medium mb-4">
                     How to Configure
@@ -514,7 +526,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   serverId = existingServer._id;
                 } else {
                   // Add new server
-                   const newServerId = await addMCPServer({
+                  const newServerId = await addMCPServer({
                     ...serverData,
                   });
                   serverId = newServerId;
@@ -590,10 +602,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   }: MCPCardProps) {
     const getCategoryIcon = () => {
       switch (server.category) {
-        case 'web': return <Globe className="w-16 h-16" />;
-        case 'ai': return <Brain className="w-16 h-16" />;
-        case 'data': return <Database className="w-16 h-16" />;
-        default: return <Package className="w-16 h-16" />;
+        case 'web': return <Globe className="w-4 h-4" />;
+        case 'ai': return <Brain className="w-4 h-4" />;
+        case 'data': return <Database className="w-4 h-4" />;
+        default: return <Package className="w-4 h-4" />;
       }
     };
 
@@ -607,20 +619,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
     const getStatusIcon = () => {
       if (isTesting) {
-        return <Loader2 className="w-16 h-16 animate-spin text-primary" />;
+        return <Loader2 className="w-4 h-4 animate-spin text-primary" />;
       }
       switch (server.connectionStatus) {
-        case 'connected': return <CheckCircle className="w-16 h-16" />;
-        case 'error': return <XCircle className="w-16 h-16" />;
-        default: return <AlertCircle className="w-16 h-16" />;
+        case 'connected': return <CheckCircle className="w-4 h-4" />;
+        case 'error': return <XCircle className="w-4 h-4" />;
+        default: return <AlertCircle className="w-4 h-4" />;
       }
     };
 
     const getAuthIcon = () => {
       switch (server.authType) {
-        case 'api-key': return <Key className="w-12 h-12 text-muted-foreground" />;
-        case 'bearer': return <Shield className="w-12 h-12 text-muted-foreground" />;
-        case 'oauth-coming-soon': return <Lock className="w-12 h-12 text-black-alpha-32" />;
+        case 'api-key': return <Key className="w-3.5 h-3.5 text-muted-foreground" />;
+        case 'bearer': return <Shield className="w-3.5 h-3.5 text-muted-foreground" />;
+        case 'oauth-coming-soon': return <Lock className="w-3.5 h-3.5 text-black-alpha-32" />;
         default: return null;
       }
     };
@@ -628,21 +640,21 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     return (
       <div className={`bg-background rounded-md border ${server.enabled ? 'border-border' : 'border-black-alpha-8 opacity-60'}`}>
         {/* Header */}
-        <div className="p-12 flex items-center gap-8">
+        <div className="p-2 flex items-center gap-2">
           <button
             onClick={onExpandToggle}
-            className="p-4 hover:bg-secondary rounded-4 transition-colors"
+            className="p-1 hover:bg-secondary rounded-4 transition-colors"
           >
-            {isExpanded ? <ChevronDown className="w-16 h-16" /> : <ChevronRight className="w-16 h-16" />}
+            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
 
-          <div className={`${getStatusColor()}`}>{getCategoryIcon()}</div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className={`${getStatusColor()}`}>{getCategoryIcon()}</div>
               <p className="text-xs text-foreground font-medium">{server.name}</p>
               {server.isOfficial && (
-                <span className="px-6 py-2 bg-secondary text-primary text-xs rounded-4 font-medium">
+                <span className="px-2 py-0.5 bg-secondary text-primary text-[10px] rounded-4 font-medium">
                   Official
                 </span>
               )}
@@ -655,93 +667,107 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div className={`${getStatusColor()}`}>{getStatusIcon()}</div>
 
-          <div className="flex items-center gap-8">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={server.enabled}
-                onChange={onToggle}
-                className="sr-only peer"
-              />
-              <div className="w-36 h-20 bg-secondary/80 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-16 after:w-16 after:transition-all peer-checked:bg-primary"></div>
-            </label>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={server.enabled}
+              onCheckedChange={onToggle}
+              className="scale-75 origin-right"
+            />
           </div>
         </div>
 
         {/* Expanded Content */}
         {isExpanded && (
-          <div className="px-12 pb-12 border-t border-border">
-            <div className="pt-12 space-y-12">
-              {/* URL & Auth */}
-              <div className="grid grid-cols-2 gap-12">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-4">URL</p>
-                  <code className="text-xs font-mono text-foreground bg-secondary px-8 py-4 rounded-4 block truncate">
+          <div className="px-3 pb-3 border-t border-border bg-muted/5">
+            <div className="pt-3 space-y-4">
+              {/* Endpoint Section */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Server Endpoint</p>
+                <div className="flex items-center gap-2 p-1.5 bg-background border border-border rounded-md">
+                  <div className="p-1 bg-secondary rounded text-primary">
+                    <Globe className="w-3 h-3" />
+                  </div>
+                  <code className="text-[11px] font-mono text-foreground flex-1 truncate">
                     {server.url}
                   </code>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-4">Authentication</p>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-foreground capitalize">
-                      {server.authType === 'oauth-coming-soon' ? 'OAuth (Coming Soon)' : server.authType.replace('-', ' ')}
+              </div>
+
+              {/* Metadata Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Authentication</p>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1 bg-secondary rounded text-muted-foreground">
+                      {server.authType === 'api-key' ? <Key className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
+                    </div>
+                    <span className="text-xs text-foreground font-medium capitalize">
+                      {server.authType === 'oauth-coming-soon' ? 'OAuth' : server.authType.replace('-', ' ')}
                     </span>
-                    {server.accessToken && <span className="text-xs text-black-alpha-32">•••••••</span>}
+                    {server.accessToken && <span className="text-[10px] text-muted-foreground/50 tracking-widest ml-auto">••••</span>}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Connection Status</p>
+                  <div className="flex items-center gap-2">
+                    <div className={`p-1 rounded ${server.lastError ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                      {server.lastError ? <AlertCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">
+                      {server.lastTested ? new Date(server.lastTested).toLocaleDateString() : 'Never tested'}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Tools */}
+              {/* Tools Section */}
               {server.tools && server.tools.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-4">Available Tools ({server.tools.length})</p>
-                  <div className="flex flex-wrap gap-4">
-                    {server.tools.map((tool) => (
-                      <span key={tool} className="px-8 py-4 bg-secondary text-xs text-foreground rounded-4">
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Available Tools <span className="text-muted-foreground/50 lowercase font-normal">({server.tools.length})</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {server.tools.slice(0, 12).map((tool) => (
+                      <span key={tool} className="px-2 py-0.5 bg-background border border-border text-[10px] text-foreground rounded-md hover:border-primary/30 transition-colors cursor-default">
                         {tool}
                       </span>
                     ))}
+                    {server.tools.length > 12 && (
+                      <span className="px-2 py-0.5 bg-muted text-[10px] text-muted-foreground rounded-md">
+                        +{server.tools.length - 12} more
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Status */}
-              <div className="flex items-center gap-12 text-xs">
-                {server.lastTested && (
-                  <span className="text-muted-foreground">
-                    Last tested: {new Date(server.lastTested).toLocaleString()}
-                  </span>
-                )}
-                {server.lastError && (
-                  <span className="text-foreground">
-                    Error: {server.lastError}
-                  </span>
-                )}
-              </div>
+              {/* Actions Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={onTest}
+                    disabled={isTesting}
+                    className="h-7 px-2.5 bg-primary text-white hover:bg-primary/90 rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <TestTube className="w-3 h-3" />
+                    {isTesting ? 'Testing...' : 'Test Connection'}
+                  </button>
+                  <button
+                    onClick={onEdit}
+                    className="h-7 px-2.5 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5"
+                  >
+                    <Edit className="w-3 h-3" />
+                    Edit
+                  </button>
+                </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-8 pt-8">
-                <button
-                  onClick={onTest}
-                  disabled={isTesting}
-                  className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs transition-all flex items-center gap-6 disabled:opacity-50"
-                >
-                  <TestTube className="w-14 h-14" />
-                  {isTesting ? 'Testing...' : 'Test Connection'}
-                </button>
-                <button
-                  onClick={onEdit}
-                  className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs transition-all flex items-center gap-6"
-                >
-                  <Edit className="w-14 h-14" />
-                  Edit
-                </button>
                 {!server.isOfficial && (
                   <button
                     onClick={onDelete}
-                    className="px-12 py-6 bg-secondary hover:bg-accent-black hover:text-white text-muted-foreground rounded-md text-xs transition-all flex items-center gap-6"
+                    className="h-7 px-2.5 bg-secondary hover:bg-red-500 hover:text-white text-muted-foreground rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5"
                   >
-                    <Trash2 className="w-14 h-14" />
+                    <Trash2 className="w-3 h-3" />
                     Delete
                   </button>
                 )}
@@ -785,169 +811,154 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     if (!isOpen) return null;
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          className="bg-accent-white rounded-16 shadow-2xl max-w-md w-full mx-20 max-h-[85vh] overflow-hidden flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-24 border-b border-border flex-shrink-0">
-            <h3 className="text-title-h4 text-foreground">
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden border-border bg-background shadow-2xl">
+          <DialogHeader className="px-4 py-2 border-b border-border bg-muted/30">
+            <DialogTitle className="text-sm font-bold text-foreground text-left">
               {editingServer ? 'Edit MCP Server' : 'Add MCP Server'}
-            </h3>
-          </div>
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="p-24 space-y-16 overflow-y-auto flex-1">
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Name</label>
-              <input
+          <div className="px-4 py-4 space-y-3 overflow-y-auto max-h-[70vh] custom-scrollbar">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Name</Label>
+              <Input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., My MCP Server"
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
+                className="text-xs"
               />
             </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">URL</label>
-              <input
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">URL</Label>
+              <Input
                 type="text"
                 value={formData.url}
                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                 placeholder="https://mcp.example.com"
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
+                className="text-xs font-mono"
               />
             </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Description (optional)</label>
-              <input
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Description (optional)</Label>
+              <Input
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of this MCP server"
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
+                className="text-xs"
               />
             </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
-              >
-                <option value="web">Web</option>
-                <option value="ai">AI</option>
-                <option value="data">Data</option>
-                <option value="custom">Custom</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Category</Label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/30 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="web">Web</option>
+                  <option value="ai">AI</option>
+                  <option value="data">Data</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Authentication</label>
-              <select
-                value={formData.authType}
-                onChange={(e) => setFormData({ ...formData, authType: e.target.value })}
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
-              >
-                <option value="none">None</option>
-                <option value="api-key">API Key</option>
-                <option value="bearer">Bearer Token</option>
-                <option value="oauth-coming-soon" disabled>OAuth (Coming Soon)</option>
-              </select>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Authentication</Label>
+                <select
+                  value={formData.authType}
+                  onChange={(e) => setFormData({ ...formData, authType: e.target.value })}
+                  className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/30 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="none">None</option>
+                  <option value="api-key">API Key</option>
+                  <option value="bearer">Bearer Token</option>
+                  <option value="oauth-coming-soon" disabled>OAuth (Coming Soon)</option>
+                </select>
+              </div>
             </div>
 
             {(formData.authType === 'api-key' || formData.authType === 'bearer') && (
-              <div>
-                <label className="text-xs text-foreground/64 mb-4 block">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
                   {formData.authType === 'api-key' ? 'API Key' : 'Bearer Token'}
-                </label>
-                <input
+                </Label>
+                <Input
                   type="password"
                   value={formData.accessToken}
                   onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
                   placeholder={formData.authType === 'api-key' ? 'sk-...' : 'Bearer token'}
-                  className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
+                  className="text-xs font-mono"
                 />
               </div>
             )}
 
-            {/* Test Connection Button */}
-            <div>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!formData.url) {
-                    toast.error('Please enter a URL first');
-                    return;
-                  }
-
-                  setIsTesting(true);
-                  setDiscoveredTools(null);
-
-                  try {
-                    const response = await fetch('/api/test-mcp-connection', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        url: formData.url,
-                        authToken: formData.accessToken,
-                      }),
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={async () => {
+                if (!formData.url) {
+                  toast.error('Please enter a URL first');
+                  return;
+                }
+                setIsTesting(true);
+                setDiscoveredTools(null);
+                try {
+                  const response = await fetch('/api/test-mcp-connection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      url: formData.url,
+                      authToken: formData.accessToken,
+                    }),
+                  });
+                  const result = await response.json();
+                  if (result.success) {
+                    setDiscoveredTools(result.tools || []);
+                    toast.success(`Connection successful! ${result.tools?.length || 0} tools discovered`);
+                  } else {
+                    toast.error('Connection failed', {
+                      description: result.error || result.details,
                     });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                      setDiscoveredTools(result.tools || []);
-                      toast.success(`Connection successful! ${result.tools?.length || 0} tools discovered`);
-                    } else {
-                      toast.error('Connection failed', {
-                        description: result.error || result.details,
-                      });
-                    }
-                  } catch (error) {
-                    toast.error('Failed to test connection');
-                  } finally {
-                    setIsTesting(false);
                   }
-                }}
-                disabled={isTesting || !formData.url}
-                className="w-full px-16 py-10 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all flex items-center justify-center gap-6 disabled:opacity-50"
-              >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="w-14 h-14 animate-spin" />
-                    Testing...
-                  </>
-                ) : (
-                  <>
-                    <TestTube className="w-14 h-14" />
-                    Test Connection
-                  </>
-                )}
-              </button>
-            </div>
+                } catch (error) {
+                  toast.error('Failed to test connection');
+                } finally {
+                  setIsTesting(false);
+                }
+              }}
+              disabled={isTesting || !formData.url}
+              className="w-full h-10 font-bold text-xs flex items-center justify-center gap-2"
+            >
+              {isTesting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <TestTube className="w-3.5 h-3.5" />
+                  Test Connection
+                </>
+              )}
+            </Button>
 
-            {/* Discovered Tools */}
             {discoveredTools && discoveredTools.length > 0 && (
-              <div>
-                <label className="text-xs text-foreground/64 mb-4 block">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
                   Discovered Tools ({discoveredTools.length})
-                </label>
-                <div className="p-12 bg-secondary rounded-md border border-primary">
-                  <div className="flex flex-wrap gap-4">
+                </Label>
+                <div className="p-3 bg-muted/50 rounded-lg border border-primary/20">
+                  <div className="flex flex-wrap gap-2">
                     {discoveredTools.map((tool) => (
-                      <span key={tool} className="px-6 py-2 bg-white text-primary rounded-4 text-xs font-medium border border-primary">
+                      <Badge key={tool} variant="outline" className="bg-background text-primary border-primary/30 text-[10px] font-bold py-0.5 px-2">
                         {tool}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -955,26 +966,27 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             )}
           </div>
 
-          <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
-            <button
+          <div className="px-4 py-3 border-t border-border bg-muted/30 flex gap-3">
+            <Button
+              variant="ghost"
               onClick={onClose}
-              className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all"
+              className="flex-1 text-xs font-bold text-muted-foreground hover:text-foreground h-10"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => onSave({
                 ...formData,
                 tools: discoveredTools || [],
                 headers: editingServer?.headers
               })}
-              className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all"
+              className="flex-1 text-xs font-bold h-10"
             >
               {editingServer ? 'Update' : 'Add to Registry'}
-            </button>
+            </Button>
           </div>
-        </motion.div>
-      </motion.div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -1017,32 +1029,24 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          className="bg-accent-white rounded-16 shadow-2xl max-w-md w-full mx-20 max-h-[85vh] overflow-hidden flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="p-24 border-b border-border flex-shrink-0">
-            <h3 className="text-title-h4 text-foreground">
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden border-border bg-background shadow-2xl">
+          <DialogHeader className="px-4 py-2 border-b border-border bg-muted/30">
+            <DialogTitle className="text-sm font-bold text-foreground text-left">
               {selectedProvider ? `Update ${selectedProvider} API Key` : 'Add LLM API Key'}
-            </h3>
-          </div>
+            </DialogTitle>
+          </DialogHeader>
 
-          <div className="p-24 space-y-16 overflow-y-auto flex-1">
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Provider</label>
+          <div className="p-4 space-y-3 overflow-y-auto max-h-[70vh] custom-scrollbar">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
+                Provider
+              </Label>
               <select
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value as 'anthropic' | 'openai' | 'groq' })}
                 disabled={!!selectedProvider}
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground capitalize"
+                className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground capitalize outline-none focus:ring-1 focus:ring-primary/30 transition-all font-medium"
               >
                 <option value="anthropic">Anthropic</option>
                 <option value="openai">OpenAI</option>
@@ -1050,10 +1054,12 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               </select>
             </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">API Key</label>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
+                API Key
+              </Label>
               <div className="relative">
-                <input
+                <Input
                   type={showKey ? 'text' : 'password'}
                   value={formData.apiKey}
                   onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
@@ -1062,58 +1068,69 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       formData.provider === 'openai' ? 'sk-proj-...' :
                         'gsk_...'
                   }
-                  className="w-full pr-32 px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
+                  className="pr-10 font-mono text-xs"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowKey(!showKey)}
-                  className="absolute right-8 top-1/2 -translate-y-1/2 p-4 hover:bg-secondary rounded-4 transition-colors"
+                  className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:bg-transparent"
                 >
                   {showKey ? (
-                    <EyeOff className="w-16 h-16 text-muted-foreground" />
+                    <EyeOff className="w-4 h-4" />
                   ) : (
-                    <Eye className="w-16 h-16 text-muted-foreground" />
+                    <Eye className="w-4 h-4" />
                   )}
-                </button>
+                </Button>
               </div>
               <a
                 href={getProviderHelpLink(formData.provider)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-primary hover:text-heat-200 mt-2 underline block"
+                className="text-[11px] text-primary hover:underline mt-1 flex items-center gap-1 font-medium transition-colors"
               >
-                Get your {formData.provider} API key →
+                Get your {formData.provider} API key
+                <ArrowRight className="w-3 h-3" />
               </a>
             </div>
 
-            <div>
-              <label className="text-xs text-foreground/64 mb-4 block">Label (optional)</label>
-              <input
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
+                Label <span className="text-muted-foreground/50 font-normal lowercase">(optional)</span>
+              </Label>
+              <Input
                 type="text"
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                 placeholder="e.g., Production, Development"
-                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
+                className="text-xs"
               />
             </div>
 
-            <div className="p-12 bg-secondary border border-primary rounded-md">
-              <p className="text-xs text-foreground/64">
-                <strong>Security:</strong> Your API key will be encrypted and stored securely.
-                It will only be accessible by you and never shared across users.
-              </p>
+            <div className="p-4 bg-muted/30 border border-border/50 rounded-lg flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-md text-primary">
+                <Shield className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-foreground">Security</h4>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                  Your API key will be encrypted and stored securely. It will only be accessible by you and never shared across users.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
-            <button
+          <div className="px-4 py-3 border-t border-border bg-muted/30 flex gap-3">
+            <Button
+              variant="ghost"
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all disabled:opacity-50"
+              className="flex-1 text-xs font-bold text-muted-foreground hover:text-foreground h-10"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={async () => {
                 if (!formData.apiKey) {
                   toast.error('Please enter an API key');
@@ -1127,20 +1144,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 }
               }}
               disabled={isSaving || !formData.apiKey}
-              className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-6"
+              className="flex-1 text-xs font-bold h-10"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-14 h-14 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   Saving...
                 </>
               ) : (
                 'Save API Key'
               )}
-            </button>
+            </Button>
           </div>
-        </motion.div>
-      </motion.div>
+        </DialogContent>
+      </Dialog>
     );
   }
 }

@@ -138,24 +138,24 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 400, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed right-0 top-0 h-screen w-full max-w-600 bg-accent-white border-l border-border shadow-2xl z-[101] flex flex-col"
+            className="fixed right-0 top-0 h-screen w-full max-w-[420px] bg-accent-white border-l border-border shadow-2xl z-[101] flex flex-col"
           >
             {/* Header */}
-            <div className="p-20 border-b border-border">
-              <div className="flex items-center justify-between mb-12">
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center justify-between mb-3">
                 <h2 className="text-title-h3 text-foreground">Connectors & Config</h2>
                 <button
                   onClick={onClose}
                   className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               {/* Main Tabs */}
-              <div className="flex gap-8">
+              <div className="flex gap-2">
                 <button
                   onClick={() => setActiveTab('mcp')}
                   className={`px-16 py-8 rounded-md text-sm font-medium transition-all ${activeTab === 'mcp'
@@ -163,8 +163,8 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                       : 'bg-background text-foreground/64 hover:bg-secondary'
                     }`}
                 >
-                  <div className="flex items-center gap-8">
-                    <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     MCP Servers
@@ -172,13 +172,13 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                 </button>
                 <button
                   onClick={() => setActiveTab('llm')}
-                  className={`px-16 py-8 rounded-md text-sm font-medium transition-all ${activeTab === 'llm'
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTab === 'llm'
                       ? 'bg-primary text-white'
                       : 'bg-background text-foreground/64 hover:bg-secondary'
                     }`}
                 >
-                  <div className="flex items-center gap-8">
-                    <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                     LLM Config
@@ -192,11 +192,11 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
               {activeTab === 'mcp' ? (
                 <div>
                   {/* MCP Sub-tabs */}
-                  <div className="p-20 border-b border-border">
-                    <div className="flex gap-8">
+                  <div className="p-4 border-b border-border">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => setMcpTab('templates')}
-                        className={`flex-1 px-12 py-8 rounded-md text-xs transition-colors ${mcpTab === 'templates'
+                        className={`flex-1 px-3 py-1.5 rounded-md text-xs transition-colors ${mcpTab === 'templates'
                             ? 'bg-secondary text-primary border border-primary'
                             : 'bg-background text-foreground/64 hover:bg-secondary'
                           }`}
@@ -205,7 +205,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                       </button>
                       <button
                         onClick={() => setMcpTab('custom')}
-                        className={`flex-1 px-12 py-8 rounded-md text-xs transition-colors ${mcpTab === 'custom'
+                        className={`flex-1 px-3 py-1.5 rounded-md text-xs transition-colors ${mcpTab === 'custom'
                             ? 'bg-secondary text-primary border border-primary'
                             : 'bg-background text-foreground/64 hover:bg-secondary'
                           }`}
@@ -216,15 +216,15 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                   </div>
 
                   {mcpTab === 'templates' ? (
-                    <div className="p-20 space-y-20">
+                    <div className="p-4 space-y-4">
                       <div>
-                        <h3 className="text-label-medium text-foreground mb-12">MCP Templates</h3>
-                        <div className="space-y-12">
+                        <h3 className="text-label-medium text-foreground mb-3">MCP Templates</h3>
+                        <div className="space-y-3">
                           {MCP_TEMPLATES.map((template) => (
-                            <div key={template.id} className="p-16 bg-background rounded-xl border border-border">
-                              <div className="flex items-start justify-between mb-12">
+                            <div key={template.id} className="p-4 bg-background rounded-xl border border-border">
+                              <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
-                                  <div className="flex items-center gap-8 mb-6">
+                                  <div className="flex items-center gap-2 mb-6">
                                     <h4 className="text-label-medium text-foreground font-medium">{template.name}</h4>
                                     <span className="px-6 py-2 bg-secondary text-primary rounded-4 text-xs">
                                       {template.category}
@@ -237,7 +237,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                                 </div>
                                 <button
                                   onClick={() => handleConnectTemplate(template)}
-                                  className="px-16 py-8 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98]"
+                                  className="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-md text-[10px] font-medium transition-all active:scale-[0.98]"
                                 >
                                   Connect
                                 </button>
@@ -248,11 +248,11 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                       </div>
                     </div>
                   ) : (
-                    <div className="p-20 space-y-20">
+                    <div className="p-4 space-y-4">
                       <div>
-                        <h3 className="text-label-medium text-foreground mb-12">Add Custom MCP Server</h3>
+                        <h3 className="text-label-medium text-foreground mb-3">Add Custom MCP Server</h3>
 
-                        <div className="space-y-16">
+                        <div className="space-y-4">
                           <div>
                             <label className="block text-label-small text-muted-foreground mb-8">Name</label>
                             <input
@@ -260,7 +260,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                               value={customName}
                               onChange={(e) => setCustomName(e.target.value)}
                               placeholder="My Custom MCP"
-                              className="w-full px-12 py-10 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                              className="w-full px-3 py-2 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                             />
                           </div>
 
@@ -271,7 +271,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                               value={customUrl}
                               onChange={(e) => setCustomUrl(e.target.value)}
                               placeholder="https://mcp.example.com"
-                              className="w-full px-12 py-10 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+                              className="w-full px-3 py-2 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
                             />
                           </div>
 
@@ -280,7 +280,7 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                             <select
                               value={customAuthType}
                               onChange={(e) => setCustomAuthType(e.target.value)}
-                              className="w-full px-12 py-10 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                              className="w-full px-3 py-2 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                             >
                               <option value="none">None</option>
                               <option value="api-key">API Key</option>
@@ -298,14 +298,14 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                                 value={customApiKey}
                                 onChange={(e) => setCustomApiKey(e.target.value)}
                                 placeholder="Enter your key or ${ENV_VAR}"
-                                className="w-full px-12 py-10 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+                                className="w-full px-3 py-2 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
                               />
                             </div>
                           )}
 
                           <button
                             onClick={handleConnectCustom}
-                            className="w-full px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all active:scale-[0.98]"
+                            className="w-full px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98]"
                           >
                             Add Custom MCP
                           </button>
@@ -316,11 +316,11 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
 
                   {/* Connected MCPs */}
                   {connectedMCPs.length > 0 && (
-                    <div className="p-20 border-t border-border">
-                      <h3 className="text-label-medium text-foreground mb-12">Connected MCPs ({connectedMCPs.length})</h3>
-                      <div className="space-y-12">
+                    <div className="p-4 border-t border-border">
+                      <h3 className="text-label-medium text-foreground mb-3">Connected MCPs ({connectedMCPs.length})</h3>
+                      <div className="space-y-3">
                         {connectedMCPs.map((mcp) => (
-                          <div key={mcp.id} className="p-12 bg-accent-white rounded-md border border-border">
+                          <div key={mcp.id} className="p-3 bg-accent-white rounded-md border border-border">
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <p className="text-xs text-foreground font-medium">{mcp.name}</p>
@@ -340,9 +340,9 @@ export default function ConnectorsPanel({ isOpen, onClose }: ConnectorsPanelProp
                   )}
                 </div>
               ) : (
-                <div className="p-20">
-                  <h3 className="text-label-medium text-foreground mb-16">LLM Configuration</h3>
-                  <div className="p-16 bg-accent-white rounded-xl border border-border text-center">
+                <div className="p-4">
+                  <h3 className="text-label-medium text-foreground mb-4">LLM Configuration</h3>
+                  <div className="p-4 bg-accent-white rounded-xl border border-border text-center">
                     <p className="text-sm text-muted-foreground">
                       LLM configuration coming soon...
                     </p>

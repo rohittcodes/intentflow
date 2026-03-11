@@ -40,7 +40,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-6"
           onClick={onClose}
         >
           <motion.div
@@ -52,7 +52,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
             className="bg-accent-white rounded-16 shadow-2xl max-w-400 w-full"
           >
             {/* Header */}
-            <div className="p-20 border-b border-border">
+            <div className="p-6 border-b border-border">
               <h2 className="text-title-h4 text-foreground">Edit Connection</h2>
               <p className="text-xs text-muted-foreground mt-4">
                 Add a label to this connection
@@ -60,7 +60,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
             </div>
 
             {/* Content */}
-            <div className="p-20 space-y-16">
+            <div className="p-6 space-y-4">
               {/* Label Type */}
               <div>
                 <label className="block text-label-small text-muted-foreground mb-8">
@@ -69,7 +69,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
                 <div className="space-y-8">
                   <button
                     onClick={() => setLabelType('none')}
-                    className={`w-full p-12 rounded-md border-2 transition-all text-left ${
+                    className={`w-full p-3 rounded-md border-2 transition-all text-left ${
                       labelType === 'none'
                         ? 'border-primary bg-secondary'
                         : 'border-border bg-background hover:border-border-light'
@@ -81,7 +81,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
 
                   <button
                     onClick={() => setLabelType('true')}
-                    className={`w-full p-12 rounded-md border-2 transition-all text-left ${
+                    className={`w-full p-3 rounded-md border-2 transition-all text-left ${
                       labelType === 'true'
                         ? 'border-primary bg-secondary'
                         : 'border-border bg-background hover:border-border-light'
@@ -93,7 +93,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
 
                   <button
                     onClick={() => setLabelType('false')}
-                    className={`w-full p-12 rounded-md border-2 transition-all text-left ${
+                    className={`w-full p-3 rounded-md border-2 transition-all text-left ${
                       labelType === 'false'
                         ? 'border-primary bg-secondary'
                         : 'border-border bg-background hover:border-border-light'
@@ -105,7 +105,7 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
 
                   <button
                     onClick={() => setLabelType('custom')}
-                    className={`w-full p-12 rounded-md border-2 transition-all text-left ${
+                    className={`w-full p-3 rounded-md border-2 transition-all text-left ${
                       labelType === 'custom'
                         ? 'border-primary bg-secondary'
                         : 'border-border bg-background hover:border-border-light'
@@ -128,14 +128,14 @@ export default function EdgeLabelModal({ edge, isOpen, onClose, onSave }: EdgeLa
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
                     placeholder="Enter label text"
-                    className="w-full px-12 py-8 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-20 border-t border-border flex items-center justify-end gap-12">
+            <div className="p-6 border-t border-border flex items-center justify-end gap-3">
               <button
                 onClick={onClose}
                 className="px-20 py-10 text-sm text-muted-foreground hover:text-foreground transition-colors"

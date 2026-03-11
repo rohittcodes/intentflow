@@ -69,7 +69,7 @@ export default function EmbedPage({
       <div className="h-14 border-b border-border-faint bg-accent-white flex items-center justify-between px-16 shrink-0">
         <div className="flex items-center gap-12">
           <div className="w-24 h-24 rounded-8 bg-heat-100 flex items-center justify-center text-white">
-            <Play className="w-12 h-12 ml-1" />
+            <Play className="w-6 h-6 ml-1" />
           </div>
           <div>
             <h1 className="text-body-small font-bold text-accent-black leading-tight">

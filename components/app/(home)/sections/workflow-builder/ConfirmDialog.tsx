@@ -58,7 +58,7 @@ export default function ConfirmDialog({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-6"
           onClick={onCancel}
         >
           <motion.div
@@ -71,7 +71,7 @@ export default function ConfirmDialog({
           >
             {/* Content */}
             <div className="p-24">
-              <div className={`w-48 h-48 rounded-full ${styles.bg} border ${styles.border} flex items-center justify-center mb-16`}>
+              <div className={`w-48 h-48 rounded-full ${styles.bg} border ${styles.border} flex items-center justify-center mb-4`}>
                 <svg className={`w-24 h-24 ${styles.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {variant === "danger" ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -87,7 +87,7 @@ export default function ConfirmDialog({
               <p className="text-xs text-muted-foreground mb-24">{description}</p>
 
               {/* Actions */}
-              <div className="flex gap-12">
+              <div className="flex gap-3">
                 <button
                   onClick={onCancel}
                   className="flex-1 px-16 py-10 bg-background hover:bg-secondary border border-border rounded-md text-sm text-foreground transition-colors"

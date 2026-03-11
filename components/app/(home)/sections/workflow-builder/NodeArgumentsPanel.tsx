@@ -52,7 +52,7 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
   };
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-label-small text-muted-foreground">
           Arguments
@@ -61,7 +61,7 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
           onClick={() => setShowAddArg(true)}
           className="px-10 py-6 bg-background hover:bg-secondary border border-border rounded-6 text-xs text-foreground transition-colors flex items-center gap-6"
         >
-          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Add Argument
@@ -69,22 +69,22 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
       </div>
 
       {arguments_.length === 0 ? (
-        <div className="p-16 bg-background rounded-md border border-border text-center">
+        <div className="p-4 bg-background rounded-md border border-border text-center">
           <p className="text-xs text-muted-foreground">
             No arguments defined. Click "Add Argument" to get started.
           </p>
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-3">
           {arguments_.map((arg, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-12 bg-background rounded-md border border-border"
+              className="p-3 bg-background rounded-md border border-border"
             >
-              <div className="flex items-start gap-8 mb-12">
-                <div className="flex-1 grid grid-cols-2 gap-8">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="flex-1 grid grid-cols-2 gap-2">
                   {/* Argument Name */}
                   <input
                     type="text"
@@ -113,7 +113,7 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
                   onClick={() => removeArgument(index)}
                   className="w-24 h-24 rounded-4 hover:bg-secondary transition-colors flex items-center justify-center group"
                 >
-                  <svg className="w-12 h-12 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -137,16 +137,15 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
               </div>
 
               {/* Required Toggle */}
-              <div className="flex items-center justify-between mt-12 pt-12 border-t border-border">
+              <div className="flex items-center justify-between mt-3 pt-12 border-t border-border">
                 <span className="text-xs text-muted-foreground">Required</span>
                 <button
                   onClick={() => updateArgument(index, { required: !arg.required })}
-                  className={`w-36 h-20 rounded-full transition-colors relative ${
-                    arg.required ? 'bg-primary' : 'bg-muted'
-                  }`}
+                  className={`w-36 h-20 rounded-full transition-colors relative ${arg.required ? 'bg-primary' : 'bg-muted'
+                    }`}
                 >
                   <motion.div
-                    className="w-16 h-16 bg-white rounded-full absolute top-2 shadow-sm"
+                    className="w-4 h-4 bg-white rounded-full absolute top-2 shadow-sm"
                     animate={{ left: arg.required ? '18px' : '2px' }}
                     transition={{ duration: 0.2 }}
                   />
@@ -161,14 +160,14 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-12 bg-secondary rounded-md border border-primary"
+          className="p-3 bg-secondary rounded-md border border-primary"
         >
-          <p className="text-xs text-foreground mb-12">
+          <p className="text-xs text-foreground mb-3">
             Add a new argument to define what this node receives
           </p>
           <button
             onClick={addArgument}
-            className="w-full px-12 py-8 bg-primary hover:bg-primary/90 text-white rounded-6 text-xs font-medium transition-colors"
+            className="w-full px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-6 text-xs font-medium transition-colors"
           >
             Create Argument
           </button>
@@ -177,10 +176,10 @@ export default function NodeArgumentsPanel({ nodeId, currentArgs, onUpdate }: No
 
       {/* Quick Reference Guide */}
       <details className="group">
-        <summary className="cursor-pointer list-none p-12 bg-secondary rounded-md border border-primary text-xs text-foreground hover:bg-secondary/80 transition-colors">
+        <summary className="cursor-pointer list-none p-3 bg-secondary rounded-md border border-primary text-xs text-foreground hover:bg-secondary/80 transition-colors">
           📖 Variable Reference Guide
         </summary>
-        <div className="mt-8 p-12 bg-secondary rounded-md border border-primary space-y-6 text-xs text-foreground font-mono">
+        <div className="mt-8 p-3 bg-secondary rounded-md border border-primary space-y-6 text-xs text-foreground font-mono">
           <div>
             <strong>Workflow Input:</strong>
             <code className="block mt-4 text-primary">state.variables.input</code>
