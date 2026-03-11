@@ -18,7 +18,6 @@ import {
   Globe,
   Settings
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -317,7 +316,7 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
 
       {/* Knowledge Connectors Section */}
       <div className="space-y-4">
-        <h2 className="text-sm font-bold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
+        <h2 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
           <Database className="h-4 w-4 opacity-50" />
           Active Connectors
         </h2>
@@ -331,7 +330,7 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
 
       {/* Documents List */}
       <div className="space-y-4">
-        <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Documents</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Documents</h2>
 
         {documents === undefined ? (
           <div className="space-y-3">
@@ -351,9 +350,7 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
         ) : (
           <div className="grid gap-3">
             {documents.map((doc) => (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+              <div
                 key={doc._id}
                 className="group flex items-center justify-between p-4 bg-card border rounded-xl hover:border-primary transition-all shadow-sm"
               >
@@ -382,7 +379,7 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { motion } from "framer-motion";
 import {
   Plus,
   Database,
@@ -87,12 +86,7 @@ export default function KnowledgePage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-8 space-y-8"
-    >
+    <div className="pb-8 space-y-8">
       <PageHeader
         title="Knowledge Base"
         actions={
@@ -154,10 +148,10 @@ export default function KnowledgePage() {
         <>
 
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary" />
             <Input
               placeholder="Search namespaces..."
-              className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 transition-all rounded-2xl text-sm"
+              className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 rounded-2xl text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -185,16 +179,16 @@ export default function KnowledgePage() {
               {filteredNamespaces?.map((ns) => (
                 <Card
                   key={ns._id}
-                  className="group cursor-pointer hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col rounded-[32px] border-border overflow-hidden"
+                  className="group cursor-pointer hover:border-primary/50 flex flex-col rounded-[32px] border-border overflow-hidden"
                   onClick={() => setSelectedNamespaceId(ns._id)}
                 >
                   <CardHeader className="p-8 pb-4">
                     <div className="flex items-start gap-5">
-                      <div className="p-3.5 bg-muted rounded-[20px] text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm">
+                      <div className="p-3.5 bg-muted rounded-[20px] text-foreground group-hover:bg-primary group-hover:text-primary-foreground shadow-sm">
                         <Database className="h-6 w-6" />
                       </div>
                       <div className="space-y-1.5 overflow-hidden flex-1">
-                        <CardTitle className="text-xl font-bold tracking-tight group-hover:text-primary transition-colors truncate">
+                        <CardTitle className="text-xl font-bold tracking-tight group-hover:text-primary truncate">
                           {ns.name}
                         </CardTitle>
                         <CardDescription className="line-clamp-2 text-[11px] font-medium leading-relaxed min-h-[32px]">
@@ -211,9 +205,9 @@ export default function KnowledgePage() {
                           {ns.documentCount || 0} CHUNKS
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] font-black tracking-widest text-muted-foreground group-hover:text-primary transition-all">
+                      <div className="flex items-center gap-1 text-[10px] font-black tracking-widest text-muted-foreground group-hover:text-primary">
                         GO
-                        <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </div>
                     </div>
                   </CardContent>
@@ -223,6 +217,6 @@ export default function KnowledgePage() {
           )}
         </>
       )}
-    </motion.div>
+    </div>
   );
 }

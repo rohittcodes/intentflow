@@ -62,7 +62,7 @@ export default function WorkspaceSwitcher() {
     }
   };
 
-  if (!workspaces) return <div className="h-10 w-full animate-pulse bg-muted rounded-md" />;
+  if (!workspaces || workspaces === null) return <div className="h-10 w-full animate-pulse bg-muted rounded-md" />;
 
   return (
     <div className="flex flex-col gap-2 w-full">

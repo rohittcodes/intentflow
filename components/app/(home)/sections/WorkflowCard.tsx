@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Edit2, Star, Trash2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface Workflow {
   id: string;
@@ -49,6 +49,7 @@ export default function WorkflowCard({
     onEdit(workflow.id);
   };
 
+  const router = useRouter();
   const handleStar = (e: React.MouseEvent) => {
     e.stopPropagation();
     onStar(workflow.id, workflow._id || workflow.id);
@@ -103,8 +104,8 @@ export default function WorkflowCard({
     <Card
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => !isEditingTitle && !isEditingDescription && onOpen(workflow.id)}
-      className="group relative flex flex-col h-full min-h-[180px] cursor-pointer transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 rounded-[32px] border-border overflow-hidden bg-background"
+      onClick={() => !isEditingTitle && !isEditingDescription && router.push(`/dashboard/workflow/${workflow.id}`)}
+      className="group relative flex flex-col h-full min-h-[180px] cursor-pointer hover:border-primary/50 rounded-[32px] border-border overflow-hidden bg-background"
     >
       <CardHeader className="p-8 pb-3">
         <div className="flex items-start justify-between gap-4">
@@ -137,7 +138,7 @@ export default function WorkflowCard({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 opacity-0 group-hover/title:opacity-100 transition-opacity rounded-full hover:bg-muted"
+                  className="h-7 w-7 opacity-0 group-hover/title:opacity-100 rounded-full hover:bg-muted"
                   onClick={handleTitleClick}
                 >
                   <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -146,13 +147,13 @@ export default function WorkflowCard({
             )}
           </div>
           {workflow.isStarred && (
-            <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0 animate-in zoom-in duration-300">
+            <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0">
               <Star className="h-4 w-4 text-primary fill-primary" />
             </div>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="px-8 pb-4 pt-0 flex-1">
         {isEditingDescription ? (
           <div className="flex flex-col gap-3 mt-2" onClick={(e) => e.stopPropagation()}>
@@ -183,7 +184,7 @@ export default function WorkflowCard({
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 opacity-0 group-hover/desc:opacity-100 transition-opacity rounded-full hover:bg-muted"
+              className="h-7 w-7 opacity-0 group-hover/desc:opacity-100 rounded-full hover:bg-muted"
               onClick={handleDescriptionClick}
             >
               <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -204,37 +205,30 @@ export default function WorkflowCard({
           </span>
         </div>
 
-        <AnimatePresence>
-          {isHovered && !isEditingTitle && !isEditingDescription && (
-            <motion.div
-              initial={{ opacity: 0, x: 5 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 5 }}
-              className="flex gap-2"
+        {isHovered && !isEditingTitle && !isEditingDescription && (
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-full hover:bg-primary/10"
+              onClick={handleStar}
             >
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors"
-                onClick={handleStar}
-              >
-                {workflow.isStarred ? (
-                  <Star className="h-4 w-4 text-primary fill-primary" />
-                ) : (
-                  <Star className="h-4 w-4 text-muted-foreground/50" />
-                )}
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full hover:text-destructive hover:bg-destructive/10 transition-colors"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {workflow.isStarred ? (
+                <Star className="h-4 w-4 text-primary fill-primary" />
+              ) : (
+                <Star className="h-4 w-4 text-muted-foreground/50" />
+              )}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 rounded-full hover:text-destructive hover:bg-destructive/10"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );

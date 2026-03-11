@@ -5,7 +5,7 @@ export const getWorkspaces = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    if (!identity) return null;
 
     // Get all workspaces owned by the user
     const ownedWorkspaces = await ctx.db

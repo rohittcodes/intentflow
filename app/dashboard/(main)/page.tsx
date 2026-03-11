@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
@@ -97,12 +96,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-8 space-y-6"
-    >
+    <div className="pb-8 space-y-6">
       <PageHeader title="Overview" />
 
       {/* Greeting */}
@@ -253,6 +247,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

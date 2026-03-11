@@ -144,12 +144,7 @@ export default function ConnectionsPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-8 space-y-6"
-    >
+    <div className="pb-8 space-y-6">
       <PageHeader title="Connections" />
 
       <Tabs defaultValue="installed" onValueChange={(val) => setActiveTab(val as any)} className="space-y-6">
@@ -165,7 +160,7 @@ export default function ConnectionsPage() {
 
           {activeTab === "discover" && (
             <div className="relative w-full sm:w-72 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary" />
               <Input
                 placeholder="Search integrations..."
                 className="pl-9 h-9 bg-muted/20 rounded-xl text-sm"
@@ -190,11 +185,11 @@ export default function ConnectionsPage() {
           ) : installedConnections.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {installedConnections.map((conn) => (
-                <Card key={conn._id} className="group hover:border-primary/40 hover:shadow-md transition-all duration-300 rounded-2xl border-border">
+                <Card key={conn._id} className="group hover:border-primary/40 rounded-2xl border-border">
                   <CardHeader className="p-5 pb-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-muted rounded-xl text-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300 border border-border/10">
+                        <div className="p-2 bg-muted rounded-xl text-foreground group-hover:bg-primary/10 group-hover:text-primary border border-border/10">
                           <LinkIcon className="h-5 w-5" />
                         </div>
                         <div>
@@ -264,10 +259,10 @@ export default function ConnectionsPage() {
                   <Card
                     key={integration.id}
                     className={cn(
-                      "flex flex-col group rounded-2xl border-border transition-all duration-300",
+                      "flex flex-col group rounded-2xl border-border",
                       integration.status === "coming_soon"
                         ? "opacity-60"
-                        : "hover:border-primary/40 hover:shadow-md cursor-pointer"
+                        : "hover:border-primary/40 cursor-pointer"
                     )}
                   >
                     <CardHeader className="p-5 pb-3">
@@ -297,7 +292,7 @@ export default function ConnectionsPage() {
                       <Button
                         variant={installed ? "outline" : "default"}
                         size="sm"
-                        className="w-full h-8 text-xs font-bold transition-all"
+                        className="w-full h-8 text-xs font-bold"
                         disabled={installed || integration.status === "coming_soon"}
                         onClick={() => integration.status === "available" && !installed && setSetupIntegration(integration)}
                       >
@@ -398,6 +393,6 @@ export default function ConnectionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 }

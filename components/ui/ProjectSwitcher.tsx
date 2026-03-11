@@ -63,8 +63,8 @@ export default function ProjectSwitcher() {
 
   if (!activeWorkspaceId) return null;
 
-  // Loading skeleton
-  if (projects === undefined) {
+  // Loading skeleton or Unauthenticated (null)
+  if (projects === undefined || projects === null) {
     return <div className="h-9 w-full animate-pulse bg-muted rounded-md" />;
   }
 

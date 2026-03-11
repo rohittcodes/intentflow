@@ -474,7 +474,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
     // Redirect if this was a new workflow
     if (!initialWorkflowId && workflow.id.startsWith('workflow_')) {
       // The API should have saved it to its customId (which is workflow.id)
-      router.push(`/flow/${workflow.id}`);
+      router.push(`/dashboard/workflow/${workflow.id}`);
     }
 
     toast.success('Saved to Cloud');
@@ -667,21 +667,21 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       {/* Standardized Top Bar */}
       <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 z-[100] shrink-0">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={onBack} 
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onBack}
             className="h-9 w-9"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
-              <WorkflowNameEditor 
-                workflow={workflow} 
-                renameTrigger={renameTrigger} 
-                onSave={(name) => saveWorkflow({ ...workflow!, name })} 
+              <WorkflowNameEditor
+                workflow={workflow}
+                renameTrigger={renameTrigger}
+                onSave={(name) => saveWorkflow({ ...workflow!, name })}
               />
               <Badge variant={workflow?.isDeployed ? "default" : "secondary"} className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider">
                 {workflow?.isDeployed ? (
@@ -784,13 +784,12 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge 
-                  variant="outline" 
-                  className={`h-9 px-3 cursor-help gap-2 ${
-                    validationResult.isValid ? 'bg-green-50 text-green-700 border-green-200' :
-                    validationResult.errors.some(e => e.severity === 'error') ? 'bg-destructive/10 text-destructive border-destructive/20' :
-                    'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}
+                <Badge
+                  variant="outline"
+                  className={`h-9 px-3 cursor-help gap-2 ${validationResult.isValid ? 'bg-green-50 text-green-700 border-green-200' :
+                      validationResult.errors.some(e => e.severity === 'error') ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                        'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
                 >
                   {validationResult.isValid ? (
                     <CheckCircle2 className="h-4 w-4" />
@@ -845,21 +844,21 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           </Button>
 
           {!isRunning ? (
-            <Button 
-              onClick={handlePreview} 
+            <Button
+              onClick={handlePreview}
               className="h-9 px-4 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm"
             >
               <Play className="h-4 w-4 fill-current" />
               Run
             </Button>
           ) : (
-            <Button 
+            <Button
               variant="destructive"
               size="sm"
-              onClick={stopWorkflow} 
+              onClick={stopWorkflow}
               className="h-9 px-4 gap-2"
             >
-              <StopCircle className="h-4 w-4" /> 
+              <StopCircle className="h-4 w-4" />
               Stop
             </Button>
           )}
@@ -900,10 +899,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         {/* Sidebar Content */}
         <AnimatePresence mode="wait">
           {sidebarExpanded && (
-            <motion.aside 
-              initial={{ width: 0, opacity: 0 }} 
-              animate={{ width: 300, opacity: 1 }} 
-              exit={{ width: 0, opacity: 0 }} 
+            <motion.aside
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 300, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
               className="relative border-r bg-background flex flex-col overflow-hidden shadow-sm h-full"
             >
               <div className="flex items-center justify-between p-4 border-b bg-muted/30">
@@ -921,10 +920,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                           <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">{cat.category}</h4>
                           <div className="grid grid-cols-1 gap-2">
                             {cat.nodes.map((node) => (
-                              <motion.div 
-                                key={node.type} 
-                                draggable 
-                                onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)} 
+                              <motion.div
+                                key={node.type}
+                                draggable
+                                onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)}
                                 className="flex items-center gap-3 p-2 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all cursor-grab active:cursor-grabbing group"
                               >
                                 <div className={`h-8 w-8 rounded-md ${node.color} flex items-center justify-center shadow-sm brightness-110 group-hover:brightness-125 transition-all`}>
@@ -1032,10 +1031,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         {/* Unified Inspector */}
         <AnimatePresence>
           {inspectorOpen && (
-            <motion.aside 
-              initial={{ width: 0, opacity: 0 }} 
-              animate={{ width: 400, opacity: 1 }} 
-              exit={{ width: 0, opacity: 0 }} 
+            <motion.aside
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 400, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
               className="relative border-l bg-background flex flex-col overflow-hidden shadow-lg h-full"
             >
               <div className="flex items-center justify-between p-4 border-b bg-muted/30">
@@ -1047,10 +1046,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                     {showSettings ? 'Project Settings' : (activeNode?.data?.nodeName || activeNode?.data?.label || 'Properties')}
                   </h3>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); setShowSettings(false); }} 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); setShowSettings(false); }}
                   className="h-7 w-7"
                 >
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />

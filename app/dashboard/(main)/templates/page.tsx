@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { listTemplates } from "@/lib/workflow/templates";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,16 +14,11 @@ export default function TemplatesPage() {
   const templates = listTemplates();
 
   const handleLoadTemplate = (templateId: string) => {
-    router.push(`/flow/new?template=${templateId}`);
+    router.push(`/dashboard/workflow/new?template=${templateId}`);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-8 space-y-8"
-    >
+    <div className="pb-8 space-y-8">
       <PageHeader title="Templates" />
 
       {!activeProjectId ? (
@@ -42,15 +36,15 @@ export default function TemplatesPage() {
           {templates.map((template) => (
             <Card
               key={template.id}
-              className="group cursor-pointer hover:border-primary transition-all flex flex-col"
+              className="group cursor-pointer hover:border-primary flex flex-col"
               onClick={() => handleLoadTemplate(template.id)}
             >
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground">
                     <LayoutTemplate className="h-5 w-5" />
                   </div>
-                  <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                  <CardTitle className="text-lg font-bold group-hover:text-primary">
                     {template.name}
                   </CardTitle>
                 </div>
@@ -59,15 +53,15 @@ export default function TemplatesPage() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto pt-4 border-t">
-                <div className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors">
+                <div className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary">
                   <span>USE TEMPLATE</span>
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-4 w-4" />
                 </div>
               </CardFooter>
             </Card>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

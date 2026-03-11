@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
@@ -43,11 +42,7 @@ export default function UsagePage() {
   if (usage === null) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="pb-8 space-y-8"
-    >
+    <div className="pb-8 space-y-8">
       <PageHeader
         title="Usage & Limits"
         actions={
@@ -166,6 +161,6 @@ export default function UsagePage() {
           <Button variant="default">View Plans</Button>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

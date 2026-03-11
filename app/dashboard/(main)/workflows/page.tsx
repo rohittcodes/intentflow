@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Layers, LayoutGrid, Plus, Pencil, Copy, Trash2, PlayCircle, Loader2, Star, Search, X } from "lucide-react";
@@ -59,7 +58,7 @@ export default function WorkflowsPage() {
       setIsCreateDialogOpen(false);
       setNewWorkflowName("");
       setNewWorkflowDesc("");
-      router.push(`/flow/${id}`);
+      router.push(`/dashboard/workflow/${id}`);
     } catch (error) {
       console.error("Error creating workflow:", error);
       toast.error("Failed to create workflow");
@@ -176,12 +175,7 @@ export default function WorkflowsPage() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="pb-8 space-y-8"
-    >
+    <div className="pb-8 space-y-8">
       <PageHeader title="Workflows" />
 
       {!activeProjectId ? (
@@ -211,11 +205,11 @@ export default function WorkflowsPage() {
                 <DialogTrigger asChild>
                   <Card
                     className={cn(
-                      "group relative flex flex-col items-center justify-center gap-6 border-2 border-dashed p-8 transition-all duration-300 h-full min-h-[200px] rounded-[32px] cursor-pointer hover:border-primary/50 hover:bg-primary/5 hover:shadow-xl hover:-translate-y-1"
+                      "group relative flex flex-col items-center justify-center gap-6 border-2 border-dashed p-8 h-full min-h-[200px] rounded-[32px] cursor-pointer hover:border-primary/50 hover:bg-primary/5"
                     )}
                   >
                     <div className={cn(
-                      "flex h-16 w-16 items-center justify-center rounded-[24px] shadow-sm transition-all duration-500 bg-muted text-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 group-hover:rotate-6"
+                      "flex h-16 w-16 items-center justify-center rounded-[24px] shadow-sm bg-muted text-foreground group-hover:bg-primary group-hover:text-primary-foreground"
                     )}>
                       <Plus className="h-8 w-8" />
                     </div>
@@ -227,7 +221,7 @@ export default function WorkflowsPage() {
                         Start building from scratch
                       </p>
                     </div>
-                    <div className="absolute top-4 right-4 text-[10px] font-black tracking-widest text-muted-foreground/30 group-hover:text-primary/50 transition-colors uppercase">
+                    <div className="absolute top-4 right-4 text-[10px] font-black tracking-widest text-muted-foreground/30 group-hover:text-primary/50 uppercase">
                       New Flow
                     </div>
                   </Card>
@@ -278,7 +272,7 @@ export default function WorkflowsPage() {
             <section className="mt-12">
               <div className="flex items-center gap-3 mb-6">
                 <Star className="h-5 w-5 text-primary fill-primary" />
-                <h2 className="text-xl font-bold tracking-tight">Starred</h2>
+                <h2 className="text-lg font-semibold">Starred</h2>
               </div>
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {starredWorkflows.map((workflow) => (
@@ -300,22 +294,21 @@ export default function WorkflowsPage() {
           <section className="mt-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pt-8 border-t border-border/50">
               <div className="space-y-1">
-                <h2 className="text-xl font-bold tracking-tight">All Workflows</h2>
+                <h2 className="text-lg font-semibold">All Workflows</h2>
                 <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">
                     {filteredAllWorkflows.length} TOTAL FLOW{filteredAllWorkflows.length !== 1 ? "S" : ""}
                   </span>
                 </div>
               </div>
 
               <div className="relative w-full md:w-80 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary" />
                 <Input
                   placeholder="Search workflows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 transition-all rounded-2xl text-sm"
+                  className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 rounded-2xl text-sm"
                 />
                 {searchQuery && (
                   <Button
@@ -370,6 +363,6 @@ export default function WorkflowsPage() {
           </section>
         </>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Trash2, RotateCcw, X, AlertTriangle, Loader2, Workflow } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -135,91 +134,87 @@ export default function TrashView() {
       {/* Trashed Workflows List */}
       {!loading && trashedWorkflows.length > 0 && (
         <div className="grid gap-4">
-          {trashedWorkflows.map((workflow) => (
-            <motion.div
-              key={workflow._id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <Card className="group hover:border-primary transition-all">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 bg-muted rounded-lg text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                        <Workflow className="h-5 w-5" />
+            {trashedWorkflows.map((workflow) => (
+              <div key={workflow._id}>
+                <Card className="group hover:border-primary transition-all">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-muted rounded-lg text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                          <Workflow className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <CardTitle className="text-base font-bold">{workflow.name}</CardTitle>
+                          {workflow.description && (
+                            <CardDescription className="text-xs line-clamp-1">
+                              {workflow.description}
+                            </CardDescription>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <CardTitle className="text-base font-bold">{workflow.name}</CardTitle>
-                        {workflow.description && (
-                          <CardDescription className="text-xs line-clamp-1">
-                            {workflow.description}
-                          </CardDescription>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRestore(workflow._id, workflow.name)}
-                        className="h-8 gap-2 text-xs"
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                        Restore
-                      </Button>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 gap-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete Forever
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2">
-                              <AlertTriangle className="h-5 w-5 text-destructive" />
-                              Permanently delete workflow?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action <span className="font-bold text-foreground">cannot be undone</span>. 
-                              The workflow <span className="font-semibold text-foreground">"{workflow.name}"</span> will be permanently removed from our servers.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handlePermanentDelete(workflow._id, workflow.name)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRestore(workflow._id, workflow.name)}
+                          className="h-8 gap-2 text-xs"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                          Restore
+                        </Button>
+  
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 gap-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                             >
+                              <Trash2 className="h-3 w-3" />
                               Delete Forever
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-destructive" />
+                                Permanently delete workflow?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action <span className="font-bold text-foreground">cannot be undone</span>. 
+                                The workflow <span className="font-semibold text-foreground">"{workflow.name}"</span> will be permanently removed from our servers.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handlePermanentDelete(workflow._id, workflow.name)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete Forever
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
-                      {workflow.nodeCount} nodes
-                    </span>
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
-                      {workflow.edgeCount} connections
-                    </span>
-                    <span className="ml-auto flex items-center gap-1">
-                      Deleted {formatDate(workflow.deletedAt)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
+                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
+                        {workflow.nodeCount} nodes
+                      </span>
+                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
+                        {workflow.edgeCount} connections
+                      </span>
+                      <span className="ml-auto flex items-center gap-1">
+                        Deleted {formatDate(workflow.deletedAt)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
         </div>
       )}
     </div>

@@ -42,7 +42,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   // Auto-select project: prefer persisted activeProjectId, else pick first available
   useEffect(() => {
-    if (!activeWorkspaceId || !projects || projectInitialized) return;
+    if (!activeWorkspaceId || !Array.isArray(projects) || projectInitialized) return;
 
     if (userContext?.activeProjectId) {
       // Check it still belongs to this workspace

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
@@ -44,11 +43,7 @@ export default function ConversationsPage() {
   if (threads === null) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="pb-8 space-y-8"
-    >
+    <div className="pb-8 space-y-8">
       <PageHeader title="Conversations" />
 
       <div className="flex items-center justify-between gap-4">
@@ -129,6 +124,6 @@ export default function ConversationsPage() {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
