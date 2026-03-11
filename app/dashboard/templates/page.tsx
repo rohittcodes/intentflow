@@ -3,9 +3,15 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { listTemplates } from "@/lib/workflow/templates";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, LayoutTemplate } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 
 export default function TemplatesPage() {
   const router = useRouter();
+  const { activeProjectId } = useWorkspace();
   const templates = listTemplates();
 
   const handleLoadTemplate = (templateId: string) => {
@@ -17,34 +23,51 @@ export default function TemplatesPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-full"
+      className="pb-8 space-y-8"
     >
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Templates</h2>
-          <p className="text-muted-foreground">Pre-built workflows to get you started faster.</p>
-        </div>
-      </div>
+      <PageHeader title="Templates" />
 
-      <div className="grid gap-16 md:grid-cols-2 lg:grid-cols-3">
-        {templates.map((template) => (
-          <div
-            key={template.id}
-            onClick={() => handleLoadTemplate(template.id)}
-            className="group relative flex flex-col gap-12 rounded-12 border border-black-alpha-8 bg-accent-white p-16 hover:border-heat-100 cursor-pointer transition-all hover:shadow-sm"
-          >
-            <div className="flex flex-col gap-4">
-              <h3 className="text-label-large text-accent-black group-hover:text-heat-100 transition-colors">{template.name}</h3>
-              <p className="text-body-small text-black-alpha-64 line-clamp-2">{template.description}</p>
-            </div>
-            <div className="mt-auto pt-12">
-              <span className="inline-flex items-center rounded-8 border border-black-alpha-8 bg-black-alpha-4 px-10 py-6 text-body-small text-accent-black hover:bg-black-alpha-8 transition-colors">
-                Use Template
-              </span>
-            </div>
+      {!activeProjectId ? (
+        <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed border-border/50 rounded-[32px] bg-muted/10 mt-8">
+          <div className="p-4 rounded-full bg-background border border-border mb-6">
+            <LayoutTemplate className="h-8 w-8 text-muted-foreground/30" />
           </div>
-        ))}
-      </div>
+          <h3 className="text-xl font-bold tracking-tight mb-2">Select a Project</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">
+            You need to create a <strong className="font-bold text-foreground">Project</strong> to use templates.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {templates.map((template) => (
+            <Card
+              key={template.id}
+              className="group cursor-pointer hover:border-primary transition-all flex flex-col"
+              onClick={() => handleLoadTemplate(template.id)}
+            >
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <LayoutTemplate className="h-5 w-5" />
+                  </div>
+                  <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">
+                    {template.name}
+                  </CardTitle>
+                </div>
+                <CardDescription className="line-clamp-2 min-h-[2.5rem] leading-relaxed">
+                  {template.description}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto pt-4 border-t">
+                <div className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>USE TEMPLATE</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

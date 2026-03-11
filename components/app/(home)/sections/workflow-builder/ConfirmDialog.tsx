@@ -42,10 +42,10 @@ export default function ConfirmDialog({
       border: "border-yellow-200",
     },
     default: {
-      button: "bg-heat-100 hover:bg-heat-200 text-white",
-      icon: "text-heat-100",
-      bg: "bg-heat-4",
-      border: "border-heat-100",
+      button: "bg-primary hover:bg-primary/90 text-white",
+      icon: "text-primary",
+      bg: "bg-secondary",
+      border: "border-primary",
     },
   };
 
@@ -58,7 +58,7 @@ export default function ConfirmDialog({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black-alpha-48 z-[200] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-20"
           onClick={onCancel}
         >
           <motion.div
@@ -83,20 +83,20 @@ export default function ConfirmDialog({
                 </svg>
               </div>
 
-              <h2 className="text-title-h5 text-accent-black mb-8">{title}</h2>
-              <p className="text-body-small text-black-alpha-48 mb-24">{description}</p>
+              <h2 className="text-title-h5 text-foreground mb-8">{title}</h2>
+              <p className="text-xs text-muted-foreground mb-24">{description}</p>
 
               {/* Actions */}
               <div className="flex gap-12">
                 <button
                   onClick={onCancel}
-                  className="flex-1 px-16 py-10 bg-background-base hover:bg-black-alpha-4 border border-border-faint rounded-8 text-body-medium text-accent-black transition-colors"
+                  className="flex-1 px-16 py-10 bg-background hover:bg-secondary border border-border rounded-md text-sm text-foreground transition-colors"
                 >
                   {cancelText}
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className={`flex-1 px-16 py-10 rounded-8 text-body-medium transition-all active:scale-[0.98] ${styles.button}`}
+                  className={`flex-1 px-16 py-10 rounded-md text-sm transition-all active:scale-[0.98] ${styles.button}`}
                 >
                   {confirmText}
                 </button>

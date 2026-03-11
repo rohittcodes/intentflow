@@ -51,7 +51,7 @@ export default function RetrieverNodePanel({
     <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Node Name */}
       <div>
-        <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-8">
           Node Name
         </label>
         <input
@@ -59,19 +59,19 @@ export default function RetrieverNodePanel({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Fetch Documents"
-          className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
+          className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
       {/* Namespace Selection */}
       <div>
-        <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-8">
           Knowledge Base (Namespace)
         </label>
         <div className="relative">
           <button
             onClick={() => setShowNamespaceDropdown(!showNamespaceDropdown)}
-            className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors flex items-center justify-between hover:bg-black-alpha-4"
+            className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors flex items-center justify-between hover:bg-secondary"
           >
             <div className="flex items-center gap-8 truncate">
               <Database className="w-16 h-16 text-black-alpha-32" />
@@ -79,17 +79,17 @@ export default function RetrieverNodePanel({
                 {selectedNamespace ? selectedNamespace.name : "Select a namespace..."}
               </span>
             </div>
-            <ChevronDown className={`w-16 h-16 text-black-alpha-48 transition-transform ${showNamespaceDropdown ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-16 h-16 text-muted-foreground transition-transform ${showNamespaceDropdown ? 'rotate-180' : ''}`} />
           </button>
 
           {showNamespaceDropdown && (
-            <div className="absolute z-10 w-full mt-8 bg-accent-white border border-border-faint rounded-12 shadow-xl overflow-hidden max-h-200 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-8 bg-accent-white border border-border rounded-xl shadow-xl overflow-hidden max-h-200 overflow-y-auto">
               {namespaces === undefined ? (
                 <div className="p-16 flex items-center justify-center">
-                  <Loader2 className="w-20 h-20 animate-spin text-heat-100" />
+                  <Loader2 className="w-20 h-20 animate-spin text-primary" />
                 </div>
               ) : namespaces.length === 0 ? (
-                <div className="p-16 text-center text-sm text-black-alpha-48">
+                <div className="p-16 text-center text-sm text-muted-foreground">
                   No namespaces found. Create one in the Knowledge Base dashboard.
                 </div>
               ) : (
@@ -100,10 +100,10 @@ export default function RetrieverNodePanel({
                       setNamespaceId(ns._id);
                       setShowNamespaceDropdown(false);
                     }}
-                    className={`w-full text-left px-16 py-10 text-sm transition-colors hover:bg-black-alpha-4 flex flex-col gap-2 ${namespaceId === ns._id ? "bg-heat-4" : ""
+                    className={`w-full text-left px-16 py-10 text-sm transition-colors hover:bg-secondary flex flex-col gap-2 ${namespaceId === ns._id ? "bg-secondary" : ""
                       }`}
                   >
-                    <span className="font-medium text-accent-black">{ns.name}</span>
+                    <span className="font-medium text-foreground">{ns.name}</span>
                     <span className="text-xs text-black-alpha-40">{ns.documentCount} document chunks</span>
                   </button>
                 ))
@@ -116,7 +116,7 @@ export default function RetrieverNodePanel({
       {/* Search Query */}
       <div>
         <div className="flex items-center justify-between mb-8">
-          <label className="block text-sm font-medium text-black-alpha-48">
+          <label className="block text-sm font-medium text-muted-foreground">
             Search Query
           </label>
           <div className="flex items-center gap-8">
@@ -135,7 +135,7 @@ export default function RetrieverNodePanel({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search text or {{variable}}..."
             rows={4}
-            className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black placeholder-black-alpha-32 focus:outline-none focus:border-heat-100 transition-colors resize-y pr-40"
+            className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-primary transition-colors resize-y pr-40"
           />
           <Search className="absolute right-12 top-12 w-16 h-16 text-black-alpha-24" />
         </div>
@@ -146,7 +146,7 @@ export default function RetrieverNodePanel({
 
       {/* Limit */}
       <div>
-        <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+        <label className="block text-sm font-medium text-muted-foreground mb-8">
           Result Limit
         </label>
         <div className="flex items-center gap-12">
@@ -158,7 +158,7 @@ export default function RetrieverNodePanel({
             onChange={(e) => setLimit(Number(e.target.value))}
             className="flex-1 accent-heat-100"
           />
-          <span className="text-sm font-semibold text-accent-black min-w-24 text-center">
+          <span className="text-sm font-semibold text-foreground min-w-24 text-center">
             {limit}
           </span>
         </div>
@@ -168,9 +168,9 @@ export default function RetrieverNodePanel({
       </div>
 
       {/* Re-Ranking Toggle */}
-      <div className="flex items-center justify-between p-12 bg-black-alpha-4 rounded-10 border border-border-faint">
+      <div className="flex items-center justify-between p-12 bg-secondary rounded-lg border border-border">
         <div className="space-y-2">
-          <label className="block text-xs font-semibold text-accent-black">
+          <label className="block text-xs font-semibold text-foreground">
             Enable Re-ranking
           </label>
           <p className="text-[10px] text-black-alpha-40 leading-tight pr-20">
@@ -179,7 +179,7 @@ export default function RetrieverNodePanel({
         </div>
         <button
           onClick={() => setReRank(!reRank)}
-          className={`relative inline-flex h-20 w-36 items-center rounded-full transition-colors focus:outline-none ${reRank ? "bg-heat-100" : "bg-black-alpha-16"
+          className={`relative inline-flex h-20 w-36 items-center rounded-full transition-colors focus:outline-none ${reRank ? "bg-primary" : "bg-black-alpha-16"
             }`}
         >
           <span
@@ -189,9 +189,9 @@ export default function RetrieverNodePanel({
         </button>
       </div>
 
-      <div className="pt-20 border-t border-border-faint">
-        <div className="p-12 bg-heat-4 border border-heat-100/20 rounded-10 flex gap-12">
-          <Search className="w-16 h-16 text-heat-100 shrink-0" />
+      <div className="pt-20 border-t border-border">
+        <div className="p-12 bg-secondary border border-primary/20 rounded-lg flex gap-12">
+          <Search className="w-16 h-16 text-primary shrink-0" />
           <p className="text-xs text-heat-120 leading-relaxed font-medium">
             This node will output a list of documents found in the selected Knowledge Base.
           </p>

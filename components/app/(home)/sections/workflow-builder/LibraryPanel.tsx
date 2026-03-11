@@ -87,7 +87,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-accent-white">
       {/* Search Bar */}
-      <div className="p-16 border-b border-border-faint">
+      <div className="p-16 border-b border-border">
         <div className="relative">
           <Search className="absolute left-12 top-1/2 -translate-y-1/2 w-16 h-16 text-black-alpha-32" />
           <input
@@ -95,7 +95,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
             placeholder="Search library..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-36 pr-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black outline-none focus:border-heat-100 transition-colors"
+            className="w-full pl-36 pr-12 py-8 bg-background border border-border rounded-md text-xs text-foreground outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -154,7 +154,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 key={wf._id}
                 label={wf.name}
                 description={wf.description}
-                icon={<Globe className="w-16 h-16 text-heat-100" />}
+                icon={<Globe className="w-16 h-16 text-primary" />}
                 onDragStart={(e) => handleDragStart(e, "workflow", wf)}
               />
             ))}
@@ -201,7 +201,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 e.stopPropagation();
                 onAddSource?.();
               }}
-              className="p-4 hover:bg-black-alpha-8 rounded-4 text-heat-100 transition-colors"
+              className="p-4 hover:bg-secondary/80 rounded-4 text-primary transition-colors"
               title="Add new data source"
             >
               <Plus className="w-16 h-16" />
@@ -261,7 +261,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 e.stopPropagation();
                 onAddMCPServer?.();
               }}
-              className="p-4 hover:bg-black-alpha-8 rounded-4 text-heat-100 transition-colors"
+              className="p-4 hover:bg-secondary/80 rounded-4 text-primary transition-colors"
               title="Add new MCP server"
             >
               <Plus className="w-16 h-16" />
@@ -274,7 +274,7 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
                 key={mcp._id}
                 label={mcp.name}
                 description={mcp.category}
-                icon={<Plug className="w-16 h-16 text-heat-100" />}
+                icon={<Plug className="w-16 h-16 text-primary" />}
                 onDragStart={(e) => handleDragStart(e, "mcp", mcp)}
               />
             ))}
@@ -286,9 +286,9 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
       </div>
 
       {/* Footer Info */}
-      <div className="p-12 border-t border-border-faint bg-background-base">
-        <p className="text-[10px] text-black-alpha-48 uppercase font-bold tracking-wider mb-4">Pro Tip</p>
-        <p className="text-xs text-black-alpha-64 leading-relaxed">
+      <div className="p-12 border-t border-border bg-background">
+        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-4">Pro Tip</p>
+        <p className="text-xs text-foreground/64 leading-relaxed">
           Drag and drop any asset directly onto the canvas to instantly create or merge nodes.
         </p>
       </div>
@@ -314,15 +314,15 @@ function LibrarySection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-border-faint last:border-b-0">
-      <div className="flex items-center hover:bg-black-alpha-4 transition-colors">
+    <div className="border-b border-border last:border-b-0">
+      <div className="flex items-center hover:bg-secondary transition-colors">
         <button
           onClick={onToggle}
           className="flex-1 flex items-center justify-between p-16 text-left"
         >
           <div className="flex items-center gap-12">
-            <div className="text-accent-black opacity-60">{icon}</div>
-            <span className="text-label-medium font-medium text-accent-black">{label}</span>
+            <div className="text-foreground opacity-60">{icon}</div>
+            <span className="text-label-medium font-medium text-foreground">{label}</span>
           </div>
           {isOpen ? (
             <ChevronDown className="w-16 h-16 text-black-alpha-32" />
@@ -364,14 +364,14 @@ function LibraryItem({
     <div
       draggable
       onDragStart={onDragStart}
-      className="group p-12 bg-accent-white border border-border-faint rounded-8 hover:border-heat-100 hover:shadow-sm cursor-grab active:cursor-grabbing transition-all"
+      className="group p-12 bg-accent-white border border-border rounded-md hover:border-primary hover:shadow-sm cursor-grab active:cursor-grabbing transition-all"
     >
       <div className="flex items-start gap-10">
         <div className="mt-2 group-hover:scale-110 transition-transform">{icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-body-small font-semibold text-accent-black truncate">{label}</p>
+          <p className="text-xs font-semibold text-foreground truncate">{label}</p>
           {description && (
-            <p className="text-xs text-black-alpha-48 truncate mt-1">{description}</p>
+            <p className="text-xs text-muted-foreground truncate mt-1">{description}</p>
           )}
         </div>
       </div>

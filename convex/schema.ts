@@ -14,6 +14,8 @@ export default defineSchema({
     email: v.optional(v.string()),
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    activeWorkspaceId: v.optional(v.id("workspaces")),
+    activeProjectId: v.optional(v.id("projects")),
     createdAt: v.string(),
   })
     .index("by_clerkId", ["clerkId"])
@@ -25,13 +27,41 @@ export default defineSchema({
     userId: v.string(), // Owner Clerk ID
     type: v.union(v.literal("personal"), v.literal("shared")),
     description: v.optional(v.string()),
-    members: v.optional(v.array(v.string())), // Collaborative access
+    members: v.optional(v.array(v.string())), // Deprecated in favor of workspaceMembers table
     icon: v.optional(v.string()),
     pricingTier: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise"))),
     createdAt: v.string(),
     updatedAt: v.string(),
   })
     .index("by_userId", ["userId"]),
+
+  // Workspace Members - Role-Based Access Control
+  workspaceMembers: defineTable({
+    workspaceId: v.id("workspaces"),
+    userId: v.string(), // Clerk user ID
+    role: v.string(), // "owner" | "admin" | "editor" | "viewer"
+    joinedAt: v.string(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_user", ["userId"])
+    .index("by_workspace_and_user", ["workspaceId", "userId"]),
+
+  // Workspace Invites - URL-based role invitations
+  workspaceInvites: defineTable({
+    workspaceId: v.id("workspaces"),
+    inviterId: v.string(), // Clerk user ID
+    email: v.optional(v.string()), // Target email, optional
+    role: v.string(), // "admin" | "editor" | "viewer"
+    token: v.string(), // Secure random code
+    status: v.string(), // "pending" | "accepted" | "expired" | "revoked"
+    createdAt: v.string(),
+    expiresAt: v.optional(v.string()),
+    acceptedBy: v.optional(v.string()), // Clerk user ID who accepted
+    acceptedAt: v.optional(v.string()),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_token", ["token"])
+    .index("by_email", ["email"]),
 
   // Projects - Scoping resources within a workspace
   projects: defineTable({
@@ -125,6 +155,7 @@ export default defineSchema({
   // Workflow executions - track execution state
   executions: defineTable({
     workflowId: v.id("workflows"),
+    workspaceId: v.optional(v.id("workspaces")), // Added for workspace analytics
     userId: v.optional(v.string()), // Added for data isolation
     status: v.string(), // "running" | "completed" | "failed"
 
@@ -164,6 +195,7 @@ export default defineSchema({
     })),
   })
     .index("by_workflow", ["workflowId"])
+    .index("by_workspace", ["workspaceId"])
     .index("by_userId", ["userId"])
     .index("by_status", ["status"])
     .index("by_started", ["startedAt"])
@@ -559,4 +591,23 @@ export default defineSchema({
     .index("by_workspace", ["workspaceId"])
     .index("by_resource", ["resourceType", "resourceId"])
     .index("by_action", ["action"]),
+
+  // Notifications - Smart in-app alerts with email fallback
+  notifications: defineTable({
+    userId: v.string(), // Clerk user ID (recipient)
+    title: v.string(),
+    message: v.string(),
+    type: v.string(), // "error" | "approval" | "info" | "team"
+    link: v.optional(v.string()), // Navigation link on click
+    read: v.boolean(),
+    // Deduplication: If a notification with the same dedupeKey and userId already exists (unread),
+    // we skip creating a new one. e.g. "workflow-failed:{workflowId}"
+    dedupeKey: v.optional(v.string()),
+    // Tracks when the email fallback was sent so we don't resend
+    emailSentAt: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_read", ["userId", "read"])
+    .index("by_dedupe_key", ["dedupeKey"]),
 });

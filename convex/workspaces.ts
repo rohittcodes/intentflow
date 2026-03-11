@@ -5,19 +5,33 @@ export const getWorkspaces = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthenticated");
-    }
+    if (!identity) return [];
 
-    // Get all workspaces owned by the user or where they are a member
+    // Get all workspaces owned by the user
     const ownedWorkspaces = await ctx.db
       .query("workspaces")
       .withIndex("by_userId", (q) => q.eq("userId", identity.subject))
       .collect();
 
-    // Since we don't have a direct index for members array yet, we just return owned workspaces for now
-    // A future enhancement could query for workspaces where members includes identity.subject
-    return ownedWorkspaces;
+    // Get all workspaces where the user is a member
+    const memberships = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_user", (q) => q.eq("userId", identity.subject))
+      .collect();
+
+    // Fetch the actual workspace records for those memberships
+    const memberWorkspacePromises = memberships.map(m => ctx.db.get(m.workspaceId));
+    const memberWorkspaces = (await Promise.all(memberWorkspacePromises)).filter(w => w !== null);
+
+    // Merge and deduplicate by workspace ID
+    const allWorkspaces = [...ownedWorkspaces];
+    for (const w of memberWorkspaces) {
+      if (!allWorkspaces.find(ow => ow?._id === w?._id)) {
+        allWorkspaces.push(w!);
+      }
+    }
+
+    return allWorkspaces;
   },
 });
 
@@ -43,6 +57,13 @@ export const initializeDefaultWorkspace = mutation({
         members: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+      });
+
+      await ctx.db.insert("workspaceMembers", {
+        workspaceId,
+        userId: identity.subject,
+        role: "owner",
+        joinedAt: new Date().toISOString(),
       });
 
       return workspaceId;
@@ -78,39 +99,17 @@ export const createWorkspace = mutation({
       updatedAt: new Date().toISOString(),
     });
 
+    await ctx.db.insert("workspaceMembers", {
+      workspaceId,
+      userId: identity.subject,
+      role: "owner",
+      joinedAt: new Date().toISOString(),
+    });
+
     return workspaceId;
   },
 });
 
-export const addMember = mutation({
-  args: {
-    workspaceId: v.id("workspaces"),
-    memberEmail: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    const workspace = await ctx.db.get(args.workspaceId);
-    if (!workspace) throw new Error("Workspace not found");
-
-    if (workspace.type === "personal") {
-      throw new Error("Cannot invite members to a Personal workspace.");
-    }
-
-    if (workspace.userId !== identity.subject) {
-      throw new Error("Only the owner can invite members.");
-    }
-
-    const members = workspace.members || [];
-    if (!members.includes(args.memberEmail)) {
-      await ctx.db.patch(args.workspaceId, {
-        members: [...members, args.memberEmail],
-        updatedAt: new Date().toISOString(),
-      });
-    }
-  },
-});
 
 export const updatePricingTier = mutation({
   args: {

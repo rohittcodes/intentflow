@@ -76,24 +76,24 @@ export default function MCPPanel({
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 400, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed right-20 top-80 bottom-20 w-[calc(100vw-240px)] max-w-520 bg-accent-white border border-border-faint shadow-lg overflow-y-auto z-50 rounded-16 flex flex-col"
+          className="fixed right-20 top-80 bottom-20 w-[calc(100vw-240px)] max-w-520 bg-accent-white border border-border shadow-lg overflow-y-auto z-50 rounded-16 flex flex-col"
         >
           {/* Header */}
-          <div className="p-20 border-b border-border-faint">
+          <div className="p-20 border-b border-border">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-semibold text-accent-black">
+              <h2 className="text-xl font-semibold text-foreground">
                 {mode === 'add-to-agent' ? 'Add MCP to Agent' : 'MCP Node'}
               </h2>
               <button
                 onClick={onClose}
-                className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
+                className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
               >
-                <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="text-sm text-black-alpha-48">
+            <p className="text-sm text-muted-foreground">
               Select an MCP server from your registry to invoke its tools
             </p>
           </div>
@@ -102,13 +102,13 @@ export default function MCPPanel({
           <div className="p-20 space-y-20">
             {/* Server Selector */}
             <div>
-              <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+              <label className="block text-sm font-medium text-muted-foreground mb-8">
                 MCP Server
               </label>
 
               {!mcpServers || mcpServers.length === 0 ? (
-                <div className="p-16 bg-background-base rounded-12 border border-border-faint text-center">
-                  <p className="text-body-small text-black-alpha-48 mb-12">
+                <div className="p-16 bg-background rounded-xl border border-border text-center">
+                  <p className="text-xs text-muted-foreground mb-12">
                     No MCP servers available in your registry
                   </p>
                   <button
@@ -116,7 +116,7 @@ export default function MCPPanel({
                       onClose();
                       onOpenSettings?.();
                     }}
-                    className="px-16 py-8 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-xs font-medium transition-all"
+                    className="px-16 py-8 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all"
                   >
                     Go to Settings
                   </button>
@@ -143,7 +143,7 @@ export default function MCPPanel({
                         }
                       }
                     }}
-                    className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors appearance-none cursor-pointer"
+                    className="w-full px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
                   >
                     <option value="">Select an MCP server...</option>
                     {mcpServers.map((server) => {
@@ -158,28 +158,28 @@ export default function MCPPanel({
                   {selectedServer && (
                     <div className="mt-12">
                       {/* Server Info Card */}
-                      <div className="p-16 bg-background-base rounded-12 border border-border-faint">
+                      <div className="p-16 bg-background rounded-xl border border-border">
                         <div className="flex items-start gap-12">
-                          <div className={`text-heat-100`}>
+                          <div className={`text-primary`}>
                             {getCategoryIcon(selectedServer.category)}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-8 mb-4">
-                              <h4 className="text-sm font-medium text-accent-black">
+                              <h4 className="text-sm font-medium text-foreground">
                                 {selectedServer.name}
                               </h4>
                             </div>
                             {selectedServer.description && (
-                              <p className="text-xs text-black-alpha-48 mb-8">
+                              <p className="text-xs text-muted-foreground mb-8">
                                 {selectedServer.description}
                               </p>
                             )}
                             <div className="flex items-center gap-12 text-xs">
-                              <span className="text-black-alpha-48">
+                              <span className="text-muted-foreground">
                                 Category: {selectedServer.category}
                               </span>
                               {selectedServer.connectionStatus === 'connected' && (
-                                <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-6 border border-heat-100">
+                                <span className="px-6 py-2 bg-secondary text-primary rounded-6 border border-primary">
                                   Connected
                                 </span>
                               )}
@@ -192,7 +192,7 @@ export default function MCPPanel({
                           <div className="mt-12">
                             <button
                               onClick={() => setShowDetails(!showDetails)}
-                              className="flex items-center gap-8 text-xs text-heat-100 hover:text-heat-200 font-medium"
+                              className="flex items-center gap-8 text-xs text-primary hover:text-heat-200 font-medium"
                             >
                               <ChevronDown className={`w-14 h-14 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
                               {showDetails ? 'Hide' : 'Show'} Available Tools ({selectedServer.tools.length})
@@ -209,8 +209,8 @@ export default function MCPPanel({
                                 >
                                   <div className="space-y-6">
                                     {selectedServer.tools.map((tool: string) => (
-                                      <div key={tool} className="p-8 bg-accent-white rounded-6 border border-border-faint">
-                                        <code className="text-xs font-mono text-heat-100">
+                                      <div key={tool} className="p-8 bg-accent-white rounded-6 border border-border">
+                                        <code className="text-xs font-mono text-primary">
                                           {tool}
                                         </code>
                                       </div>
@@ -229,8 +229,8 @@ export default function MCPPanel({
             </div>
 
             {/* Add New Server Link */}
-            <div className="pt-16 border-t border-border-faint">
-              <p className="text-xs text-black-alpha-48 mb-8">
+            <div className="pt-16 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-8">
                 Need to add a new MCP server?
               </p>
               <button
@@ -238,7 +238,7 @@ export default function MCPPanel({
                   onClose();
                   onOpenSettings?.();
                 }}
-                className="text-xs text-heat-100 hover:text-heat-200 font-medium"
+                className="text-xs text-primary hover:text-heat-200 font-medium"
               >
                 Go to Settings → MCP Registry
               </button>

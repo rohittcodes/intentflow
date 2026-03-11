@@ -162,19 +162,19 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
         style={{ maxHeight: '85vh' }}
       >
         {/* Header */}
-        <div className="p-20 border-b border-border-faint flex-shrink-0">
+        <div className="p-20 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-title-h4 text-accent-black">Paste MCP Configuration</h2>
+            <h2 className="text-title-h4 text-foreground">Paste MCP Configuration</h2>
             <button
               onClick={onClose}
-              className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
+              className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
             >
-              <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-          <p className="text-body-small text-black-alpha-48 mt-8">
+          <p className="text-xs text-muted-foreground mt-8">
             Paste your Cursor/Cline MCP configuration JSON below
           </p>
         </div>
@@ -183,14 +183,14 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
         <div className="p-20 space-y-16 overflow-y-auto flex-1">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <label className="text-body-small text-black-alpha-64 block">
+              <label className="text-xs text-foreground/64 block">
                 Configuration JSON
               </label>
               <a
                 href="https://www.firecrawl.dev/app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-heat-100 hover:text-heat-200 underline flex items-center gap-4"
+                className="text-xs text-primary hover:text-heat-200 underline flex items-center gap-4"
               >
                 See example config
                 <ExternalLink className="w-12 h-12" />
@@ -223,32 +223,32 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
     }
   }
 }`}
-              className="w-full h-[300px] px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none"
+              className="w-full h-[300px] px-14 py-10 bg-background border border-border rounded-lg text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
               spellCheck={false}
             />
           </div>
 
           {error && (
-            <div className="p-12 bg-accent-black text-white rounded-8">
-              <p className="text-body-small">{error}</p>
+            <div className="p-12 bg-accent-black text-white rounded-md">
+              <p className="text-xs">{error}</p>
             </div>
           )}
 
-          <div className="p-12 bg-heat-4 rounded-8 border border-heat-100">
+          <div className="p-12 bg-secondary rounded-md border border-primary">
             <div className="flex items-start gap-8">
-              <AlertCircle className="w-16 h-16 text-heat-100 flex-shrink-0 mt-1" />
+              <AlertCircle className="w-16 h-16 text-primary flex-shrink-0 mt-1" />
               <div>
-                <p className="text-body-small text-accent-black font-medium mb-4">
+                <p className="text-xs text-foreground font-medium mb-4">
                   Supported Formats
                 </p>
-                <p className="text-body-small text-black-alpha-64 mb-6">
+                <p className="text-xs text-foreground/64 mb-6">
                   Supports two formats:
                   <br />• Direct URL with headers (Context7, etc.)
                   <br />• NPX command format (Firecrawl, Cursor, Cline)
                   <br />
                   <br />Connections will be tested automatically after import.
                 </p>
-                <p className="text-xs text-black-alpha-48">
+                <p className="text-xs text-muted-foreground">
                   💡 Tip: Copy your MCP config from your editor's settings.json file
                 </p>
               </div>
@@ -257,17 +257,17 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
         </div>
 
         {/* Footer */}
-        <div className="p-20 border-t border-border-faint flex gap-8 flex-shrink-0">
+        <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 px-20 py-12 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-medium font-medium transition-all"
+            className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all"
           >
             Cancel
           </button>
           <button
             onClick={parseAndSave}
             disabled={!configJSON.trim() || parsing}
-            className="flex-1 px-20 py-12 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-medium font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-6"
+            className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-6"
           >
             {parsing ? (
               <>

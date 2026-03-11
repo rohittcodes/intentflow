@@ -120,7 +120,7 @@ export default function ConnectionMapperModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black-alpha-48 z-[200] flex items-center justify-center p-20"
+          className="fixed inset-0 bg-secondary8 z-[200] flex items-center justify-center p-20"
           onClick={onClose}
         >
           <motion.div
@@ -132,19 +132,19 @@ export default function ConnectionMapperModal({
             className="bg-accent-white rounded-16 shadow-2xl max-w-600 w-full max-h-[80vh] overflow-y-auto"
           >
             {/* Header */}
-            <div className="p-24 border-b border-border-faint">
+            <div className="p-24 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-title-h3 text-accent-black">Map Connection</h2>
-                  <p className="text-body-small text-black-alpha-48 mt-4">
+                  <h2 className="text-title-h3 text-foreground">Map Connection</h2>
+                  <p className="text-xs text-muted-foreground mt-4">
                     {sourceData.nodeName} → {targetData.nodeName}
                   </p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
+                  className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
                 >
-                  <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -156,7 +156,7 @@ export default function ConnectionMapperModal({
               {/* Quick Auto-Map */}
               <button
                 onClick={handleQuickConnect}
-                className="w-full px-16 py-10 bg-heat-4 hover:bg-heat-8 border border-heat-100 rounded-8 text-body-medium text-heat-100 transition-colors flex items-center justify-center gap-8"
+                className="w-full px-16 py-10 bg-secondary hover:bg-secondary/80 border border-primary rounded-md text-sm text-primary transition-colors flex items-center justify-center gap-8"
               >
                 <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -166,9 +166,9 @@ export default function ConnectionMapperModal({
 
               {/* Mapping Grid */}
               <div className="space-y-12">
-                <div className="grid grid-cols-2 gap-12 pb-12 border-b border-border-faint">
-                  <p className="text-label-small text-black-alpha-48">From ({sourceData.nodeName})</p>
-                  <p className="text-label-small text-black-alpha-48">To ({targetData.nodeName})</p>
+                <div className="grid grid-cols-2 gap-12 pb-12 border-b border-border">
+                  <p className="text-label-small text-muted-foreground">From ({sourceData.nodeName})</p>
+                  <p className="text-label-small text-muted-foreground">To ({targetData.nodeName})</p>
                 </div>
 
                 {targetKeys.map((targetKey) => (
@@ -176,7 +176,7 @@ export default function ConnectionMapperModal({
                     <select
                       value={mapping[targetKey] || ''}
                       onChange={(e) => setMapping({ ...mapping, [targetKey]: e.target.value })}
-                      className="px-12 py-8 bg-background-base border border-border-faint rounded-6 text-body-small text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors"
+                      className="px-12 py-8 bg-background border border-border rounded-6 text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
                     >
                       <option value="">-- Select source --</option>
                       <option value="__full__">Full Output</option>
@@ -188,10 +188,10 @@ export default function ConnectionMapperModal({
                     </select>
 
                     <div className="flex items-center gap-8">
-                      <svg className="w-12 h-12 text-heat-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                      <code className="text-body-small text-accent-black font-mono">{targetKey}</code>
+                      <code className="text-xs text-foreground font-mono">{targetKey}</code>
                     </div>
                   </div>
                 ))}
@@ -199,9 +199,9 @@ export default function ConnectionMapperModal({
 
               {/* Preview */}
               {Object.keys(mapping).length > 0 && (
-                <div className="p-16 bg-blue-50 rounded-12 border border-blue-200">
+                <div className="p-16 bg-blue-50 rounded-xl border border-blue-200">
                   <h3 className="text-label-small text-blue-900 mb-8 font-medium">Connection Preview</h3>
-                  <div className="space-y-4 text-body-small text-blue-800 font-mono">
+                  <div className="space-y-4 text-xs text-blue-800 font-mono">
                     {Object.entries(mapping).map(([target, source]) => (
                       <div key={target}>
                         {target} = {source === '__full__' ? 'entire output' : source}
@@ -213,19 +213,19 @@ export default function ConnectionMapperModal({
             </div>
 
             {/* Footer */}
-            <div className="p-24 border-t border-border-faint flex items-center justify-between">
+            <div className="p-24 border-t border-border flex items-center justify-between">
               <button
                 onClick={() => {
                   setMapping({});
                   onConnect({});
                 }}
-                className="px-20 py-10 text-body-medium text-black-alpha-48 hover:text-accent-black transition-colors"
+                className="px-20 py-10 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Skip Mapping
               </button>
               <button
                 onClick={handleConnect}
-                className="px-24 py-10 bg-heat-100 hover:bg-heat-200 text-white rounded-8 transition-all active:scale-[0.98] text-body-medium font-medium"
+                className="px-24 py-10 bg-primary hover:bg-primary/90 text-white rounded-md transition-all active:scale-[0.98] text-sm font-medium"
               >
                 Connect
               </button>

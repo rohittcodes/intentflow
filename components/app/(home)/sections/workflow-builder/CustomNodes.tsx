@@ -259,11 +259,11 @@ export function CustomNode({ data, selected }: NodeProps<Node<NodeData>>) {
       )}
 
       {nodeType === 'workflow' && (
-        <div className="absolute inset-0 bg-teal-50/50 rounded-8 -z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-teal-50/50 rounded-md -z-10 pointer-events-none" />
       )}
 
       <div className="flex items-center gap-12">
-        <div className={`w-36 h-36 rounded-12 ${getNodeTheme().color} flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden`}>
+        <div className={`w-36 h-36 rounded-xl ${getNodeTheme().color} flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden`}>
           {(() => {
             const Icon = getNodeTheme().icon;
             return <Icon className="w-20 h-20 text-white" strokeWidth={2.5} />;

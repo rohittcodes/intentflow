@@ -116,7 +116,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const StatusIcon = ({ configured }: { configured: boolean }) =>
     configured ? (
-      <CheckCircle className="w-16 h-16 text-heat-100" />
+      <CheckCircle className="w-16 h-16 text-primary" />
     ) : (
       <XCircle className="w-16 h-16 text-black-alpha-32" />
     );
@@ -127,18 +127,18 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       <div className="flex-1 overflow-y-auto p-20 space-y-24">
         {loading ? (
           <div className="text-center py-32">
-            <div className="inline-block w-32 h-32 border-4 border-heat-100 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-body-small text-black-alpha-48 mt-12">Loading configuration...</p>
+            <div className="inline-block w-32 h-32 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xs text-muted-foreground mt-12">Loading configuration...</p>
           </div>
         ) : (
           <div className="space-y-20">
             {/* LLM Providers */}
             <div>
               <div className="flex items-center justify-between mb-12">
-                <h3 className="text-label-large font-medium text-accent-black">LLM Providers</h3>
+                <h3 className="text-sm font-medium font-medium text-foreground">LLM Providers</h3>
                 <button
                   onClick={() => setShowAddLLMKey(true)}
-                  className="px-12 py-6 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6"
+                  className="px-12 py-6 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6"
                 >
                   <Plus className="w-14 h-14" />
                   Add API Key
@@ -154,20 +154,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       serverConfig?.groqConfigured;
 
                   return (
-                    <div key={provider} className="p-12 bg-background-base rounded-8 border border-border-faint">
+                    <div key={provider} className="p-12 bg-background rounded-md border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-8">
                           <StatusIcon configured={!!(providerKey || hasEnvKey)} />
                           <div>
-                            <p className="text-body-small text-accent-black font-medium capitalize">{provider}</p>
+                            <p className="text-xs text-foreground font-medium capitalize">{provider}</p>
                             {providerKey ? (
-                              <p className="text-xs text-black-alpha-48">
+                              <p className="text-xs text-muted-foreground">
                                 Key: {providerKey.keyPrefix} {providerKey.label && `(${providerKey.label})`}
                               </p>
                             ) : hasEnvKey ? (
-                              <p className="text-xs text-black-alpha-48">Using environment variable</p>
+                              <p className="text-xs text-muted-foreground">Using environment variable</p>
                             ) : (
-                              <p className="text-xs text-black-alpha-48">Not configured</p>
+                              <p className="text-xs text-muted-foreground">Not configured</p>
                             )}
                           </div>
                         </div>
@@ -182,10 +182,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                                     toast.success(`${provider} key removed`);
                                   }
                                 }}
-                                className="p-6 hover:bg-black-alpha-4 rounded-6 transition-colors"
+                                className="p-6 hover:bg-secondary rounded-6 transition-colors"
                                 title="Remove key"
                               >
-                                <Trash2 className="w-14 h-14 text-black-alpha-48 hover:text-accent-black" />
+                                <Trash2 className="w-14 h-14 text-muted-foreground hover:text-foreground" />
                               </button>
                             </>
                           )}
@@ -194,13 +194,13 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                               setSelectedProvider(provider as any);
                               setShowAddLLMKey(true);
                             }}
-                            className="p-6 hover:bg-black-alpha-4 rounded-6 transition-colors"
+                            className="p-6 hover:bg-secondary rounded-6 transition-colors"
                             title={providerKey ? "Update key" : "Add key"}
                           >
                             {providerKey ? (
-                              <Edit className="w-14 h-14 text-black-alpha-48 hover:text-accent-black" />
+                              <Edit className="w-14 h-14 text-muted-foreground hover:text-foreground" />
                             ) : (
-                              <Plus className="w-14 h-14 text-black-alpha-48 hover:text-accent-black" />
+                              <Plus className="w-14 h-14 text-muted-foreground hover:text-foreground" />
                             )}
                           </button>
                         </div>
@@ -210,8 +210,8 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 })}
               </div>
 
-              <div className="mt-8 p-12 bg-heat-4 border border-heat-100 rounded-8">
-                <p className="text-xs text-black-alpha-64">
+              <div className="mt-8 p-12 bg-secondary border border-primary rounded-md">
+                <p className="text-xs text-foreground/64">
                   <strong>Note:</strong> Your API keys take priority over environment variables.
                   Keys are encrypted and stored securely per user.
                 </p>
@@ -223,11 +223,11 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             {/* MCP Registry */}
             <div>
               <div className="flex items-center justify-between mb-12">
-                <h3 className="text-label-large font-medium text-accent-black">MCP Registry</h3>
+                <h3 className="text-sm font-medium font-medium text-foreground">MCP Registry</h3>
                 <div className="flex gap-8">
                   <button
                     onClick={() => setShowPasteConfigModal(true)}
-                    className="px-12 py-6 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border-faint"
+                    className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border"
                   >
                     <ClipboardPaste className="w-14 h-14" />
                     Paste Config
@@ -244,14 +244,14 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                         }
                       }
                     }}
-                    className="px-12 py-6 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6"
+                    className="px-12 py-6 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6"
                   >
                     <Plus className="w-14 h-14" />
                     Add Rube MCP
                   </button>
                   <button
                     onClick={() => setShowAddMCPModal(true)}
-                    className="px-12 py-6 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border-faint"
+                    className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border"
                   >
                     <Plus className="w-14 h-14" />
                     Add Custom Server
@@ -329,18 +329,18 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             {/* Custom Integrations & Data Sources */}
             <div>
               <div className="flex items-center justify-between mb-12">
-                <h3 className="text-label-large font-medium text-accent-black">Custom Integrations</h3>
+                <h3 className="text-sm font-medium font-medium text-foreground">Custom Integrations</h3>
               </div>
               <div className="space-y-8">
                 {connectors?.map((conn) => (
-                  <div key={conn._id} className="p-12 bg-background-base border border-border-faint rounded-8 flex items-center justify-between group">
+                  <div key={conn._id} className="p-12 bg-background border border-border rounded-md flex items-center justify-between group">
                     <div className="flex items-center gap-12">
-                      <div className="p-8 bg-black-alpha-4 rounded-8 text-heat-100">
+                      <div className="p-8 bg-secondary rounded-md text-primary">
                         {conn.type === 'database' ? <Database className="w-16 h-16" /> : <Globe className="w-16 h-16" />}
                       </div>
                       <div>
-                        <p className="text-body-small font-medium text-accent-black">{conn.name}</p>
-                        <p className="text-[10px] text-black-alpha-48 uppercase tracking-wider">{conn.type}</p>
+                        <p className="text-xs font-medium text-foreground">{conn.name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{conn.type}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -351,7 +351,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                             toast.success("Integration removed");
                           }
                         }}
-                        className="p-6 hover:bg-black-alpha-4 rounded-6 text-black-alpha-48 hover:text-accent-red transition-all"
+                        className="p-6 hover:bg-secondary rounded-6 text-muted-foreground hover:text-accent-red transition-all"
                       >
                         <Trash2 className="w-14 h-14" />
                       </button>
@@ -359,7 +359,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   </div>
                 ))}
                 {(!connectors || connectors.length === 0) && (
-                  <div className="text-center py-20 bg-black-alpha-4 rounded-12 border border-dashed border-border-faint">
+                  <div className="text-center py-20 bg-secondary rounded-xl border border-dashed border-border">
                     <p className="text-xs text-black-alpha-40">No custom integrations yet.</p>
                   </div>
                 )}
@@ -367,14 +367,14 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             {/* Info Box */}
-            <div className="p-16 bg-heat-4 border border-heat-100 rounded-8">
+            <div className="p-16 bg-secondary border border-primary rounded-md">
               <div className="flex items-start gap-12">
-                <AlertCircle className="w-20 h-20 text-heat-100 flex-shrink-0 mt-2" />
+                <AlertCircle className="w-20 h-20 text-primary flex-shrink-0 mt-2" />
                 <div>
-                  <p className="text-body-medium text-accent-black font-medium mb-4">
+                  <p className="text-sm text-foreground font-medium mb-4">
                     How to Configure
                   </p>
-                  <p className="text-body-small text-black-alpha-64">
+                  <p className="text-xs text-foreground/64">
                     LLM & Integration keys are set in <code className="px-4 py-2 bg-white rounded text-xs font-mono">.env.local</code>.
                     MCP servers can be imported from cursor config above.
                   </p>
@@ -599,15 +599,15 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
     const getStatusColor = () => {
       switch (server.connectionStatus) {
-        case 'connected': return 'text-heat-100';
-        case 'error': return 'text-accent-black';
+        case 'connected': return 'text-primary';
+        case 'error': return 'text-foreground';
         default: return 'text-black-alpha-32';
       }
     };
 
     const getStatusIcon = () => {
       if (isTesting) {
-        return <Loader2 className="w-16 h-16 animate-spin text-heat-100" />;
+        return <Loader2 className="w-16 h-16 animate-spin text-primary" />;
       }
       switch (server.connectionStatus) {
         case 'connected': return <CheckCircle className="w-16 h-16" />;
@@ -618,20 +618,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
     const getAuthIcon = () => {
       switch (server.authType) {
-        case 'api-key': return <Key className="w-12 h-12 text-black-alpha-48" />;
-        case 'bearer': return <Shield className="w-12 h-12 text-black-alpha-48" />;
+        case 'api-key': return <Key className="w-12 h-12 text-muted-foreground" />;
+        case 'bearer': return <Shield className="w-12 h-12 text-muted-foreground" />;
         case 'oauth-coming-soon': return <Lock className="w-12 h-12 text-black-alpha-32" />;
         default: return null;
       }
     };
 
     return (
-      <div className={`bg-background-base rounded-8 border ${server.enabled ? 'border-border-faint' : 'border-black-alpha-8 opacity-60'}`}>
+      <div className={`bg-background rounded-md border ${server.enabled ? 'border-border' : 'border-black-alpha-8 opacity-60'}`}>
         {/* Header */}
         <div className="p-12 flex items-center gap-8">
           <button
             onClick={onExpandToggle}
-            className="p-4 hover:bg-black-alpha-4 rounded-4 transition-colors"
+            className="p-4 hover:bg-secondary rounded-4 transition-colors"
           >
             {isExpanded ? <ChevronDown className="w-16 h-16" /> : <ChevronRight className="w-16 h-16" />}
           </button>
@@ -640,16 +640,16 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-8">
-              <p className="text-body-small text-accent-black font-medium">{server.name}</p>
+              <p className="text-xs text-foreground font-medium">{server.name}</p>
               {server.isOfficial && (
-                <span className="px-6 py-2 bg-heat-4 text-heat-100 text-xs rounded-4 font-medium">
+                <span className="px-6 py-2 bg-secondary text-primary text-xs rounded-4 font-medium">
                   Official
                 </span>
               )}
               {getAuthIcon()}
             </div>
             {server.description && (
-              <p className="text-xs text-black-alpha-48 mt-2">{server.description}</p>
+              <p className="text-xs text-muted-foreground mt-2">{server.description}</p>
             )}
           </div>
 
@@ -663,27 +663,27 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 onChange={onToggle}
                 className="sr-only peer"
               />
-              <div className="w-36 h-20 bg-black-alpha-8 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-16 after:w-16 after:transition-all peer-checked:bg-heat-100"></div>
+              <div className="w-36 h-20 bg-secondary/80 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-16 after:w-16 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
         </div>
 
         {/* Expanded Content */}
         {isExpanded && (
-          <div className="px-12 pb-12 border-t border-border-faint">
+          <div className="px-12 pb-12 border-t border-border">
             <div className="pt-12 space-y-12">
               {/* URL & Auth */}
               <div className="grid grid-cols-2 gap-12">
                 <div>
-                  <p className="text-xs text-black-alpha-48 mb-4">URL</p>
-                  <code className="text-xs font-mono text-accent-black bg-black-alpha-4 px-8 py-4 rounded-4 block truncate">
+                  <p className="text-xs text-muted-foreground mb-4">URL</p>
+                  <code className="text-xs font-mono text-foreground bg-secondary px-8 py-4 rounded-4 block truncate">
                     {server.url}
                   </code>
                 </div>
                 <div>
-                  <p className="text-xs text-black-alpha-48 mb-4">Authentication</p>
+                  <p className="text-xs text-muted-foreground mb-4">Authentication</p>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs text-accent-black capitalize">
+                    <span className="text-xs text-foreground capitalize">
                       {server.authType === 'oauth-coming-soon' ? 'OAuth (Coming Soon)' : server.authType.replace('-', ' ')}
                     </span>
                     {server.accessToken && <span className="text-xs text-black-alpha-32">•••••••</span>}
@@ -694,10 +694,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               {/* Tools */}
               {server.tools && server.tools.length > 0 && (
                 <div>
-                  <p className="text-xs text-black-alpha-48 mb-4">Available Tools ({server.tools.length})</p>
+                  <p className="text-xs text-muted-foreground mb-4">Available Tools ({server.tools.length})</p>
                   <div className="flex flex-wrap gap-4">
                     {server.tools.map((tool) => (
-                      <span key={tool} className="px-8 py-4 bg-black-alpha-4 text-xs text-accent-black rounded-4">
+                      <span key={tool} className="px-8 py-4 bg-secondary text-xs text-foreground rounded-4">
                         {tool}
                       </span>
                     ))}
@@ -708,12 +708,12 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               {/* Status */}
               <div className="flex items-center gap-12 text-xs">
                 {server.lastTested && (
-                  <span className="text-black-alpha-48">
+                  <span className="text-muted-foreground">
                     Last tested: {new Date(server.lastTested).toLocaleString()}
                   </span>
                 )}
                 {server.lastError && (
-                  <span className="text-accent-black">
+                  <span className="text-foreground">
                     Error: {server.lastError}
                   </span>
                 )}
@@ -724,14 +724,14 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 <button
                   onClick={onTest}
                   disabled={isTesting}
-                  className="px-12 py-6 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small transition-all flex items-center gap-6 disabled:opacity-50"
+                  className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs transition-all flex items-center gap-6 disabled:opacity-50"
                 >
                   <TestTube className="w-14 h-14" />
                   {isTesting ? 'Testing...' : 'Test Connection'}
                 </button>
                 <button
                   onClick={onEdit}
-                  className="px-12 py-6 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small transition-all flex items-center gap-6"
+                  className="px-12 py-6 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs transition-all flex items-center gap-6"
                 >
                   <Edit className="w-14 h-14" />
                   Edit
@@ -739,7 +739,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 {!server.isOfficial && (
                   <button
                     onClick={onDelete}
-                    className="px-12 py-6 bg-black-alpha-4 hover:bg-accent-black hover:text-white text-black-alpha-48 rounded-8 text-body-small transition-all flex items-center gap-6"
+                    className="px-12 py-6 bg-secondary hover:bg-accent-black hover:text-white text-muted-foreground rounded-md text-xs transition-all flex items-center gap-6"
                   >
                     <Trash2 className="w-14 h-14" />
                     Delete
@@ -797,52 +797,52 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           className="bg-accent-white rounded-16 shadow-2xl max-w-md w-full mx-20 max-h-[85vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-24 border-b border-border-faint flex-shrink-0">
-            <h3 className="text-title-h4 text-accent-black">
+          <div className="p-24 border-b border-border flex-shrink-0">
+            <h3 className="text-title-h4 text-foreground">
               {editingServer ? 'Edit MCP Server' : 'Add MCP Server'}
             </h3>
           </div>
 
           <div className="p-24 space-y-16 overflow-y-auto flex-1">
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Name</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Name</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., My MCP Server"
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
               />
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">URL</label>
+              <label className="text-xs text-foreground/64 mb-4 block">URL</label>
               <input
                 type="text"
                 value={formData.url}
                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                 placeholder="https://mcp.example.com"
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
               />
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Description (optional)</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Description (optional)</label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of this MCP server"
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
               />
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Category</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Category</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
               >
                 <option value="web">Web</option>
                 <option value="ai">AI</option>
@@ -852,11 +852,11 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Authentication</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Authentication</label>
               <select
                 value={formData.authType}
                 onChange={(e) => setFormData({ ...formData, authType: e.target.value })}
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
               >
                 <option value="none">None</option>
                 <option value="api-key">API Key</option>
@@ -867,7 +867,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
             {(formData.authType === 'api-key' || formData.authType === 'bearer') && (
               <div>
-                <label className="text-body-small text-black-alpha-64 mb-4 block">
+                <label className="text-xs text-foreground/64 mb-4 block">
                   {formData.authType === 'api-key' ? 'API Key' : 'Bearer Token'}
                 </label>
                 <input
@@ -875,7 +875,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   value={formData.accessToken}
                   onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
                   placeholder={formData.authType === 'api-key' ? 'sk-...' : 'Bearer token'}
-                  className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono"
+                  className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
                 />
               </div>
             )}
@@ -920,7 +920,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   }
                 }}
                 disabled={isTesting || !formData.url}
-                className="w-full px-16 py-10 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small font-medium transition-all flex items-center justify-center gap-6 disabled:opacity-50"
+                className="w-full px-16 py-10 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-xs font-medium transition-all flex items-center justify-center gap-6 disabled:opacity-50"
               >
                 {isTesting ? (
                   <>
@@ -939,13 +939,13 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             {/* Discovered Tools */}
             {discoveredTools && discoveredTools.length > 0 && (
               <div>
-                <label className="text-body-small text-black-alpha-64 mb-4 block">
+                <label className="text-xs text-foreground/64 mb-4 block">
                   Discovered Tools ({discoveredTools.length})
                 </label>
-                <div className="p-12 bg-heat-4 rounded-8 border border-heat-100">
+                <div className="p-12 bg-secondary rounded-md border border-primary">
                   <div className="flex flex-wrap gap-4">
                     {discoveredTools.map((tool) => (
-                      <span key={tool} className="px-6 py-2 bg-white text-heat-100 rounded-4 text-xs font-medium border border-heat-100">
+                      <span key={tool} className="px-6 py-2 bg-white text-primary rounded-4 text-xs font-medium border border-primary">
                         {tool}
                       </span>
                     ))}
@@ -955,10 +955,10 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             )}
           </div>
 
-          <div className="p-20 border-t border-border-faint flex gap-8 flex-shrink-0">
+          <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
             <button
               onClick={onClose}
-              className="flex-1 px-20 py-12 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-medium font-medium transition-all"
+              className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all"
             >
               Cancel
             </button>
@@ -968,7 +968,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 tools: discoveredTools || [],
                 headers: editingServer?.headers
               })}
-              className="flex-1 px-20 py-12 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-medium font-medium transition-all"
+              className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all"
             >
               {editingServer ? 'Update' : 'Add to Registry'}
             </button>
@@ -1029,20 +1029,20 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           className="bg-accent-white rounded-16 shadow-2xl max-w-md w-full mx-20 max-h-[85vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-24 border-b border-border-faint flex-shrink-0">
-            <h3 className="text-title-h4 text-accent-black">
+          <div className="p-24 border-b border-border flex-shrink-0">
+            <h3 className="text-title-h4 text-foreground">
               {selectedProvider ? `Update ${selectedProvider} API Key` : 'Add LLM API Key'}
             </h3>
           </div>
 
           <div className="p-24 space-y-16 overflow-y-auto flex-1">
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Provider</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Provider</label>
               <select
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value as 'anthropic' | 'openai' | 'groq' })}
                 disabled={!!selectedProvider}
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black capitalize"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground capitalize"
               >
                 <option value="anthropic">Anthropic</option>
                 <option value="openai">OpenAI</option>
@@ -1051,7 +1051,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">API Key</label>
+              <label className="text-xs text-foreground/64 mb-4 block">API Key</label>
               <div className="relative">
                 <input
                   type={showKey ? 'text' : 'password'}
@@ -1062,17 +1062,17 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       formData.provider === 'openai' ? 'sk-proj-...' :
                         'gsk_...'
                   }
-                  className="w-full pr-32 px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono"
+                  className="w-full pr-32 px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowKey(!showKey)}
-                  className="absolute right-8 top-1/2 -translate-y-1/2 p-4 hover:bg-black-alpha-4 rounded-4 transition-colors"
+                  className="absolute right-8 top-1/2 -translate-y-1/2 p-4 hover:bg-secondary rounded-4 transition-colors"
                 >
                   {showKey ? (
-                    <EyeOff className="w-16 h-16 text-black-alpha-48" />
+                    <EyeOff className="w-16 h-16 text-muted-foreground" />
                   ) : (
-                    <Eye className="w-16 h-16 text-black-alpha-48" />
+                    <Eye className="w-16 h-16 text-muted-foreground" />
                   )}
                 </button>
               </div>
@@ -1080,36 +1080,36 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 href={getProviderHelpLink(formData.provider)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-heat-100 hover:text-heat-200 mt-2 underline block"
+                className="text-xs text-primary hover:text-heat-200 mt-2 underline block"
               >
                 Get your {formData.provider} API key →
               </a>
             </div>
 
             <div>
-              <label className="text-body-small text-black-alpha-64 mb-4 block">Label (optional)</label>
+              <label className="text-xs text-foreground/64 mb-4 block">Label (optional)</label>
               <input
                 type="text"
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                 placeholder="e.g., Production, Development"
-                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black"
+                className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground"
               />
             </div>
 
-            <div className="p-12 bg-heat-4 border border-heat-100 rounded-8">
-              <p className="text-xs text-black-alpha-64">
+            <div className="p-12 bg-secondary border border-primary rounded-md">
+              <p className="text-xs text-foreground/64">
                 <strong>Security:</strong> Your API key will be encrypted and stored securely.
                 It will only be accessible by you and never shared across users.
               </p>
             </div>
           </div>
 
-          <div className="p-20 border-t border-border-faint flex gap-8 flex-shrink-0">
+          <div className="p-20 border-t border-border flex gap-8 flex-shrink-0">
             <button
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 px-20 py-12 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-medium font-medium transition-all disabled:opacity-50"
+              className="flex-1 px-20 py-12 bg-secondary hover:bg-secondary/80 text-foreground rounded-md text-sm font-medium transition-all disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1127,7 +1127,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 }
               }}
               disabled={isSaving || !formData.apiKey}
-              className="flex-1 px-20 py-12 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-medium font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-6"
+              className="flex-1 px-20 py-12 bg-primary hover:bg-primary/90 text-white rounded-md text-sm font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-6"
             >
               {isSaving ? (
                 <>

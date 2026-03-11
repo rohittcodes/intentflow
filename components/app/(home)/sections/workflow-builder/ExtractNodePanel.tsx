@@ -78,7 +78,7 @@ export default function ExtractNodePanel({
     <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Instructions */}
       <div>
-        <label className="block text-label-small text-black-alpha-48 mb-8">
+        <label className="block text-label-small text-muted-foreground mb-8">
           Extraction Instructions
         </label>
         <textarea
@@ -86,22 +86,22 @@ export default function ExtractNodePanel({
           onChange={(e) => setInstructions(e.target.value)}
           placeholder="What information should be extracted?"
           rows={4}
-          className="w-full px-12 py-10 bg-background-base border border-border-faint rounded-8 text-body-medium text-accent-black focus:outline-none focus:border-heat-100 transition-colors resize-none"
+          className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
         />
-        <p className="text-body-small text-black-alpha-32 mt-6">
+        <p className="text-xs text-black-alpha-32 mt-6">
           The LLM will extract data matching the schema below
         </p>
       </div>
 
       {/* Model Selection */}
       <div>
-        <label className="block text-label-small text-black-alpha-48 mb-8">
+        <label className="block text-label-small text-muted-foreground mb-8">
           Model
         </label>
         <select
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          className="w-full px-12 py-10 bg-background-base border border-border-faint rounded-8 text-body-medium text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
+          className="w-full px-12 py-10 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
         >
           {llmProviders.map(provider => (
             <optgroup key={provider.id} label={provider.name}>
@@ -117,20 +117,20 @@ export default function ExtractNodePanel({
 
       {/* JSON Schema */}
       <div>
-        <label className="block text-label-small text-black-alpha-48 mb-8">
+        <label className="block text-label-small text-muted-foreground mb-8">
           Output Schema (JSON Schema)
         </label>
         <textarea
           value={jsonSchema}
           onChange={(e) => setJsonSchema(e.target.value)}
           rows={12}
-          className={`w-full px-12 py-10 bg-background-base border rounded-8 text-body-small text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none ${schemaError ? 'border-red-500' : 'border-border-faint'
+          className={`w-full px-12 py-10 bg-background border rounded-md text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none ${schemaError ? 'border-red-500' : 'border-border'
             }`}
         />
         {schemaError && (
-          <p className="text-body-small text-accent-black mt-6">{schemaError}</p>
+          <p className="text-xs text-foreground mt-6">{schemaError}</p>
         )}
-        <p className="text-body-small text-black-alpha-32 mt-6">
+        <p className="text-xs text-black-alpha-32 mt-6">
           Define the structure of data to extract
         </p>
       </div>
@@ -138,12 +138,12 @@ export default function ExtractNodePanel({
       {/* MCP Tools */}
       <div>
         <div className="flex items-center justify-between mb-8">
-          <label className="block text-label-small text-black-alpha-48">
+          <label className="block text-label-small text-muted-foreground">
             MCP Tools (Optional)
           </label>
           <button
             onClick={onAddMCP}
-            className="px-10 py-6 bg-background-base hover:bg-black-alpha-4 border border-border-faint rounded-6 text-body-small text-accent-black transition-colors flex items-center gap-6"
+            className="px-10 py-6 bg-background hover:bg-secondary border border-border rounded-6 text-xs text-foreground transition-colors flex items-center gap-6"
           >
             <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -155,11 +155,11 @@ export default function ExtractNodePanel({
         {nodeData?.mcpTools && nodeData.mcpTools.length > 0 ? (
           <div className="space-y-8">
             {nodeData.mcpTools.map((mcp: any, index: number) => (
-              <div key={index} className="p-12 bg-background-base rounded-8 border border-border-faint">
+              <div key={index} className="p-12 bg-background rounded-md border border-border">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-body-small text-accent-black font-medium">{mcp.name}</p>
-                    <p className="text-body-small text-black-alpha-48 font-mono text-xs truncate mt-4">
+                    <p className="text-xs text-foreground font-medium">{mcp.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono text-xs truncate mt-4">
                       {mcp.url}
                     </p>
                   </div>
@@ -168,9 +168,9 @@ export default function ExtractNodePanel({
                       const newTools = nodeData.mcpTools.filter((_: any, i: number) => i !== index);
                       onUpdate(node?.id || '', { mcpTools: newTools });
                     }}
-                    className="w-24 h-24 rounded-4 hover:bg-black-alpha-4 transition-colors flex items-center justify-center group"
+                    className="w-24 h-24 rounded-4 hover:bg-secondary transition-colors flex items-center justify-center group"
                   >
-                    <svg className="w-12 h-12 text-black-alpha-48 group-hover:text-accent-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-12 h-12 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
@@ -179,8 +179,8 @@ export default function ExtractNodePanel({
             ))}
           </div>
         ) : (
-          <div className="p-16 bg-background-base rounded-8 border border-border-faint text-center">
-            <p className="text-body-small text-black-alpha-48">
+          <div className="p-16 bg-background rounded-md border border-border text-center">
+            <p className="text-xs text-muted-foreground">
               No MCP tools - the agent will only use the LLM
             </p>
           </div>
@@ -188,8 +188,8 @@ export default function ExtractNodePanel({
       </div>
 
       {/* Info Box */}
-      <div className="p-16 bg-accent-white rounded-12 border border-border-faint">
-        <p className="text-body-small text-accent-black">
+      <div className="p-16 bg-accent-white rounded-xl border border-border">
+        <p className="text-xs text-foreground">
           <strong>How it works:</strong> The LLM analyzes the input and extracts data matching your JSON schema. Use MCP tools to give the agent access to external data sources like web search.
         </p>
       </div>

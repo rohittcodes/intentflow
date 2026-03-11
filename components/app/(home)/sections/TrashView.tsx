@@ -1,9 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, RotateCcw, X, AlertTriangle } from "lucide-react";
+import { Trash2, RotateCcw, X, AlertTriangle, Loader2, Workflow } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface TrashedWorkflow {
   id: string;
@@ -18,7 +33,6 @@ interface TrashedWorkflow {
 export default function TrashView() {
   const [trashedWorkflows, setTrashedWorkflows] = useState<TrashedWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   // Load trashed workflows
   const loadTrashed = async () => {
@@ -70,7 +84,6 @@ export default function TrashView() {
 
       if (response.ok) {
         toast.success(`"${name}" permanently deleted`);
-        setConfirmDelete(null);
         loadTrashed();
       } else {
         const data = await response.json();
@@ -97,31 +110,23 @@ export default function TrashView() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-24">
-      {/* Header */}
-      <div className="mb-24">
-        <div className="flex items-center gap-12 mb-8">
-          <Trash2 className="w-24 h-24 text-black-alpha-48" />
-          <h1 className="text-title-h1 text-accent-black">Trash</h1>
-        </div>
-        <p className="text-body-medium text-black-alpha-64">
-          Workflows in trash can be restored or permanently deleted
-        </p>
-      </div>
+    <div className="pb-8 space-y-8">
+      <PageHeader title="Trash" />
 
       {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center py-64">
-          <div className="w-32 h-32 border-4 border-heat-100 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Emptying the trash bin...</p>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && trashedWorkflows.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-64 text-center">
-          <Trash2 className="w-64 h-64 text-black-alpha-16 mb-16" />
-          <h3 className="text-title-h3 text-accent-black mb-8">Trash is empty</h3>
-          <p className="text-body-medium text-black-alpha-48 max-w-400">
+        <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed rounded-lg">
+          <Trash2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Trash is empty</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
             Deleted workflows will appear here. You can restore them or permanently delete them.
           </p>
         </div>
@@ -129,94 +134,90 @@ export default function TrashView() {
 
       {/* Trashed Workflows List */}
       {!loading && trashedWorkflows.length > 0 && (
-        <div className="space-y-12">
+        <div className="grid gap-4">
           {trashedWorkflows.map((workflow) => (
             <motion.div
               key={workflow._id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-accent-white border border-border-faint rounded-12 p-20 hover:border-heat-100 transition-colors"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
             >
-              <div className="flex items-start justify-between gap-16">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-label-large text-accent-black font-medium mb-4">
-                    {workflow.name}
-                  </h3>
-                  {workflow.description && (
-                    <p className="text-body-small text-black-alpha-64 mb-8 line-clamp-2">
-                      {workflow.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-16 text-body-small text-black-alpha-48">
-                    <span>{workflow.nodeCount} nodes</span>
-                    <span>•</span>
-                    <span>{workflow.edgeCount} connections</span>
-                    <span>•</span>
-                    <span>Deleted {formatDate(workflow.deletedAt)}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-8">
-                  {/* Restore Button */}
-                  <button
-                    onClick={() => handleRestore(workflow._id, workflow.name)}
-                    className="px-12 py-8 bg-heat-4 hover:bg-heat-8 border border-heat-100 rounded-8 text-body-small text-heat-100 transition-colors flex items-center gap-6"
-                    title="Restore workflow"
-                  >
-                    <RotateCcw className="w-14 h-14" />
-                    Restore
-                  </button>
-
-                  {/* Delete Permanently Button */}
-                  <button
-                    onClick={() => setConfirmDelete(workflow._id)}
-                    className="px-12 py-8 bg-background-base hover:bg-black-alpha-8 border border-border-faint rounded-8 text-body-small text-black-alpha-64 hover:text-accent-black transition-colors flex items-center gap-6"
-                    title="Delete permanently"
-                  >
-                    <X className="w-14 h-14" />
-                    Delete Forever
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirmation Dialog */}
-              <AnimatePresence>
-                {confirmDelete === workflow._id && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-16 pt-16 border-t border-border-faint"
-                  >
-                    <div className="flex items-start gap-12 p-12 bg-heat-4 border border-heat-100 rounded-8">
-                      <AlertTriangle className="w-20 h-20 text-heat-100 flex-shrink-0 mt-2" />
-                      <div className="flex-1">
-                        <p className="text-body-small text-accent-black font-medium mb-4">
-                          Permanently delete this workflow?
-                        </p>
-                        <p className="text-body-small text-black-alpha-64 mb-12">
-                          This action cannot be undone. The workflow will be permanently removed.
-                        </p>
-                        <div className="flex items-center gap-8">
-                          <button
-                            onClick={() => handlePermanentDelete(workflow._id, workflow.name)}
-                            className="px-12 py-6 bg-heat-100 hover:bg-heat-120 text-accent-white rounded-6 text-body-small font-medium transition-colors"
-                          >
-                            Delete Forever
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="px-12 py-6 bg-background-base hover:bg-black-alpha-8 border border-border-faint rounded-6 text-body-small text-accent-black transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+              <Card className="group hover:border-primary transition-all">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-muted rounded-lg text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                        <Workflow className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <CardTitle className="text-base font-bold">{workflow.name}</CardTitle>
+                        {workflow.description && (
+                          <CardDescription className="text-xs line-clamp-1">
+                            {workflow.description}
+                          </CardDescription>
+                        )}
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRestore(workflow._id, workflow.name)}
+                        className="h-8 gap-2 text-xs"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Restore
+                      </Button>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 gap-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete Forever
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5 text-destructive" />
+                              Permanently delete workflow?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action <span className="font-bold text-foreground">cannot be undone</span>. 
+                              The workflow <span className="font-semibold text-foreground">"{workflow.name}"</span> will be permanently removed from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handlePermanentDelete(workflow._id, workflow.name)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete Forever
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
+                      {workflow.nodeCount} nodes
+                    </span>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted text-foreground">
+                      {workflow.edgeCount} connections
+                    </span>
+                    <span className="ml-auto flex items-center gap-1">
+                      Deleted {formatDate(workflow.deletedAt)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>

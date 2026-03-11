@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2, Settings2, Plus, X, ListFilter, HelpCircle, Check, Info, Layers, AlertTriangle, LayoutGrid } from "lucide-react";
 import VariableReferencePicker from "./VariableReferencePicker";
 import GuardrailsNodePanel from "./GuardrailsNodePanel";
 import ApprovalNodePanel from "./ApprovalNodePanel";
@@ -14,8 +14,37 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { Id } from "@/convex/_generated/dataModel";
-import FirecrawlLogo from "@/components/icons/FirecrawlLogo";
 import { llmProviders } from "@/lib/config/llm-config";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface NodePanelProps {
   node: any | null;
@@ -322,652 +351,428 @@ export default function NodePanel({
           updateNodeData={onUpdate}
         />
       ) : (
-        <>
-          {/* Instructions Field */}
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <label className="block text-sm font-medium text-black-alpha-48">
-                Instructions
-              </label>
-              <div className="flex items-center gap-8">
+        <ScrollArea className="h-full">
+          <div className="space-y-6 pb-20">
+            {/* Instructions Field */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Instructions</Label>
                 {nodes && (
                   <VariableReferencePicker
                     nodes={nodes}
                     currentNodeId={nodeData?.id || ""}
-                    onSelect={(ref) =>
-                      setInstructions(instructions + ` {{${ref}}}`)
-                    }
+                    onSelect={(ref) => setInstructions(instructions + ` {{${ref}}}`)}
                   />
                 )}
               </div>
+              <Textarea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="Enter agent instructions..."
+                className="min-h-[200px] resize-y bg-muted/20 focus-visible:ring-primary/20 transition-all text-sm leading-relaxed"
+              />
+              <div className="flex items-center gap-2 px-1">
+                <Info className="h-3 w-3 text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  Use <code className="px-1.5 py-0.5 bg-muted rounded text-primary font-mono">{`{{variable}}`}</code> to reference data
+                </p>
+              </div>
             </div>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Enter agent instructions..."
-              rows={8}
-              className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black placeholder-black-alpha-32 focus:outline-none focus:border-heat-100 transition-colors resize-y"
-            />
-            <p className="text-xs text-black-alpha-48 mt-6">
-              Use <code className="px-4 py-1 bg-background-base rounded text-heat-100 font-mono text-xs">{`{{variable}}`}</code> syntax to reference data
-            </p>
-          </div>
 
-          {/* Include chat history toggle */}
-          <div className="flex items-center justify-between py-8">
-            <label className="text-sm font-medium text-accent-black">
-              Include chat history
-            </label>
-            <button
-              onClick={() => setIncludeChatHistory(!includeChatHistory)}
-              className={`w-48 h-28 rounded-full transition-colors relative ${includeChatHistory ? "bg-heat-100" : "bg-black-alpha-12"
-                }`}
-            >
-              <motion.div
-                className="w-24 h-24 bg-white rounded-full absolute top-2 shadow-sm"
-                animate={{ left: includeChatHistory ? "22px" : "2px" }}
-                transition={{ duration: 0.2 }}
+            <Separator className="opacity-50" />
+
+            {/* Include chat history toggle */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-border/50 transition-all">
+              <div className="space-y-1">
+                <Label className="text-sm font-bold">Include history</Label>
+                <p className="text-[10px] text-muted-foreground font-medium italic">Maintain context across turns</p>
+              </div>
+              <Switch
+                checked={includeChatHistory}
+                onCheckedChange={setIncludeChatHistory}
               />
-            </button>
-          </div>
+            </div>
 
-          {/* Model Field */}
-          <div>
-            <label className="block text-sm font-medium text-black-alpha-48 mb-8">
-              Model
-            </label>
-            <button
-              onClick={() => setShowModelsDropdown(!showModelsDropdown)}
-              className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors flex items-center justify-between hover:bg-black-alpha-4"
-            >
-              <span className="truncate">
-                {model ? (
-                  // Find the display name for the selected model
-                  getAvailableModels().flatMap(p => p.models).find(m => m.id === model)?.name ||
-                  model
-                ) : (
-                  <span className="text-black-alpha-32">Select a model...</span>
-                )}
-              </span>
-              <ChevronDown
-                className={`w-16 h-16 text-black-alpha-48 transition-transform ${showModelsDropdown ? 'rotate-180' : ''
-                  }`}
-              />
-            </button>
-
-            {showModelsDropdown && (
-              <div className="mt-8 p-8 bg-background-base border border-border-faint rounded-10 space-y-8 max-h-[300px] overflow-y-auto">
-                {getAvailableModels().length === 0 ? (
-                  <div className="p-16 text-center">
-                    <p className="text-sm text-black-alpha-48 mb-12">
-                      No API keys configured
-                    </p>
-                    <button
-                      onClick={() => {
-                        setShowModelsDropdown(false);
-                        onOpenSettings?.();
-                      }}
-                      className="px-12 py-6 bg-heat-100 text-white rounded-8 text-sm hover:bg-heat-120 transition-colors"
-                    >
-                      Add API Keys
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {getAvailableModels().map((categoryGroup) => (
-                      <div key={categoryGroup.provider} className="mb-8">
-                        <div className="text-xs font-semibold text-black-alpha-48 mb-6 mt-4 uppercase tracking-wide">
-                          {categoryGroup.provider}
-                        </div>
-                        {categoryGroup.models.map((modelOption) => (
-                          <button
-                            key={modelOption.id}
-                            onClick={() => {
-                              setModel(modelOption.id);
-                              setShowModelsDropdown(false);
-                            }}
-                            className={`w-full text-left px-8 py-6 rounded-6 text-sm transition-colors ${model === modelOption.id
-                              ? 'bg-heat-100 text-white'
-                              : 'hover:bg-black-alpha-4 text-accent-black'
-                              }`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <span>{modelOption.name}</span>
-                              <span className={`text-[10px] ${model === modelOption.id ? 'text-white/70' : 'text-black-alpha-40'}`}>
-                                {modelOption.provider}
-                              </span>
-                            </div>
-                          </button>
-                        ))}
+            {/* Model Field */}
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Model</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between bg-muted/20 border-border/50 hover:bg-muted/30 transition-all font-medium h-10 px-4"
+                  >
+                    <span className="truncate">
+                      {model ? (
+                        getAvailableModels().flatMap(p => p.models).find(m => m.id === model)?.name || model
+                      ) : (
+                        <span className="text-muted-foreground italic">Select a model...</span>
+                      )}
+                    </span>
+                    <ChevronDown className="h-4 w-4 ml-2 opacity-50 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[300px]" align="start">
+                  <ScrollArea className="h-[300px] -mx-1 px-1">
+                    {getAvailableModels().length === 0 ? (
+                      <div className="p-6 text-center">
+                        <p className="text-xs text-muted-foreground mb-4">No API keys configured</p>
+                        <Button size="sm" onClick={onOpenSettings} className="w-full">Add API Keys</Button>
                       </div>
-                    ))}
-                    <div className="pt-8 mt-8 border-t border-border-faint">
-                      <button
-                        onClick={() => {
-                          setModel("custom");
-                          setShowModelsDropdown(false);
-                        }}
-                        className={`w-full text-left px-8 py-6 rounded-6 text-sm transition-colors ${model === "custom"
-                          ? 'bg-heat-100 text-white'
-                          : 'hover:bg-black-alpha-4 text-accent-black'
-                          }`}
-                      >
-                        Custom Model...
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+                    ) : (
+                      <>
+                        {getAvailableModels().map((categoryGroup) => (
+                          <DropdownMenuGroup key={categoryGroup.provider}>
+                            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 py-2">
+                              {categoryGroup.provider}
+                            </DropdownMenuLabel>
+                            {categoryGroup.models.map((modelOption) => (
+                              <DropdownMenuItem
+                                key={modelOption.id}
+                                onClick={() => setModel(modelOption.id)}
+                                className={cn(
+                                  "flex flex-col items-start gap-1 py-2 px-3",
+                                  model === modelOption.id && "bg-primary/10 text-primary"
+                                )}
+                              >
+                                <div className="flex w-full justify-between items-center">
+                                  <span className="font-semibold text-xs">{modelOption.name}</span>
+                                  {model === modelOption.id && <Check className="h-3 w-3" />}
+                                </div>
+                                <span className="text-[10px] text-muted-foreground">{modelOption.provider}</span>
+                              </DropdownMenuItem>
+                            ))}
+                            <DropdownMenuSeparator className="opacity-50" />
+                          </DropdownMenuGroup>
+                        ))}
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem onClick={() => setModel("custom")} className="py-2 px-3">
+                            <Plus className="h-3 w-3 mr-2" />
+                            <span className="text-xs font-semibold">Custom Model...</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </>
+                    )}
+                  </ScrollArea>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            {model === "custom" && (
-              <input
-                type="text"
-                value={customModel}
-                onChange={(e) => {
-                  setCustomModel(e.target.value);
-                  setModel(e.target.value);
-                }}
-                placeholder="provider/model-name"
-                className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black placeholder-black-alpha-32 font-mono focus:outline-none focus:border-heat-100 transition-colors mt-8"
-              />
-            )}
-          </div>
-
-          {/* MCP Tools Field */}
-          <div>
-            <div className="flex items-center justify-between mb-8">
-              <label className="block text-sm font-medium text-black-alpha-48">
-                Tools
-              </label>
-              <div className="flex items-center gap-8">
-                <button
-                  onClick={() => {
-                    setShowMCPSelector((prev) => {
-                      const next = !prev;
-                      if (next) {
-                        // Expand first server if available
-                        if (mcpServers && mcpServers.length > 0) {
-                          setExpandedMcpId(mcpServers[0]._id);
-                        } else {
-                          setExpandedMcpId("custom");
-                        }
-                      } else {
-                        setExpandedMcpId(null);
-                      }
-                      return next;
-                    });
-                  }}
-                  className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
-                  title="Add tools"
-                >
-                  <svg
-                    className="w-18 h-18 text-black-alpha-48"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                </button>
-                {onOpenSettings && (
-                  <button
-                    onClick={onOpenSettings}
-                    className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
-                    title="Configure MCPs in Settings"
-                  >
-                    <svg
-                      className="w-18 h-18 text-black-alpha-48"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
+              {model === "custom" && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                  <Input
+                    value={customModel}
+                    onChange={(e) => {
+                      setCustomModel(e.target.value);
+                      setModel(e.target.value);
+                    }}
+                    placeholder="provider/model-name"
+                    className="bg-muted/20 border-border/50 font-mono text-xs h-10 px-4 focus-visible:ring-primary/20"
+                  />
+                </div>
+              )}
             </div>
 
-            {/* MCP Selector Modal */}
-            {showMCPSelector && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-12 p-16 bg-[#f4f4f5] rounded-12 border border-border-faint"
-              >
-                <div className="flex items-center justify-between mb-12">
-                  <h4 className="text-sm font-semibold text-accent-black">
-                    MCP Registry
-                  </h4>
-                  <button
-                    onClick={() => {
-                      setShowMCPSelector(false);
-                      setExpandedMcpId(null);
-                    }}
-                    className="w-20 h-20 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-14 h-14 text-black-alpha-48"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="space-y-12">
-                  {!mcpServers || mcpServers.length === 0 ? (
-                    <div className="text-center py-16">
-                      <p className="text-xs text-black-alpha-48 mb-8">
-                        No MCP servers configured in your registry.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setShowMCPSelector(false);
-                          onOpenSettings?.();
-                        }}
-                        className="text-xs text-heat-100 hover:text-heat-200 font-medium"
-                      >
-                        Go to Settings to add MCP servers
-                      </button>
-                    </div>
-                  ) : (
-                    mcpServers.map((server: any) => {
-                      const isConnected = currentMCPServerIds.includes(server._id);
-                      const isExpanded = expandedMcpId === server._id;
-                      const isFirecrawl = server.name === 'Firecrawl' && server.isOfficial;
+            <Separator className="opacity-50" />
 
-                      return (
-                        <div key={server._id} className="rounded-12 border border-border-faint overflow-hidden bg-accent-white">
-                          <button
-                            onClick={() => setExpandedMcpId(isExpanded ? null : server._id)}
-                            className="w-full px-16 py-12 flex items-center justify-between text-left hover:bg-black-alpha-4 transition-colors"
+            {/* MCP Tools Field */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tools</Label>
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setShowMCPSelector((prev) => !prev);
+                            if (!showMCPSelector && mcpServers && mcpServers.length > 0) {
+                              setExpandedMcpId(mcpServers[0]._id);
+                            }
+                          }}
+                          className="h-8 w-8 rounded-full border border-border/50 bg-background hover:bg-muted transition-all"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Add tools</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  {onOpenSettings && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onOpenSettings}
+                            className="h-8 w-8 rounded-full border border-border/50 bg-background hover:bg-muted transition-all"
                           >
-                            <div className="flex items-center gap-8">
-                              <span className="text-sm font-medium text-accent-black">{server.name}</span>
-                              {isFirecrawl && (
-                                <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-6 text-xs border border-heat-100 font-medium">
-                                  API Key Required
-                                </span>
-                              )}
-                              {server.connectionStatus === 'connected' && (
-                                <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-6 text-xs border border-heat-100">
-                                  Connected
-                                </span>
-                              )}
-                              {server.tools && (
-                                <span className="px-6 py-2 bg-background-base text-black-alpha-48 rounded-6 text-xs border border-border-faint">
-                                  {server.tools.length} tools
-                                </span>
-                              )}
+                            <Settings2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Configure MCPs</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
+
+              {/* MCP Selector (Inline Registry) */}
+              <AnimatePresence>
+                {showMCPSelector && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-3 pt-2"
+                  >
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-4">
+                      <div className="flex items-center justify-between px-1">
+                        <div className="flex items-center gap-2">
+                          <ListFilter className="h-3 w-3 text-muted-foreground" />
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">MCP Registry</h4>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => setShowMCPSelector(false)} className="h-6 w-6">
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      <ScrollArea className="max-h-[300px] pr-2">
+                        <div className="space-y-2">
+                          {!mcpServers || mcpServers.length === 0 ? (
+                            <div className="text-center py-8 space-y-3">
+                              <p className="text-xs text-muted-foreground italic">No enabled MCP servers found.</p>
+                              <Button variant="outline" size="sm" onClick={onOpenSettings} className="h-8 px-4 font-bold uppercase tracking-wider text-[10px]">
+                                Registry Settings
+                              </Button>
                             </div>
-                            <svg
-                              className={`w-16 h-16 text-black-alpha-32 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          {isExpanded && (
-                            <div className="px-16 pb-16 space-y-10 bg-accent-white border-t border-border-faint">
-                              {server.description && (
-                                <p className="pt-12 text-xs text-black-alpha-64">{server.description}</p>
-                              )}
-                              {isFirecrawl && (
-                                <a
-                                  href="https://www.firecrawl.dev/app/api-keys"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-heat-100 hover:text-heat-200 underline block -mt-6"
-                                >
-                                  Get API key here →
-                                </a>
-                              )}
-                              {server.tools && server.tools.length > 0 && (
-                                <div className="space-y-6">
-                                  <p className="text-xs text-black-alpha-64 font-medium">Available Tools:</p>
-                                  <div className="flex flex-wrap gap-4">
-                                    {server.tools.map((tool: string) => (
-                                      <span key={tool} className="px-6 py-2 bg-background-base text-black-alpha-64 rounded-4 text-xs border border-border-faint">
-                                        {tool}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-end pt-8">
-                                <button
+                          ) : (
+                            mcpServers.map((server: any) => {
+                              const isConnected = currentMCPServerIds.includes(server._id);
+                              return (
+                                <div
+                                  key={server._id}
+                                  className={cn(
+                                    "group relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer",
+                                    isConnected ? "bg-primary/5 border-primary/20" : "bg-background border-border hover:border-primary/50"
+                                  )}
                                   onClick={() => {
                                     if (isConnected) {
-                                      const newServerIds = currentMCPServerIds.filter(id => id !== server._id);
-                                      onUpdate(nodeData?.id || '', { mcpServerIds: newServerIds });
-                                      setCurrentMCPServerIds(newServerIds);
-                                      toast.success(`Removed ${server.name}`);
+                                      setCurrentMCPServerIds(currentMCPServerIds.filter(id => id !== server._id));
                                     } else {
-                                      const newServerIds = [...currentMCPServerIds, server._id];
-                                      onUpdate(nodeData?.id || '', { mcpServerIds: newServerIds });
-                                      setCurrentMCPServerIds(newServerIds);
-                                      toast.success(`Added ${server.name} to this agent`);
+                                      setCurrentMCPServerIds([...currentMCPServerIds, server._id]);
                                     }
                                   }}
-                                  className={`px-12 py-8 rounded-8 text-xs font-medium transition-colors ${isConnected
-                                    ? 'bg-accent-white border border-border-faint text-accent-black hover:bg-black-alpha-4'
-                                    : 'bg-heat-100 text-white hover:bg-heat-200'
-                                    }`}
                                 >
-                                  {isConnected ? 'Remove' : 'Add'}
-                                </button>
-                              </div>
-                            </div>
+                                  <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                      "h-8 w-8 rounded-lg flex items-center justify-center border shadow-sm transition-all",
+                                      isConnected ? "bg-primary/10 border-primary/20 brightness-110" : "bg-muted border-border"
+                                    )}>
+                                      <Settings2 className={cn("h-4 w-4", isConnected ? "text-primary" : "text-muted-foreground")} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-bold">{server.label || server.name}</span>
+                                      <span className="text-[10px] text-muted-foreground italic truncate max-w-[150px]">{server.endpoint || server.url}</span>
+                                    </div>
+                                  </div>
+                                  <div className={cn(
+                                    "h-5 w-5 rounded-full border flex items-center justify-center transition-all",
+                                    isConnected ? "bg-primary border-primary" : "bg-background border-border group-hover:border-primary/50"
+                                  )}>
+                                    {isConnected && <Check className="h-3 w-3 text-white" />}
+                                  </div>
+                                </div>
+                              );
+                            })
                           )}
                         </div>
-                      );
-                    })
-                  )}
-                  <div className="rounded-12 border border-border-faint overflow-hidden bg-accent-white">
-                    <button
-                      onClick={() => setExpandedMcpId(expandedMcpId === 'custom' ? null : 'custom')}
-                      className="w-full px-16 py-12 flex items-center justify-between text-left hover:bg-black-alpha-4 transition-colors"
-                    >
-                      <div className="flex items-center gap-8">
-                        <span className="text-sm font-medium text-accent-black">Add New MCP Server</span>
-                        <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-6 text-xs border border-heat-100">
-                          Settings
-                        </span>
-                      </div>
-                      <svg
-                        className={`w-16 h-16 text-black-alpha-32 transition-transform ${expandedMcpId === 'custom' ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {expandedMcpId === 'custom' && (
-                      <div className="px-16 pb-16 space-y-10 bg-[#f4f4f5]">
-                        <p className="text-xs text-black-alpha-48">
-                          Add new MCP servers to your registry in Settings. Once added, they&apos;ll appear here for all your agents to use.
-                        </p>
-                        <button
-                          onClick={() => {
-                            setShowMCPSelector(false);
-                            setExpandedMcpId(null);
-                            onOpenSettings?.();
-                          }}
-                          className="px-16 py-10 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-xs font-medium transition-colors"
-                        >
-                          Go to Settings
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                      </ScrollArea>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* Show connected MCP servers */}
-            {currentMCPServerIds && currentMCPServerIds.length > 0 && mcpServers ? (
-              <div className="space-y-8">
-                {currentMCPServerIds.map((serverId: string) => {
-                  const server = mcpServers.find((s: any) => s._id === serverId);
+              {/* Active Tools List */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {currentMCPServerIds.length === 0 && !showMCPSelector && (
+                  <p className="text-[10px] text-muted-foreground font-medium italic px-1">No tools active. Click + to add.</p>
+                )}
+                {currentMCPServerIds.map(id => {
+                  const server = mcpServers?.find(s => s._id === id);
                   if (!server) return null;
                   return (
-                    <div
-                      key={serverId}
-                      className="px-14 py-10 bg-background-base rounded-10 border border-border-faint flex items-center justify-between group hover:border-heat-100 transition-colors"
+                    <Badge
+                      key={id}
+                      variant="secondary"
+                      className="flex items-center gap-1.5 py-1 px-2.5 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-all font-bold tracking-tight text-[10px]"
                     >
-                      <div className="flex items-center gap-8">
-                        <span className="text-sm text-accent-black font-mono">
-                          {server.name}
-                        </span>
-                        {server.tools && (
-                          <span className="text-xs text-black-alpha-48">
-                            {server.tools.length} tools
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          const newServerIds = currentMCPServerIds.filter(id => id !== serverId);
-                          onUpdate(nodeData?.id || "", { mcpServerIds: newServerIds });
-                          setCurrentMCPServerIds(newServerIds);
+                      {server.name}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentMCPServerIds(currentMCPServerIds.filter(sid => sid !== id));
                         }}
-                        className="w-20 h-20 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
-                      >
-                        <svg
-                          className="w-14 h-14 text-black-alpha-48 hover:text-black-alpha-64"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
+                      />
+                    </Badge>
                   );
                 })}
               </div>
-            ) : (
-              <div className="p-16 bg-background-base rounded-10 border border-border-faint text-center">
-                <p className="text-sm text-black-alpha-48">No MCP servers connected</p>
-              </div>
-            )}
-          </div>
-
-          {/* Output Format Field */}
-          <div>
-            <label className="block text-sm font-medium text-black-alpha-48 mb-8">
-              Output format
-            </label>
-            <select
-              value={outputFormat}
-              onChange={(e) => setOutputFormat(e.target.value)}
-              className="w-full px-14 py-10 bg-background-base border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors appearance-none cursor-pointer"
-            >
-              <option value="Text">Text</option>
-              <option value="JSON">JSON</option>
-            </select>
-          </div>
-
-          {/* JSON Output Schema - Show when JSON format selected */}
-          {outputFormat === "JSON" && (
-            <div>
-              <div className="flex items-center justify-between mb-12">
-                <label className="block text-sm font-medium text-black-alpha-48">
-                  Output Schema Builder
-                </label>
-                <button
-                  onClick={() => {
-                    const newField = {
-                      name: "",
-                      type: "string",
-                      required: false,
-                    };
-                    const updated = [...schemaFields, newField];
-                    setSchemaFields(updated);
-                  }}
-                  className="px-10 py-6 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-xs font-medium transition-colors flex items-center gap-4"
-                >
-                  <svg
-                    className="w-12 h-12"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Add Field
-                </button>
-              </div>
-
-              {/* Visual Schema Builder */}
-              <div className="space-y-8 mb-12">
-                {schemaFields.length === 0 ? (
-                  <div className="p-16 bg-background-base rounded-10 border border-border-faint text-center">
-                    <p className="text-sm text-black-alpha-48">
-                      No fields added yet
-                    </p>
-                    <p className="text-xs text-black-alpha-32 mt-4">
-                      Click &quot;Add Field&quot; to start building your schema
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-12 bg-background-base rounded-10 border border-border-faint space-y-10">
-                    {schemaFields.map((field, index) => (
-                      <div
-                        key={`field-${index}-${field.name}`}
-                        className="flex items-center gap-8"
-                      >
-                        <input
-                          type="text"
-                          value={field.name}
-                          onChange={(e) => {
-                            const updated = [...schemaFields];
-                            updated[index].name = e.target.value;
-                            setSchemaFields(updated);
-                            updateSchemaFromFields(updated);
-                          }}
-                          placeholder="Field name"
-                          className="flex-1 px-10 py-6 bg-accent-white border border-border-faint rounded-6 text-sm text-accent-black placeholder-black-alpha-32 focus:outline-none focus:border-heat-100"
-                        />
-                        <select
-                          value={field.type}
-                          onChange={(e) => {
-                            const updated = [...schemaFields];
-                            updated[index].type = e.target.value;
-                            setSchemaFields(updated);
-                            updateSchemaFromFields(updated);
-                          }}
-                          className="px-10 py-6 bg-accent-white border border-border-faint rounded-6 text-sm text-accent-black focus:outline-none focus:border-heat-100"
-                        >
-                          <option value="string">string</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                          <option value="array">array</option>
-                          <option value="object">object</option>
-                        </select>
-                        <button
-                          onClick={() => {
-                            const updated = schemaFields.filter(
-                              (_, i) => i !== index,
-                            );
-                            setSchemaFields(updated);
-                            updateSchemaFromFields(updated);
-                          }}
-                          className="w-24 h-24 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
-                        >
-                          <svg
-                            className="w-14 h-14 text-black-alpha-48"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Raw JSON View Toggle */}
-              <details className="group">
-                <summary className="cursor-pointer text-xs text-heat-100 hover:text-heat-200 transition-colors flex items-center gap-4 mb-8">
-                  <span>View Raw JSON</span>
-                  <svg
-                    className="w-12 h-12 transition-transform group-open:rotate-180"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </summary>
-                <textarea
-                  value={jsonOutputSchema}
-                  onChange={(e) => setJsonOutputSchema(e.target.value)}
-                  rows={6}
-                  placeholder='{"type": "object", "properties": {...}}'
-                  className="w-full px-14 py-10 bg-gray-900 text-heat-100 border border-border-faint rounded-10 text-xs font-mono focus:outline-none focus:border-heat-100 transition-colors resize-y"
-                />
-              </details>
             </div>
-          )}
 
-          {/* Advanced Settings */}
-          <details className="group" open={showAdvanced}>
-            <summary
-              onClick={(e) => {
-                e.preventDefault();
-                setShowAdvanced(!showAdvanced);
-              }}
-              className="flex items-center justify-between cursor-pointer list-none text-sm font-medium text-black-alpha-48 hover:text-accent-black transition-colors py-12"
-            >
-              <span>Advanced</span>
-              <svg
-                className={`w-16 h-16 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </summary>
+            <Separator className="opacity-50" />
 
-            {showAdvanced && (
-              <div className="space-y-16 pt-16 border-t border-border-faint">
-                {/* Advanced settings section - reserved for future options */}
+            {/* Output Format Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Output Format</Label>
+                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest bg-muted/30 border-border/50">
+                  {outputFormat}
+                </Badge>
               </div>
-            )}
-          </details>
-        </>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between bg-muted/20 border-border/50 h-10 px-4">
+                    <span className="text-sm font-medium">{outputFormat}</span>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[300px]" align="start">
+                  <DropdownMenuItem onClick={() => setOutputFormat("Text")} className="flex flex-col items-start gap-1 py-2 px-3">
+                    <span className="font-semibold text-xs">Text</span>
+                    <span className="text-[10px] text-muted-foreground italic">Standard prose response</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="opacity-50" />
+                  <DropdownMenuItem onClick={() => setOutputFormat("JSON")} className="flex flex-col items-start gap-1 py-2 px-3">
+                    <span className="font-semibold text-xs">JSON</span>
+                    <span className="text-[10px] text-muted-foreground italic">Structured data output</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <AnimatePresence>
+                {outputFormat === "JSON" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4 pt-2"
+                  >
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-4">
+                      <div className="flex items-center justify-between px-1">
+                        <div className="flex items-center gap-2">
+                          <Layers className="h-3 w-3 text-muted-foreground" />
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">JSON Schema</h4>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const updated = [...schemaFields];
+                            updated.push({ name: "", type: "string", required: false });
+                            setSchemaFields(updated);
+                          }}
+                          className="h-7 px-3 font-bold uppercase tracking-wider text-[10px] gap-1.5"
+                        >
+                          <Plus className="h-3 w-3" /> Add Field
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {schemaFields.map((field, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Input
+                              placeholder="field_name"
+                              value={field.name}
+                              onChange={(e) => {
+                                const updated = [...schemaFields];
+                                updated[index].name = e.target.value;
+                                setSchemaFields(updated);
+                                updateSchemaFromFields(updated);
+                              }}
+                              className="bg-background border-border/50 h-8 text-[11px] font-mono px-2 flex-1"
+                            />
+                            <select
+                              value={field.type}
+                              onChange={(e) => {
+                                const updated = [...schemaFields];
+                                updated[index].type = e.target.value;
+                                setSchemaFields(updated);
+                                updateSchemaFromFields(updated);
+                              }}
+                              className="h-8 rounded-md border border-border/50 bg-background px-2 text-[11px] font-medium transition-all"
+                            >
+                              <option value="string">string</option>
+                              <option value="number">number</option>
+                              <option value="boolean">boolean</option>
+                              <option value="array">array</option>
+                              <option value="object">object</option>
+                            </select>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const updated = schemaFields.filter((_, i) => i !== index);
+                                setSchemaFields(updated);
+                                updateSchemaFromFields(updated);
+                              }}
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="raw-json" className="border-none">
+                          <AccordionTrigger className="py-2 hover:no-underline px-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">View Raw JSON</span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <Textarea
+                              value={jsonOutputSchema}
+                              onChange={(e) => setJsonOutputSchema(e.target.value)}
+                              className="h-[150px] font-mono text-[10px] bg-zinc-950 text-zinc-50 border-zinc-800 p-3 leading-relaxed"
+                              placeholder='{"type": "object", "properties": {...}}'
+                            />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Separator className="opacity-50" />
+
+            {/* Advanced Section */}
+            <Accordion type="single" collapsible className="w-full pb-20">
+              <AccordionItem value="advanced" className="border-none">
+                <AccordionTrigger
+                  className="py-3 hover:no-underline rounded-xl hover:bg-muted/30 transition-all px-3 group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings2 className="h-4 w-4 text-muted-foreground group-data-[state=open]:text-primary transition-colors" />
+                    <span className="text-sm font-bold">Advanced Settings</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 px-3 space-y-4">
+                  <div className="p-12 rounded-xl bg-muted/20 border border-dashed border-border flex flex-col items-center justify-center space-y-2 opacity-60">
+                    <HelpCircle className="h-6 w-6 text-muted-foreground" />
+                    <p className="text-[10px] font-medium text-center italic">Advanced configuration options will appear here in future updates.</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </ScrollArea>
       )}
     </div>
   );

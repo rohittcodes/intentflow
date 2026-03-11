@@ -557,7 +557,7 @@ export default function WorkflowCanvas({
 
   return (
     <div
-      className={`flex-1 relative h-full w-full bg-background-base overflow-hidden transition-all duration-300 ${isMain ? "" : "border-l"} ${isFocused ? "ring-2 ring-heat-100/50 ring-inset z-10" : "border-black-alpha-8"}`}
+      className={`flex-1 relative h-full w-full bg-background overflow-hidden transition-all duration-300 ${isMain ? "" : "border-l"} ${isFocused ? "ring-2 ring-heat-100/50 ring-inset z-10" : "border-black-alpha-8"}`}
       ref={reactFlowWrapper}
       onMouseDown={(e) => {
         // Prevent focus stealing if clicking UI elements
@@ -581,13 +581,13 @@ export default function WorkflowCanvas({
             animate={{ opacity: 1, y: 0 }}
             className="absolute top-16 left-16 right-16 z-50 flex items-center justify-between"
           >
-            <div className="flex items-center gap-8 px-12 py-6 rounded-10 bg-accent-white border border-black-alpha-8 text-[11px] font-bold uppercase tracking-wider text-black-alpha-56 shadow-sm">
+            <div className="flex items-center gap-8 px-12 py-6 rounded-lg bg-accent-white border border-black-alpha-8 text-[11px] font-bold uppercase tracking-wider text-black-alpha-56 shadow-sm">
               <Globe className="w-12 h-12 text-teal-600" />
               {workflow?.name || 'Loading Workflow...'}
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); onClose?.(); }}
-              className="w-32 h-32 rounded-10 bg-accent-white hover:bg-red-50 hover:text-red-500 border border-black-alpha-8 flex items-center justify-center transition-all shadow-sm"
+              className="w-32 h-32 rounded-lg bg-accent-white hover:bg-red-50 hover:text-red-500 border border-black-alpha-8 flex items-center justify-center transition-all shadow-sm"
             >
               <X className="w-16 h-16" />
             </button>
@@ -640,7 +640,7 @@ export default function WorkflowCanvas({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed bg-accent-white border border-black-alpha-8 rounded-12 shadow-2xl z-[500] p-4 min-w-[180px] backdrop-blur-xl"
+          className="fixed bg-accent-white border border-black-alpha-8 rounded-xl shadow-2xl z-[500] p-4 min-w-[180px] backdrop-blur-xl"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -651,7 +651,7 @@ export default function WorkflowCanvas({
                   handleDuplicateNode(contextMenu.nodeId);
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
+                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
                 <div className="w-20 h-20 flex items-center justify-center bg-blue-500/20 text-blue-500 rounded-4">
                   <Copy className="w-12 h-12" />
@@ -662,20 +662,20 @@ export default function WorkflowCanvas({
                 onClick={() => {
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
+                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
                 <div className="w-20 h-20 flex items-center justify-center bg-indigo-500/20 text-indigo-500 rounded-4">
                   <Settings2 className="w-12 h-12" />
                 </div>
                 Edit Properties
               </button>
-              <div className="h-1 bg-black-alpha-8 my-4 mx-8 opacity-50" />
+              <div className="h-1 bg-secondary/80 my-4 mx-8 opacity-50" />
               <button
                 onClick={() => {
                   handleDeleteNode(contextMenu.nodeId);
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-8 transition-colors"
+                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
               >
                 <div className="w-20 h-20 flex items-center justify-center bg-red-500/10 rounded-4">
                   <Trash2 className="w-12 h-12" />
@@ -690,7 +690,7 @@ export default function WorkflowCanvas({
                   handleAutoLayout();
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors"
+                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-foreground hover:bg-secondary rounded-md transition-colors"
               >
                 <div className="w-20 h-20 flex items-center justify-center bg-teal-500/20 text-teal-500 rounded-4">
                   <Maximize className="w-12 h-12" />
@@ -699,9 +699,9 @@ export default function WorkflowCanvas({
               </button>
               <button
                 onClick={() => setContextMenu(null)}
-                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-black-alpha-56 hover:bg-black-alpha-4 rounded-8 transition-colors"
+                className="w-full flex items-center gap-10 px-12 py-8 text-xs font-semibold text-black-alpha-56 hover:bg-secondary rounded-md transition-colors"
               >
-                <div className="w-20 h-20 flex items-center justify-center bg-black-alpha-8 rounded-4">
+                <div className="w-20 h-20 flex items-center justify-center bg-secondary/80 rounded-4">
                   <Activity className="w-12 h-12" />
                 </div>
                 Cancel
@@ -730,9 +730,9 @@ export default function WorkflowCanvas({
                 onOpenNestedWorkflow(navMenu.workflowId);
                 setNavMenu(null);
               }}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-accent-black hover:bg-heat-100 hover:text-white rounded-10 transition-all group"
+              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-foreground hover:bg-primary hover:text-white rounded-lg transition-all group"
             >
-              <div className="w-24 h-24 flex items-center justify-center bg-heat-100/10 group-hover:bg-white/20 rounded-6 transition-colors">
+              <div className="w-24 h-24 flex items-center justify-center bg-primary/10 group-hover:bg-white/20 rounded-6 transition-colors">
                 <Columns className="w-14 h-14" />
               </div>
               Open in Side Canvas
@@ -743,17 +743,17 @@ export default function WorkflowCanvas({
                 window.open(`/flow/${navMenu.workflowId}`, '_blank');
                 setNavMenu(null);
               }}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-accent-black hover:bg-black-alpha-4 rounded-10 transition-all group"
+              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-foreground hover:bg-secondary rounded-lg transition-all group"
             >
-              <div className="w-24 h-24 flex items-center justify-center bg-black-alpha-8 rounded-6 transition-colors">
+              <div className="w-24 h-24 flex items-center justify-center bg-secondary/80 rounded-6 transition-colors">
                 <ExternalLink className="w-14 h-14" />
               </div>
               Open in New Tab
             </button>
-            <div className="h-1 bg-black-alpha-8 my-4 mx-8" />
+            <div className="h-1 bg-secondary/80 my-4 mx-8" />
             <button
               onClick={() => setNavMenu(null)}
-              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-black-alpha-40 hover:bg-black-alpha-4 hover:text-black-alpha-80 rounded-10 transition-all"
+              className="w-full flex items-center gap-12 px-12 py-10 text-xs font-bold text-black-alpha-40 hover:bg-secondary hover:text-black-alpha-80 rounded-lg transition-all"
             >
               <div className="w-24 h-24" />
               Dismiss

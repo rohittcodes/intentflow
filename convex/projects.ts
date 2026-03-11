@@ -8,7 +8,8 @@ export const getProjects = query({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
+    if (!identity) return [];
+
 
     const workspace = await ctx.db.get(args.workspaceId);
     if (!workspace || workspace.userId !== identity.subject) {

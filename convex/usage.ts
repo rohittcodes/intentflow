@@ -138,6 +138,8 @@ export const checkUsageLimit = query({
       current: usage.executionsCount,
       limit,
       tier: usage.tier,
+      totalExecutions: usage.totalExecutions,
+      totalRuntimeSeconds: usage.totalRuntimeSeconds,
     };
   },
 });

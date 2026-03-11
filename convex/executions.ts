@@ -24,6 +24,7 @@ export const createExecution = mutation({
 
     const executionId = await ctx.db.insert("executions", {
       workflowId,
+      workspaceId: workflow.workspaceId,
       userId: identity?.subject,
       status: "running",
       input,
@@ -225,6 +226,32 @@ export const watchLatestExecution = query({
       completedAt: execution.completedAt,
       threadId: execution.threadId,
     };
+  },
+});
+
+/**
+ * Lists the most recent 100 executions for a given workspace, ordered newest first.
+ * Used by the Execution Logs page.
+ */
+export const listForWorkspace = query({
+  args: {
+    workspaceId: v.id('workspaces'),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Unauthenticated');
+    const executions = await ctx.db
+      .query('executions')
+      .withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+      .order('desc')
+      .take(100);
+    const enriched = await Promise.all(
+      executions.map(async (exec) => {
+        const workflow = await ctx.db.get(exec.workflowId);
+        return { ...exec, workflowName: workflow?.name ?? String(exec.workflowId) };
+      })
+    );
+    return enriched;
   },
 });
 

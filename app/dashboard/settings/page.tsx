@@ -5,13 +5,32 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { Key, Save, Trash2, Power, PowerOff, Database } from "lucide-react";
-import Button from "@/components/ui/shadcn/button";
+import { Key, Save, Trash2, Power, PowerOff, Database, Loader2, Info } from "lucide-react";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useUser } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function SettingsPage() {
   const { user } = useUser();
-  const [activeTab, setActiveTab] = useState<'llm-keys' | 'pinecone'>('llm-keys');
   
   // LLM Keys State
   const [provider, setProvider] = useState<string>("openai");
@@ -49,7 +68,7 @@ export default function SettingsPage() {
         apiKey: apiKey.trim(),
       });
       toast.success(`${provider} API key saved successfully.`);
-      setApiKey(""); // Clear input on success
+      setApiKey(""); 
     } catch (error: any) {
       toast.error(`Failed to save key: ${error.message}`);
     } finally {
@@ -58,13 +77,11 @@ export default function SettingsPage() {
   };
 
   const handleDeleteKey = async (id: any) => {
-    if (confirm("Are you sure you want to delete this API key?")) {
-      try {
-        await deleteKey({ id });
-        toast.success("API key deleted.");
-      } catch (error: any) {
-        toast.error(`Failed to delete key: ${error.message}`);
-      }
+    try {
+      await deleteKey({ id });
+      toast.success("API key deleted.");
+    } catch (error: any) {
+      toast.error(`Failed to delete key: ${error.message}`);
     }
   };
 
@@ -92,7 +109,7 @@ export default function SettingsPage() {
         indexName: pineconeIndexName.trim(),
       });
       toast.success("Pinecone configuration saved successfully.");
-      setPineconeApiKey(""); // clear plain text key
+      setPineconeApiKey(""); 
     } catch (error: any) {
       toast.error(`Failed to save Pinecone config: ${error.message}`);
     } finally {
@@ -101,14 +118,12 @@ export default function SettingsPage() {
   };
 
   const handleDeletePinecone = async () => {
-    if (confirm("Are you sure you want to delete your Pinecone configuration? RAG workflows will fail until a new one is provided.")) {
-      try {
-        await deletePinecone();
-        setPineconeIndexName("");
-        toast.success("Pinecone configuration deleted.");
-      } catch (error: any) {
-        toast.error(`Failed to delete Pinecone config: ${error.message}`);
-      }
+    try {
+      await deletePinecone();
+      setPineconeIndexName("");
+      toast.success("Pinecone configuration deleted.");
+    } catch (error: any) {
+      toast.error(`Failed to delete Pinecone config: ${error.message}`);
     }
   };
 
@@ -124,215 +139,250 @@ export default function SettingsPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto w-full p-32 space-y-32"
+      className="w-full pb-8"
     >
-      <div>
-        <h1 className="text-title-h3 text-accent-black mb-8">Settings</h1>
-        <p className="text-body-medium text-black-alpha-64">Manage your account preferences and API keys.</p>
-      </div>
+      <PageHeader title="Settings" />
 
-      <div className="flex gap-24 border-b border-black-alpha-8">
-        <button
-          className={`pb-12 px-2 border-b-2 font-medium text-body-medium transition-all ${activeTab === 'llm-keys' ? 'border-heat-100 text-heat-100' : 'border-transparent text-black-alpha-48 hover:text-black-alpha-80'}`}
-          onClick={() => setActiveTab('llm-keys')}
-        >
-          Model Providers (BYOK)
-        </button>
-        <button
-          className={`pb-12 px-2 border-b-2 font-medium text-body-medium transition-all ${activeTab === 'pinecone' ? 'border-heat-100 text-heat-100' : 'border-transparent text-black-alpha-48 hover:text-black-alpha-80'}`}
-          onClick={() => setActiveTab('pinecone')}
-        >
-          Pinecone (Vector DB)
-        </button>
-      </div>
+      <Tabs defaultValue="llm-keys" className="space-y-8">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="llm-keys">Model Providers (BYOK)</TabsTrigger>
+          <TabsTrigger value="pinecone">Pinecone (Vector DB)</TabsTrigger>
+        </TabsList>
 
-      {activeTab === 'llm-keys' && (
-        <div className="space-y-32">
-          {/* Add Key Section */}
-          <div className="bg-white border border-black-alpha-8 rounded-16 p-24 shadow-sm">
-            <h3 className="text-label-large text-accent-black mb-8 flex items-center gap-8">
-              <Key className="w-20 h-20 text-black-alpha-48" />
-              Add Provider Key
-            </h3>
-            <p className="text-body-medium text-black-alpha-64 mb-24">
-              Bring Your Own Key (BYOK) to run workflows using your own LLM provider accounts. 
-              Keys are securely encrypted using AES-256-GCM before being stored in the database.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-16 items-start">
-              <div className="w-full sm:w-1/3">
-                <label className="block text-label-x-small font-medium text-black-alpha-48 mb-4">Provider</label>
-                <select 
-                  value={provider} 
-                  onChange={(e) => setProvider(e.target.value)}
-                  className="w-full px-12 py-8 bg-black-alpha-4 border border-black-alpha-8 rounded-8 text-body-medium focus:outline-none focus:border-heat-100 transition-all"
-                >
-                  {providers.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="w-full sm:w-2/3 flex gap-8 items-end">
-                <div className="flex-1">
-                  <label className="block text-label-x-small font-medium text-black-alpha-48 mb-4">API Key</label>
-                  <input 
-                    type="password" 
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-..."
-                    className="w-full px-12 py-8 bg-black-alpha-4 border border-black-alpha-8 rounded-8 text-body-medium focus:outline-none focus:border-heat-100 transition-all"
-                  />
+        <TabsContent value="llm-keys" className="space-y-8">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                <Key className="h-5 w-5 text-muted-foreground" />
+                Add Provider Key
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Bring Your Own Key (BYOK) to run workflows using your own LLM provider accounts. 
+                Keys are securely encrypted using AES-256-GCM.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-1/3 space-y-2">
+                  <Label htmlFor="provider" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Provider</Label>
+                  <Select value={provider} onValueChange={setProvider}>
+                    <SelectTrigger id="provider" className="h-10">
+                      <SelectValue placeholder="Select provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {providers.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button 
-                  onClick={handleSaveKey} 
-                  disabled={!apiKey.trim() || isSubmitting}
-                  className="mb-[1px]"
-                >
-                  {isSubmitting ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> Save Key</>}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Manage Keys Section */}
-          <div className="bg-white border border-black-alpha-8 rounded-16 p-24 shadow-sm">
-            <h3 className="text-label-large text-accent-black mb-24">Manage Saved Keys</h3>
-            
-            {llmKeys === undefined ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">Loading keys...</div>
-            ) : llmKeys.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border-faint rounded-lg">
-                No API keys saved yet. Add one above to get started.
-              </div>
-            ) : (
-              <div className="space-y-12">
-                {llmKeys.map((key) => {
-                  const providerInfo = providers.find(p => p.id === key.provider);
-                  return (
-                    <div key={key._id} className="flex items-center justify-between p-16 border border-black-alpha-8 rounded-12 bg-black-alpha-4 transition-all hover:bg-black-alpha-8">
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-6">
-                          <span className="font-semibold text-body-medium text-accent-black">{providerInfo?.name || key.provider}</span>
-                          {key.isActive ? (
-                            <span className="px-8 py-2 text-[10px] font-bold bg-green-500/10 text-green-600 rounded-full">ACTIVE</span>
-                          ) : (
-                            <span className="px-8 py-2 text-[10px] font-bold bg-black-alpha-8 text-black-alpha-40 rounded-full">INACTIVE</span>
-                          )}
-                        </div>
-                        <span className="text-label-x-small text-black-alpha-48 font-mono">
-                          {key.keyPrefix}
-                        </span>
-                        <span className="text-[10px] text-black-alpha-32">
-                          Added: {new Date(key.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-12">
-                        <Button 
-                          variant="secondary"
-                          onClick={() => handleToggleKey(key._id)}
-                          className={`h-36 w-36 p-0 rounded-8 ${key.isActive ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-green-600 hover:text-green-700 hover:bg-green-50"}`}
-                        >
-                          {key.isActive ? <PowerOff className="w-18 h-18" /> : <Power className="w-18 h-18" />}
-                        </Button>
-                        <Button 
-                          variant="secondary"
-                          onClick={() => handleDeleteKey(key._id)}
-                          className="h-36 w-36 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-8"
-                        >
-                          <Trash2 className="w-18 h-18" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'pinecone' && (
-        <div className="space-y-32">
-          <div className="bg-white border border-black-alpha-8 rounded-16 p-24 shadow-sm">
-            <h3 className="text-label-large text-accent-black mb-8 flex items-center gap-8">
-              <Database className="w-20 h-20 text-black-alpha-48" />
-              Configure Pinecone RAG Cluster
-            </h3>
-            <p className="text-body-medium text-black-alpha-64 mb-24 leading-relaxed">
-              Connect your Pinecone vector database to enable Retrieval-Augmented Generation (RAG) node workflows. 
-              The system will chunk uploaded documents, embed them using the configured LLMs, and store them securely in your dedicated Pinecone Index.
-            </p>
-            
-            <div className="flex flex-col gap-24">
-              {pineconeConfig ? (
-                <div className="p-24 border border-heat-100/20 bg-heat-100/5 rounded-12 flex justify-between items-center">
-                  <div className="space-y-4">
-                    <h4 className="text-label-medium text-heat-100 flex items-center gap-8">
-                      <span className="w-8 h-8 rounded-full bg-heat-100 animate-pulse"></span>
-                      Pinecone Connected
-                    </h4>
-                    <p className="text-body-small text-black-alpha-56">
-                      Index: <span className="font-mono font-semibold">{pineconeConfig.indexName}</span>
-                    </p>
-                    <p className="text-body-small text-black-alpha-56">
-                      Key: <span className="font-mono">{pineconeConfig.keyPrefix}</span>
-                    </p>
+                <div className="w-full sm:w-2/3 space-y-2">
+                  <Label htmlFor="apiKey" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">API Key</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      id="apiKey"
+                      type="password" 
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="flex-1 h-10"
+                    />
+                    <Button 
+                      className="h-10 px-6 font-bold"
+                      onClick={handleSaveKey} 
+                      disabled={!apiKey.trim() || isSubmitting}
+                    >
+                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save</>}
+                    </Button>
                   </div>
-                  <Button 
-                    variant="secondary"
-                    onClick={handleDeletePinecone}
-                    className="h-44 px-20 text-red-600 hover:text-red-700 hover:bg-red-50 border-black-alpha-8 rounded-8"
-                  >
-                    <Trash2 className="w-18 h-18 mr-8" /> Disconnect
-                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-bold">Manage Saved Keys</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {llmKeys === undefined ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground text-xs">
+                  <Loader2 className="h-6 w-6 animate-spin mr-3 opacity-50" /> Loading your keys...
+                </div>
+              ) : llmKeys.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl bg-muted/20">
+                  <Key className="h-10 w-10 text-muted-foreground/30 mb-4" />
+                  <p className="text-sm font-medium text-muted-foreground">No API keys saved yet.</p>
+                  <p className="text-[10px] text-muted-foreground italic mt-1">Add one above to get started with custom models.</p>
                 </div>
               ) : (
-                <div className="space-y-24">
-                  <div className="grid gap-16 md:grid-cols-2">
-                    <div className="space-y-8">
-                      <label className="block text-label-x-small font-semibold text-black-alpha-48">Pinecone API Key</label>
-                      <input 
+                <div className="grid gap-3">
+                  {llmKeys.map((key) => {
+                    const providerInfo = providers.find(p => p.id === key.provider);
+                    return (
+                      <div key={key._id} className="group relative flex items-center justify-between p-4 border rounded-xl bg-background hover:border-primary/50 hover:shadow-sm transition-all">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm tracking-tight">{providerInfo?.name || key.provider}</span>
+                            <Badge variant={key.isActive ? "default" : "secondary"} className="text-[9px] font-bold tracking-widest px-1.5 h-4">
+                              {key.isActive ? "ACTIVE" : "INACTIVE"}
+                            </Badge>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded w-fit">
+                            {key.keyPrefix}
+                          </span>
+                          <span className="text-[9px] text-muted-foreground/60 font-medium">
+                            Linked: {new Date(key.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleToggleKey(key._id)}
+                            className={cn(
+                              "h-9 w-9 rounded-lg transition-all",
+                              key.isActive ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-muted"
+                            )}
+                          >
+                            {key.isActive ? <Power className="h-4.5 w-4.5" /> : <PowerOff className="h-4.5 w-4.5" />}
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
+                                <Trash2 className="h-4.5 w-4.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete API Key?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm">
+                                  This will permanently remove the <span className="font-bold text-foreground">{providerInfo?.name || key.provider}</span> key from your account. 
+                                  Workflows using this provider may fail unless you have an alternative key.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteKey(key._id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Delete Permanently
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pinecone" className="space-y-8">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                <Database className="h-5 w-5 text-muted-foreground" />
+                Vector Database
+              </CardTitle>
+              <CardDescription className="text-xs leading-relaxed">
+                Connect your Pinecone instance to enable Knowledge Base persistence and semantic search capabilities across your workflows.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pineconeConfig ? (
+                <div className="p-6 border rounded-xl bg-background hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                      <span className="text-sm font-bold tracking-tight">Status: Connected</span>
+                      <Badge variant="outline" className="text-[9px] font-bold tracking-widest bg-green-500/5 text-green-600 border-green-500/20">STABLE</Badge>
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest w-20">Index</span>
+                        <code className="text-[11px] font-bold bg-muted px-2 py-0.5 rounded text-foreground">{pineconeConfig.indexName}</code>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest w-20">API Key</span>
+                        <code className="text-[11px] tracking-tight bg-muted/50 px-2 py-0.5 rounded font-mono text-muted-foreground">{pineconeConfig.keyPrefix}</code>
+                      </div>
+                    </div>
+                  </div>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="h-9 px-4 text-xs font-bold border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive transition-all">
+                        Disconnect Cluster
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Disconnect Pinecone?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm">
+                          RAG and Knowledge Base features will stop working immediately. 
+                          Your data in Pinecone will NOT be deleted, but the link will be removed.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeletePinecone} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Disconnect Now
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              ) : (
+                <div className="grid gap-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="pineconeApiKey" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">API Key</Label>
+                      <Input 
+                        id="pineconeApiKey"
                         type="password" 
                         value={pineconeApiKey}
                         onChange={(e) => setPineconeApiKey(e.target.value)}
                         placeholder="pcsk_..."
-                        className="w-full px-12 py-10 bg-black-alpha-4 border border-black-alpha-8 rounded-8 text-body-medium focus:outline-none focus:border-heat-100 transition-all font-mono"
+                        className="h-10 font-mono text-sm"
                       />
                     </div>
-                    <div className="space-y-8">
-                      <label className="block text-label-x-small font-semibold text-black-alpha-48">Pinecone Index Name</label>
-                      <input 
+                    <div className="space-y-2">
+                      <Label htmlFor="pineconeIndexName" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Index Name</Label>
+                      <Input 
+                        id="pineconeIndexName"
                         type="text" 
                         value={pineconeIndexName}
                         onChange={(e) => setPineconeIndexName(e.target.value)}
-                        placeholder="intentflow-rag-index"
-                        className="w-full px-12 py-10 bg-black-alpha-4 border border-black-alpha-8 rounded-8 text-body-medium focus:outline-none focus:border-heat-100 transition-all font-mono"
+                        placeholder="e.g. documentation-index"
+                        className="h-10 text-sm font-medium"
                       />
                     </div>
                   </div>
                   
-                  <div className="p-16 bg-black-alpha-4 rounded-8 border-l-4 border-heat-100/40">
-                    <p className="text-label-x-small text-black-alpha-48">
-                      Ensure this index exists in your Pinecone project and is configured with 1536 dimensions (for OpenAI/Gemini embeddings) and cosine metric.
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/50 flex gap-3">
+                    <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Recommended: Use an index with <span className="font-bold text-foreground">1536 dimensions</span> (OpenAI/Gemini) and <span className="font-bold text-foreground">cosine metric</span> for optimal semantic search performance.
                     </p>
                   </div>
 
-                  <div className="flex justify-start">
-                    <Button 
-                      onClick={handleSavePinecone}
-                      disabled={isSubmittingPinecone || !pineconeApiKey.trim() || !pineconeIndexName.trim()}
-                      className="bg-heat-100 hover:bg-heat-200 text-white px-24 h-44 rounded-8"
-                    >
-                      {isSubmittingPinecone ? 'Saving...' : <><Save className="w-18 h-18 mr-8" /> Save Configuration</>}
-                    </Button>
-                  </div>
+                  <Button 
+                    onClick={handleSavePinecone}
+                    className="w-full sm:w-fit h-10 px-8 font-bold"
+                    disabled={isSubmittingPinecone || !pineconeApiKey.trim() || !pineconeIndexName.trim()}
+                  >
+                    {isSubmittingPinecone ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Connect Cluster</>}
+                  </Button>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 }

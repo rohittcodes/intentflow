@@ -10,4 +10,11 @@ crons.interval(
   internal.scheduler.runDueSchedules,
 );
 
+// Check for unread notifications and send email fallbacks every 30 minutes
+crons.interval(
+  "notification-email-fallback",
+  { minutes: 30 },
+  internal.notifications.sendEmailFallbacks,
+);
+
 export default crons;

@@ -33,7 +33,7 @@ interface SourceType {
 
 const SOURCE_TYPES: SourceType[] = [
   // Custom First
-  { id: "custom-tool", name: "Custom API Tool", description: "Connect to any REST API as a workflow tool", icon: <Plus />, color: "text-heat-100", category: "web" },
+  { id: "custom-tool", name: "Custom API Tool", description: "Connect to any REST API as a workflow tool", icon: <Plus />, color: "text-primary", category: "web" },
   { id: "custom-sync", name: "Custom Data Syncer", description: "Sync data from a custom URL into your Knowledge Base", icon: <RefreshCw />, color: "text-blue-600", category: "web" },
 
   // Databases
@@ -116,18 +116,18 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
         className="w-full max-w-2xl bg-accent-white rounded-24 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
       >
         {/* Header */}
-        <div className="px-24 py-20 border-b border-border-faint flex items-center justify-between bg-background-base">
+        <div className="px-24 py-20 border-b border-border flex items-center justify-between bg-background">
           <div className="flex items-center gap-12">
             {step === "config" && (
               <button
                 onClick={handleBack}
-                className="p-8 hover:bg-black-alpha-4 rounded-8 text-black-alpha-40 transition-colors"
+                className="p-8 hover:bg-secondary rounded-md text-black-alpha-40 transition-colors"
               >
                 <ArrowLeft className="w-18 h-18" />
               </button>
             )}
             <div>
-              <h2 className="text-lg font-bold text-accent-black">
+              <h2 className="text-lg font-bold text-foreground">
                 {step === "select" ? "Add Data Source" : `Configure ${selectedType?.name}`}
               </h2>
               <p className="text-sm text-black-alpha-40">
@@ -139,7 +139,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
           </div>
           <button
             onClick={onClose}
-            className="p-8 hover:bg-black-alpha-4 rounded-8 text-black-alpha-40 transition-colors"
+            className="p-8 hover:bg-secondary rounded-md text-black-alpha-40 transition-colors"
           >
             <X className="w-18 h-18" />
           </button>
@@ -157,7 +157,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                   placeholder="Search integrations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-48 pr-16 py-12 bg-black-alpha-4 border border-border-faint rounded-12 text-accent-black outline-none focus:border-heat-100 transition-colors"
+                  className="w-full pl-48 pr-16 py-12 bg-secondary border border-border rounded-xl text-foreground outline-none focus:border-primary transition-colors"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                     <h3 className="text-xs font-bold text-black-alpha-32 uppercase tracking-widest px-4 flex items-center justify-between">
                       {category === "web" ? "Universal / Custom" : category}
                       {category === "database" || category === "cloud" || category === "saas" ? (
-                        <span className="text-[10px] font-medium bg-black-alpha-4 px-6 py-2 rounded-4 normal-case tracking-normal">Presets</span>
+                        <span className="text-[10px] font-medium bg-secondary px-6 py-2 rounded-4 normal-case tracking-normal">Presets</span>
                       ) : null}
                     </h3>
                     <div className="grid grid-cols-2 gap-12">
@@ -179,14 +179,14 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                         <button
                           key={source.id}
                           onClick={() => handleSelect(source)}
-                          className="flex items-start gap-16 p-16 bg-accent-white border border-border-faint rounded-16 hover:border-heat-100 hover:shadow-md transition-all group text-left"
+                          className="flex items-start gap-16 p-16 bg-accent-white border border-border rounded-16 hover:border-primary hover:shadow-md transition-all group text-left"
                         >
-                          <div className={`p-10 rounded-12 bg-black-alpha-4 ${source.color} group-hover:scale-110 transition-transform`}>
+                          <div className={`p-10 rounded-xl bg-secondary ${source.color} group-hover:scale-110 transition-transform`}>
                             {React.cloneElement(source.icon as React.ReactElement<any>, { className: "w-20 h-20" })}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-accent-black truncate">{source.name}</h4>
-                            <p className="text-xs text-black-alpha-48 line-clamp-2 mt-2">{source.description}</p>
+                            <h4 className="text-sm font-bold text-foreground truncate">{source.name}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{source.description}</p>
                           </div>
                         </button>
                       ))}
@@ -198,7 +198,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
           ) : (
             <div className="space-y-24">
               <div className="p-20 bg-amber-500/5 border border-amber-500/10 rounded-16 flex items-start gap-16">
-                <div className="p-10 bg-amber-500 rounded-12 text-accent-white">
+                <div className="p-10 bg-amber-500 rounded-xl text-accent-white">
                   <Shield className="w-20 h-20" />
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={`My ${selectedType?.name} Source`}
-                    className="w-full px-16 py-12 bg-accent-white border border-border-faint rounded-12 text-sm text-accent-black outline-none focus:border-heat-100 transition-colors"
+                    className="w-full px-16 py-12 bg-accent-white border border-border rounded-xl text-sm text-foreground outline-none focus:border-primary transition-colors"
                   />
                 </div>
 
@@ -233,7 +233,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                       onChange={(e) => setUrl(e.target.value)}
                       placeholder="postgresql://user:password@localhost:5432/dbname"
                       rows={3}
-                      className="w-full px-16 py-12 bg-accent-white border border-border-faint rounded-12 text-sm text-accent-black font-mono outline-none focus:border-heat-100 transition-colors resize-none"
+                      className="w-full px-16 py-12 bg-accent-white border border-border rounded-xl text-sm text-foreground font-mono outline-none focus:border-primary transition-colors resize-none"
                     />
                   </div>
                 )}
@@ -248,20 +248,20 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                       placeholder={selectedType.id === "sitemap" ? "https://example.com/sitemap.xml" : "https://api.service.com/v1"}
-                      className="w-full px-16 py-12 bg-accent-white border border-border-faint rounded-12 text-sm text-accent-black outline-none focus:border-heat-100 transition-colors"
+                      className="w-full px-16 py-12 bg-accent-white border border-border rounded-xl text-sm text-foreground outline-none focus:border-primary transition-colors"
                     />
                   </div>
                 )}
 
-                <div className="flex items-center justify-between p-16 bg-black-alpha-4 rounded-16">
+                <div className="flex items-center justify-between p-16 bg-secondary rounded-16">
                   <div className="flex items-center gap-12">
                     <RefreshCw className="w-18 h-18 text-black-alpha-40" />
                     <div>
-                      <p className="text-sm font-bold text-accent-black">Auto-Sync</p>
+                      <p className="text-sm font-bold text-foreground">Auto-Sync</p>
                       <p className="text-xs text-black-alpha-40">Keep indexed data fresh automatically</p>
                     </div>
                   </div>
-                  <div className="w-40 h-20 bg-heat-100 rounded-full flex items-center px-4">
+                  <div className="w-40 h-20 bg-primary rounded-full flex items-center px-4">
                     <div className="w-12 h-12 bg-accent-white rounded-full translate-x-20" />
                   </div>
                 </div>
@@ -271,17 +271,17 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
         </div>
 
         {/* Footer */}
-        <div className="px-24 py-16 border-t border-border-faint bg-background-base flex items-center justify-end gap-12">
+        <div className="px-24 py-16 border-t border-border bg-background flex items-center justify-end gap-12">
           <button
             onClick={onClose}
-            className="px-16 py-8 text-sm font-bold text-black-alpha-48 hover:text-accent-black transition-colors"
+            className="px-16 py-8 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
             disabled={step === "select" || !name || (step === "config" && !url)}
-            className="px-20 py-10 bg-heat-100 text-accent-white rounded-10 text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:shadow-none transition-all flex items-center gap-8"
+            className="px-20 py-10 bg-primary text-accent-white rounded-lg text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:shadow-none transition-all flex items-center gap-8"
           >
             {step === "select" ? "Continue" : "Create Integration"}
             <ChevronRight className="w-16 h-16" />

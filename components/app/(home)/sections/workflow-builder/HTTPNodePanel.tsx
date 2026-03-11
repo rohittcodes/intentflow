@@ -94,13 +94,13 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
     <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Method */}
       <div>
-        <label className="block text-label-small text-black-alpha-48 mb-8">
+        <label className="block text-label-small text-muted-foreground mb-8">
           HTTP Method
         </label>
         <select
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className="w-fit px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-medium focus:outline-none focus:border-heat-100 transition-colors"
+          className="w-fit px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-medium focus:outline-none focus:border-primary transition-colors"
         >
           <option value="GET">GET</option>
           <option value="POST">POST</option>
@@ -111,20 +111,20 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
       </div>
 
       {/* Connector / Data Source Selection */}
-      <div className="p-12 bg-accent-blue-alpha-4 border border-accent-blue-alpha-12 rounded-10">
+      <div className="p-12 bg-accent-blue-alpha-4 border border-accent-blue-alpha-12 rounded-lg">
         <div className="flex items-center gap-8 mb-8">
           <Zap className="w-14 h-14 text-accent-blue" />
           <label className="block text-label-small font-bold text-accent-blue uppercase tracking-widest">
             Connector (Optional)
           </label>
         </div>
-        <p className="text-body-tiny text-black-alpha-48 mb-12">
+        <p className="text-body-tiny text-muted-foreground mb-12">
           Link to a saved connector to automatically include base URL and authentication.
         </p>
         <select
           value={selectedConnectorId}
           onChange={(e) => setSelectedConnectorId(e.target.value)}
-          className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black focus:outline-none focus:border-accent-blue transition-colors cursor-pointer"
+          className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground focus:outline-none focus:border-accent-blue transition-colors cursor-pointer"
         >
           <option value="">No Connector (Direct Request)</option>
           {connectors?.map((c) => (
@@ -144,7 +144,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
       {/* URL Input - Full Width */}
       <div>
         <div className="flex items-center justify-between mb-8">
-          <label className="block text-label-small text-black-alpha-48">
+          <label className="block text-label-small text-muted-foreground">
             Request URL
           </label>
           {nodes && (
@@ -160,19 +160,19 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://api.example.com/endpoint"
-          className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors"
+          className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
       {/* Authentication */}
       <div>
-        <label className="block text-label-small text-black-alpha-48 mb-8">
+        <label className="block text-label-small text-muted-foreground mb-8">
           Authentication
         </label>
         <select
           value={authType}
           onChange={(e) => setAuthType(e.target.value)}
-          className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black focus:outline-none focus:border-heat-100 transition-colors mb-12"
+          className="w-full px-12 py-8 bg-background border border-border rounded-md text-xs text-foreground focus:outline-none focus:border-primary transition-colors mb-12"
         >
           <option value="none">None</option>
           <option value="bearer">Bearer Token</option>
@@ -187,11 +187,11 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
               value={authToken}
               onChange={(e) => setAuthToken(e.target.value)}
               placeholder={authType === 'bearer' ? 'Bearer token...' : 'API key or credentials...'}
-              className="w-full px-12 py-8 pr-40 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors"
+              className="w-full px-12 py-8 pr-40 bg-background border border-border rounded-md text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
             />
             <button
               onClick={() => setShowAuthToken(!showAuthToken)}
-              className="absolute right-12 top-1/2 -translate-y-1/2 text-black-alpha-48 hover:text-accent-black transition-colors"
+              className="absolute right-12 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               {showAuthToken ? (
                 <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,19 +211,19 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
       {/* Headers */}
       <div>
         <div className="flex items-center justify-between mb-8">
-          <label className="block text-label-small text-black-alpha-48">
+          <label className="block text-label-small text-muted-foreground">
             Headers
           </label>
           <div className="flex gap-6">
             <button
               onClick={() => insertQuickHeader('Content-Type', 'application/json')}
-              className="px-8 py-4 bg-background-base hover:bg-black-alpha-4 border border-border-faint rounded-4 text-body-small text-accent-black transition-colors"
+              className="px-8 py-4 bg-background hover:bg-secondary border border-border rounded-4 text-xs text-foreground transition-colors"
             >
               + JSON
             </button>
             <button
               onClick={addHeader}
-              className="px-8 py-4 bg-background-base hover:bg-black-alpha-4 border border-border-faint rounded-4 text-body-small text-accent-black transition-colors"
+              className="px-8 py-4 bg-background hover:bg-secondary border border-border rounded-4 text-xs text-foreground transition-colors"
             >
               + Header
             </button>
@@ -238,20 +238,20 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
                 value={header.key}
                 onChange={(e) => updateHeader(index, 'key', e.target.value)}
                 placeholder="Header-Name"
-                className="flex-1 px-10 py-6 bg-background-base border border-border-faint rounded-6 text-body-small text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors"
+                className="flex-1 px-10 py-6 bg-background border border-border rounded-6 text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
               />
               <input
                 type="text"
                 value={header.value}
                 onChange={(e) => updateHeader(index, 'value', e.target.value)}
                 placeholder="value"
-                className="flex-1 px-10 py-6 bg-background-base border border-border-faint rounded-6 text-body-small text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
+                className="flex-1 px-10 py-6 bg-background border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
               />
               <button
                 onClick={() => removeHeader(index)}
-                className="w-24 h-24 rounded-4 hover:bg-black-alpha-4 transition-colors flex items-center justify-center group"
+                className="w-24 h-24 rounded-4 hover:bg-secondary transition-colors flex items-center justify-center group"
               >
-                <svg className="w-12 h-12 text-black-alpha-48 group-hover:text-accent-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-12 h-12 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -264,7 +264,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
       {(method === 'POST' || method === 'PUT' || method === 'PATCH') && (
         <div>
           <div className="flex items-center justify-between mb-8">
-            <label className="block text-label-small text-black-alpha-48">
+            <label className="block text-label-small text-muted-foreground">
               Request Body
             </label>
             {nodes && (
@@ -280,18 +280,18 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
             onChange={(e) => setBody(e.target.value)}
             rows={8}
             placeholder='{"key": "value"}'
-            className="w-full px-12 py-10 bg-gray-900 text-heat-100 border border-border-faint rounded-8 text-body-small font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none"
+            className="w-full px-12 py-10 bg-gray-900 text-primary border border-border rounded-md text-xs font-mono focus:outline-none focus:border-primary transition-colors resize-none"
           />
           <div className="flex gap-8 mt-8">
             <button
               onClick={() => setBody('{{state.variables.lastOutput}}')}
-              className="px-10 py-6 bg-heat-4 hover:bg-heat-8 border border-heat-100 rounded-6 text-body-small text-accent-black transition-colors"
+              className="px-10 py-6 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-foreground transition-colors"
             >
               Use Previous Output
             </button>
             <button
               onClick={() => setBody(JSON.stringify({ data: "{{state.variables.lastOutput}}" }, null, 2))}
-              className="px-10 py-6 bg-heat-4 hover:bg-heat-8 border border-heat-100 rounded-6 text-body-small text-accent-black transition-colors"
+              className="px-10 py-6 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-foreground transition-colors"
             >
               Wrap in JSON
             </button>
@@ -301,7 +301,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
 
       {/* Quick Examples */}
       <details className="group">
-        <summary className="cursor-pointer text-body-small text-heat-100 hover:text-heat-200 transition-colors">
+        <summary className="cursor-pointer text-xs text-primary hover:text-heat-200 transition-colors">
           Show API examples
         </summary>
         <div className="mt-12 space-y-8">
@@ -312,10 +312,10 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
               insertQuickHeader('Authorization', 'Bearer xoxb-your-token');
               setBody('{\n  "channel": "C123456",\n  "text": "{{state.variables.lastOutput}}"\n}');
             }}
-            className="w-full p-10 bg-heat-4 hover:bg-heat-8 rounded-6 text-left border border-heat-100 transition-colors"
+            className="w-full p-10 bg-secondary hover:bg-secondary/80 rounded-6 text-left border border-primary transition-colors"
           >
-            <p className="text-body-small text-accent-black font-medium">Slack Message</p>
-            <p className="text-body-small text-heat-100 mt-4">Post to Slack channel</p>
+            <p className="text-xs text-foreground font-medium">Slack Message</p>
+            <p className="text-xs text-primary mt-4">Post to Slack channel</p>
           </button>
 
           <button
@@ -326,10 +326,10 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
               insertQuickHeader('Notion-Version', '2022-06-28');
               setBody('{\n  "parent": { "database_id": "..." },\n  "properties": {}\n}');
             }}
-            className="w-full p-10 bg-heat-4 hover:bg-heat-8 rounded-6 text-left border border-heat-100 transition-colors"
+            className="w-full p-10 bg-secondary hover:bg-secondary/80 rounded-6 text-left border border-primary transition-colors"
           >
-            <p className="text-body-small text-accent-black font-medium">Notion Page</p>
-            <p className="text-body-small text-heat-100 mt-4">Create Notion page</p>
+            <p className="text-xs text-foreground font-medium">Notion Page</p>
+            <p className="text-xs text-primary mt-4">Create Notion page</p>
           </button>
 
           <button
@@ -338,16 +338,16 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
               setMethod('POST');
               setBody('{{state.variables.lastOutput}}');
             }}
-            className="w-full p-10 bg-heat-4 hover:bg-heat-8 rounded-6 text-left border border-heat-100 transition-colors"
+            className="w-full p-10 bg-secondary hover:bg-secondary/80 rounded-6 text-left border border-primary transition-colors"
           >
-            <p className="text-body-small text-accent-black font-medium">Zapier Webhook</p>
-            <p className="text-body-small text-heat-100 mt-4">Trigger Zapier automation</p>
+            <p className="text-xs text-foreground font-medium">Zapier Webhook</p>
+            <p className="text-xs text-primary mt-4">Trigger Zapier automation</p>
           </button>
         </div>
       </details>
 
       {/* Universal Output Selector */}
-      <div className="pt-16 border-t border-border-faint">
+      <div className="pt-16 border-t border-border">
       </div>
     </div>
   );

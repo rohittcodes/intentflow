@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/shadcn/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Workflow } from "@/lib/workflow/types";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -242,19 +242,19 @@ with requests.post(
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-accent-white">
       {/* Header */}
-      <div className="p-20 border-b border-border-faint flex-shrink-0">
+      <div className="p-20 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-label-large text-accent-black font-medium">Endpoint</h2>
+          <h2 className="text-sm font-medium text-foreground font-medium">Endpoint</h2>
           <button
             onClick={onClose}
-            className="w-32 h-32 rounded-6 hover:bg-black-alpha-4 transition-colors flex items-center justify-center"
+            className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
           >
-            <svg className="w-16 h-16 text-black-alpha-48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <p className="text-body-small text-black-alpha-48 mt-8">
+        <p className="text-xs text-muted-foreground mt-8">
           Test your workflow API endpoint
         </p>
       </div>
@@ -262,27 +262,27 @@ with requests.post(
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-20 space-y-20">
         {/* API Key Generation Section */}
-        <div className="p-16 bg-background-base border border-border-faint rounded-12">
-          <h3 className="text-label-medium text-accent-black mb-12">API Access</h3>
+        <div className="p-16 bg-background border border-border rounded-xl">
+          <h3 className="text-label-medium text-foreground mb-12">API Access</h3>
 
           {generatedDetails ? (
-            <div className="p-16 bg-heat-4 border border-heat-100 rounded-8 mb-12 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-16 bg-secondary border border-primary rounded-md mb-12 animate-in fade-in zoom-in-95 duration-200">
               <div className="flex items-start gap-12 mb-12">
-                <Key className="w-20 h-20 text-heat-100 flex-shrink-0 mt-2" />
+                <Key className="w-20 h-20 text-primary flex-shrink-0 mt-2" />
                 <div className="flex-1">
-                  <p className="text-body-medium text-accent-black font-medium mb-4">
+                  <p className="text-sm text-foreground font-medium mb-4">
                     Key generated successfully!
                   </p>
-                  <p className="text-body-small text-black-alpha-64 mb-8">
+                  <p className="text-xs text-foreground/64 mb-8">
                     Make sure to copy it now. You won't be able to see it again.
                   </p>
                   <div className="flex items-center gap-8">
-                    <code className="flex-1 px-12 py-8 bg-white border border-border-faint rounded-8 text-xs font-mono text-accent-black break-all">
+                    <code className="flex-1 px-12 py-8 bg-white border border-border rounded-md text-xs font-mono text-foreground break-all">
                       {generatedDetails.key}
                     </code>
                     <button
                       onClick={() => handleCopy('new-key', generatedDetails.key)}
-                      className="px-12 py-8 bg-accent-black hover:bg-black-alpha-88 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 flex-shrink-0"
+                      className="px-12 py-8 bg-accent-black hover:bg-secondary/808 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 flex-shrink-0"
                     >
                       <Copy className="w-14 h-14" />
                       {copiedKey === 'new-key' ? 'Copied' : 'Copy'}
@@ -292,7 +292,7 @@ with requests.post(
               </div>
               <button
                 onClick={() => setGeneratedDetails(null)}
-                className="text-body-small text-black-alpha-64 hover:text-accent-black underline ml-32"
+                className="text-xs text-foreground/64 hover:text-foreground underline ml-32"
               >
                 Done, I've saved it
               </button>
@@ -305,13 +305,13 @@ with requests.post(
                   placeholder="Key Name (e.g. Production App)"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
-                  className="flex-1 px-12 py-8 bg-white border border-border-faint rounded-8 text-body-small text-accent-black placeholder:text-black-alpha-32 focus:outline-none focus:border-accent-black transition-colors"
+                  className="flex-1 px-12 py-8 bg-white border border-border rounded-md text-xs text-foreground placeholder:text-black-alpha-32 focus:outline-none focus:border-accent-black transition-colors"
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerateKey()}
                 />
                 <button
                   onClick={handleGenerateKey}
                   disabled={isGenerating || !newKeyName.trim()}
-                  className="px-16 py-8 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-16 py-8 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-6 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
                     <Loader2 className="w-14 h-14 animate-spin" />
@@ -322,7 +322,7 @@ with requests.post(
                 </button>
               </div>
               {apiKeys && apiKeys.length > 0 && (
-                <p className="text-xs text-black-alpha-48 flex items-center gap-6">
+                <p className="text-xs text-muted-foreground flex items-center gap-6">
                   <Key className="w-12 h-12" />
                   You have {apiKeys.length} active API key{apiKeys.length !== 1 ? 's' : ''}
                 </p>
@@ -333,24 +333,24 @@ with requests.post(
 
         {/* Endpoint URL */}
         <div>
-          <label className="block text-label-small text-black-alpha-48 mb-8">
+          <label className="block text-label-small text-muted-foreground mb-8">
             Endpoint URL
           </label>
-          <div className="px-12 py-10 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black font-mono overflow-x-auto">
+          <div className="px-12 py-10 bg-background border border-border rounded-md text-xs text-foreground font-mono overflow-x-auto">
             {endpointUrl}
           </div>
         </div>
 
         {/* Request Body */}
         <div>
-          <label className="block text-label-small text-black-alpha-48 mb-8">
+          <label className="block text-label-small text-muted-foreground mb-8">
             Input Payload
           </label>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={6}
-            className="w-full px-12 py-10 bg-gray-900 text-white border border-border-faint rounded-8 text-body-small font-mono focus:outline-none focus:border-accent-black transition-colors resize-none"
+            className="w-full px-12 py-10 bg-gray-900 text-white border border-border rounded-md text-xs font-mono focus:outline-none focus:border-accent-black transition-colors resize-none"
           />
         </div>
 
@@ -375,14 +375,14 @@ with requests.post(
           if (outputSchema) {
             return (
               <div>
-                <label className="block text-label-small text-black-alpha-48 mb-8">
+                <label className="block text-label-small text-muted-foreground mb-8">
                   Expected Output Schema
                 </label>
-                <div className="p-12 bg-heat-4 rounded-8 border border-heat-100">
-                  <p className="text-body-small text-heat-100 mb-8">
+                <div className="p-12 bg-secondary rounded-md border border-primary">
+                  <p className="text-xs text-primary mb-8">
                     This workflow returns structured JSON matching this schema:
                   </p>
-                  <pre className="text-body-small text-accent-black font-mono whitespace-pre-wrap overflow-auto max-h-200">
+                  <pre className="text-xs text-foreground font-mono whitespace-pre-wrap overflow-auto max-h-200">
                     {typeof outputSchema === 'string' ? outputSchema : JSON.stringify(outputSchema, null, 2)}
                   </pre>
                 </div>
@@ -397,23 +397,23 @@ with requests.post(
         <div>
           {/* API Key Notice */}
           {!hasRealKey && (
-            <div className="mb-12 p-12 bg-heat-4 border border-heat-100 rounded-8">
-              <p className="text-body-small text-accent-black">
+            <div className="mb-12 p-12 bg-secondary border border-primary rounded-md">
+              <p className="text-xs text-foreground">
                 <strong>Note:</strong> Replace <code className="px-4 py-2 bg-white rounded text-xs font-mono">YOUR_API_KEY_HERE</code> with your actual API key from Settings.
               </p>
             </div>
           )}
 
           {hasRealKey && (
-            <div className="mb-12 p-12 bg-heat-4 border border-heat-100 rounded-8">
-              <p className="text-body-small text-accent-black">
+            <div className="mb-12 p-12 bg-secondary border border-primary rounded-md">
+              <p className="text-xs text-foreground">
                 <strong>Ready to use!</strong> Your API key is included in the examples below.
               </p>
             </div>
           )}
 
           <Tabs defaultValue="curl" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-8 bg-background-base border border-border-faint rounded-8">
+            <TabsList className="grid grid-cols-4 mb-8 bg-background border border-border rounded-md">
               <TabsTrigger value="curl">cURL</TabsTrigger>
               <TabsTrigger value="curl-stream">Streaming cURL</TabsTrigger>
               <TabsTrigger value="ts">TypeScript</TabsTrigger>
@@ -423,11 +423,11 @@ with requests.post(
               <div className="relative">
                 <button
                   onClick={() => handleCopy('curl', curlStandard)}
-                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border-faint rounded-8 text-xs text-accent-black transition-colors shadow-sm"
+                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-xs text-foreground transition-colors shadow-sm"
                 >
                   {copiedKey === 'curl' ? 'Copied' : 'Copy'}
                 </button>
-                <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
+                <pre className="px-12 py-10 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border">
                   {curlStandard}
                 </pre>
               </div>
@@ -436,11 +436,11 @@ with requests.post(
               <div className="relative">
                 <button
                   onClick={() => handleCopy('curl-stream', curlStreaming)}
-                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border-faint rounded-8 text-xs text-accent-black transition-colors shadow-sm"
+                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-xs text-foreground transition-colors shadow-sm"
                 >
                   {copiedKey === 'curl-stream' ? 'Copied' : 'Copy'}
                 </button>
-                <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
+                <pre className="px-12 py-10 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border">
                   {curlStreaming}
                 </pre>
               </div>
@@ -449,11 +449,11 @@ with requests.post(
               <div className="relative">
                 <button
                   onClick={() => handleCopy('ts', tsExample)}
-                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border-faint rounded-8 text-xs text-accent-black transition-colors shadow-sm"
+                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-xs text-foreground transition-colors shadow-sm"
                 >
                   {copiedKey === 'ts' ? 'Copied' : 'Copy'}
                 </button>
-                <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
+                <pre className="px-12 py-10 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border">
                   {tsExample}
                 </pre>
               </div>
@@ -462,11 +462,11 @@ with requests.post(
               <div className="relative">
                 <button
                   onClick={() => handleCopy('python', pythonExample)}
-                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border-faint rounded-8 text-xs text-accent-black transition-colors shadow-sm"
+                  className="absolute top-12 right-12 flex items-center gap-6 px-12 py-6 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-xs text-foreground transition-colors shadow-sm"
                 >
                   {copiedKey === 'python' ? 'Copied' : 'Copy'}
                 </button>
-                <pre className="px-12 py-10 bg-background-base text-accent-black rounded-8 text-body-small font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border-faint">
+                <pre className="px-12 py-10 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-words overflow-y-auto overflow-x-hidden max-h-200 border border-border">
                   {pythonExample}
                 </pre>
               </div>
@@ -476,9 +476,9 @@ with requests.post(
 
         {/* Response */}
         {error && (
-          <div className="p-16 bg-black-alpha-4 rounded-12 border border-border-faint">
-            <h3 className="text-label-small text-accent-black mb-8">Error</h3>
-            <pre className="text-body-small text-accent-black whitespace-pre-wrap">
+          <div className="p-16 bg-secondary rounded-xl border border-border">
+            <h3 className="text-label-small text-foreground mb-8">Error</h3>
+            <pre className="text-xs text-foreground whitespace-pre-wrap">
               {error}
             </pre>
           </div>
@@ -486,11 +486,11 @@ with requests.post(
 
         {response && (
           <div>
-            <label className="block text-label-small text-black-alpha-48 mb-8">
+            <label className="block text-label-small text-muted-foreground mb-8">
               Response
             </label>
-            <div className="p-12 bg-gray-900 rounded-8 border border-border-faint">
-              <pre className="text-body-small text-white font-mono whitespace-pre-wrap overflow-auto max-h-300">
+            <div className="p-12 bg-gray-900 rounded-md border border-border">
+              <pre className="text-xs text-white font-mono whitespace-pre-wrap overflow-auto max-h-300">
                 {JSON.stringify(response, null, 2)}
               </pre>
             </div>

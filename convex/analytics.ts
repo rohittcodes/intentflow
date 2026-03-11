@@ -2,19 +2,15 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getDashboardStats = query({
-  args: { userId: v.optional(v.string()) },
+  args: { workspaceId: v.id("workspaces") },
   handler: async (ctx, args) => {
-    let userId = args.userId;
-    if (!userId) {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity) return null;
-      userId = identity.subject;
-    }
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
 
-    // Fetch the 500 most recent executions for this user to aggregate
+    // Fetch the 500 most recent executions for this workspace to aggregate
     const executions = await ctx.db
       .query("executions")
-      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
       .order("desc")
       .take(500);
 
@@ -38,16 +34,27 @@ export const getDashboardStats = query({
       failed: 0,
     }));
 
+    const workflowStats: Record<string, { name: string; runs: number; tokens: number }> = {};
+
     executions.forEach(ex => {
       totalRuns++;
       if (ex.status === "completed") successfulRuns++;
       if (ex.status === "failed") failedRuns++;
 
-      if (ex.cumulativeUsage?.total_tokens) {
-        totalTokens += ex.cumulativeUsage.total_tokens;
+      const tokens = ex.cumulativeUsage?.total_tokens || 0;
+      if (tokens) {
+        totalTokens += tokens;
         // Rough estimate: $0.01 per 1000 tokens
-        totalCredits += (ex.cumulativeUsage.total_tokens / 1000) * 0.01;
+        totalCredits += (tokens / 1000) * 0.01;
       }
+
+      // Group by workflow for "Top Workflows"
+      const workflowKey = ex.workflowId.toString();
+      if (!workflowStats[workflowKey]) {
+        workflowStats[workflowKey] = { name: "Unknown Workflow", runs: 0, tokens: 0 };
+      }
+      workflowStats[workflowKey].runs++;
+      workflowStats[workflowKey].tokens += tokens;
 
       const runDate = new Date(ex.startedAt).toISOString().split('T')[0];
       const chartDay = chartData.find(d => d.date === runDate);
@@ -57,6 +64,20 @@ export const getDashboardStats = query({
         if (ex.status === "failed") chartDay.failed++;
       }
     });
+
+    // Resolve workflow names for the stats
+    const workflowIds = Object.keys(workflowStats);
+    for (const wId of workflowIds) {
+      const workflow = await ctx.db.get(wId as any);
+      if (workflow) {
+        workflowStats[wId].name = (workflow as any).name;
+      }
+    }
+
+    const topWorkflows = Object.entries(workflowStats)
+      .map(([id, stat]) => ({ id, ...stat }))
+      .sort((a, b) => b.runs - a.runs)
+      .slice(0, 5);
 
     // Round totalCredits to 4 decimal places for clean display
     totalCredits = Math.round(totalCredits * 10000) / 10000;
@@ -69,13 +90,14 @@ export const getDashboardStats = query({
       totalCredits,
       successRate: totalRuns > 0 ? Math.round((successfulRuns / totalRuns) * 100) : 0,
       chartData,
+      topWorkflows,
       recentExecutions: executions.slice(0, 10).map(e => ({
         id: e._id,
         workflowId: e.workflowId,
         status: e.status,
         startedAt: e.startedAt,
         tokensUsed: e.cumulativeUsage?.total_tokens || 0,
-        creditsConsumed: e.cumulativeUsage?.total_tokens ? Number(((e.cumulativeUsage.total_tokens / 1000) * 0.01).toFixed(4)) : 0
+        creditsConsumed: e.cumulativeUsage?.total_tokens ? Number(((e.cumulativeUsage.total_tokens / 1000) * 0.001).toFixed(4)) : 0
       }))
     };
   }

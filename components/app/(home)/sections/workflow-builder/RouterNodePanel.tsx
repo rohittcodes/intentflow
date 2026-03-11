@@ -49,12 +49,12 @@ export default function RouterNodePanel({
     <div className="p-20 space-y-20">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <label className="text-sm font-medium text-black-alpha-48">
+          <label className="text-sm font-medium text-muted-foreground">
             Routes & Conditions
           </label>
           <button
             onClick={addRoute}
-            className="flex items-center gap-1 text-xs font-semibold text-heat-100 hover:text-heat-200 transition-colors"
+            className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-heat-200 transition-colors"
           >
             <Plus className="w-3 h-3" />
             Add Route
@@ -69,10 +69,10 @@ export default function RouterNodePanel({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="p-12 bg-background-base border border-border-faint rounded-10 space-y-3"
+                className="p-12 bg-background border border-border rounded-lg space-y-3"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-20 h-20 rounded-full bg-heat-4 flex items-center justify-center text-[10px] font-bold text-heat-100">
+                  <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
                     {index + 1}
                   </div>
                   <input
@@ -80,11 +80,11 @@ export default function RouterNodePanel({
                     value={route.label}
                     onChange={(e) => updateRoute(route.id, { label: e.target.value })}
                     placeholder="Route label (e.g. Success)"
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-accent-black px-1 focus:ring-0"
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-foreground px-1 focus:ring-0"
                   />
                   <button
                     onClick={() => removeRoute(route.id)}
-                    className="p-1 hover:bg-black-alpha-4 rounded-4 text-black-alpha-32 hover:text-red-500 transition-colors"
+                    className="p-1 hover:bg-secondary rounded-4 text-black-alpha-32 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -99,7 +99,7 @@ export default function RouterNodePanel({
                     onChange={(e) => updateRoute(route.id, { condition: e.target.value })}
                     placeholder="e.g. {{output.score}} > 0.8"
                     rows={2}
-                    className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-6 text-xs text-accent-black focus:outline-none focus:border-heat-100 transition-colors resize-none"
+                    className="w-full px-12 py-8 bg-accent-white border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                   />
                 </div>
               </motion.div>
@@ -108,8 +108,8 @@ export default function RouterNodePanel({
         </div>
       </div>
 
-      <div className="p-12 bg-black-alpha-4 rounded-10 border border-border-faint">
-        <p className="text-[11px] text-black-alpha-48 leading-relaxed">
+      <div className="p-12 bg-secondary rounded-lg border border-border">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
           <ArrowRight className="w-3 h-3 inline mr-1 mb-0.5" />
           The router will evaluate conditions in order. The first route to match will be followed. Add an "Else" route at the end with <code>true</code> as the condition.
         </p>

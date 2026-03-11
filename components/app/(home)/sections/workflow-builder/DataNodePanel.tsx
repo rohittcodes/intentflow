@@ -101,7 +101,7 @@ return result;`,
           <select
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
-            className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
+            className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
           >
             <option value="true">true</option>
             <option value="false">false</option>
@@ -114,7 +114,7 @@ return result;`,
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
             placeholder="42 or {{lastOutput.count}}"
-            className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors"
+            className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
           />
         );
       case "json":
@@ -124,7 +124,7 @@ return result;`,
             onChange={(e) => setStateValue(e.target.value)}
             rows={4}
             placeholder='{"key": "value"} or {{lastOutput}}'
-            className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none"
+            className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
           />
         );
       case "expression":
@@ -134,7 +134,7 @@ return result;`,
             onChange={(e) => setStateValue(e.target.value)}
             rows={3}
             placeholder="input.price * 1.1"
-            className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none"
+            className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
           />
         );
       default:
@@ -144,7 +144,7 @@ return result;`,
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
             placeholder="Hello {{input.name}}"
-            className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
+            className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
           />
         );
     }
@@ -158,17 +158,17 @@ return result;`,
       {nodeType.includes("transform") && (
         <>
           <div>
-            <h3 className="text-sm font-medium text-accent-black mb-12">
+            <h3 className="text-sm font-medium text-foreground mb-12">
               Transform Code (TypeScript)
             </h3>
-            <p className="text-sm text-black-alpha-48 mb-16">
+            <p className="text-sm text-muted-foreground mb-16">
               Write TypeScript code to transform data. Runs securely in E2B sandbox.
             </p>
 
             {/* Code Editor */}
             <div className="mb-16">
               <div className="flex items-center justify-between mb-8">
-                <label className="block text-sm text-accent-black">
+                <label className="block text-sm text-foreground">
                   TypeScript Code
                 </label>
                 <VariableReferencePicker
@@ -183,16 +183,16 @@ return result;`,
                 value={transformScript}
                 onChange={(e) => setTransformScript(e.target.value)}
                 rows={20}
-                className="w-full px-12 py-10 bg-[#1e1e1e] text-[#d4d4d4] border border-border-faint rounded-8 text-sm font-mono focus:outline-none focus:border-heat-100 transition-colors resize-none"
+                className="w-full px-12 py-10 bg-[#1e1e1e] text-[#d4d4d4] border border-border rounded-md text-sm font-mono focus:outline-none focus:border-primary transition-colors resize-none"
                 placeholder="// Transform the input data using TypeScript"
                 spellCheck={false}
               />
-              <div className="mt-8 text-xs text-black-alpha-48 space-y-4">
+              <div className="mt-8 text-xs text-muted-foreground space-y-4">
                 <p>Available variables:</p>
                 <ul className="list-disc list-inside space-y-2 ml-8">
-                  <li><code className="px-4 py-1 bg-background-base rounded text-heat-100 font-mono">input</code> - Current input data</li>
-                  <li><code className="px-4 py-1 bg-background-base rounded text-heat-100 font-mono">lastOutput</code> - Output from previous node</li>
-                  <li><code className="px-4 py-1 bg-background-base rounded text-heat-100 font-mono">state</code> - Workflow state with variables</li>
+                  <li><code className="px-4 py-1 bg-background rounded text-primary font-mono">input</code> - Current input data</li>
+                  <li><code className="px-4 py-1 bg-background rounded text-primary font-mono">lastOutput</code> - Output from previous node</li>
+                  <li><code className="px-4 py-1 bg-background rounded text-primary font-mono">state</code> - Workflow state with variables</li>
                 </ul>
                 <p className="mt-8">Your function should return an object with the transformed data.</p>
               </div>
@@ -205,20 +205,20 @@ return result;`,
       {nodeType.includes("state") && !nodeType.includes("transform") && (
         <>
           <div>
-            <h3 className="text-sm font-medium text-accent-black mb-12">
+            <h3 className="text-sm font-medium text-foreground mb-12">
               Set global variables
             </h3>
-            <p className="text-sm text-black-alpha-48 mb-16">
+            <p className="text-sm text-muted-foreground mb-16">
               Assign values to workflow's state variables
             </p>
 
             {/* State Assignments */}
             <div className="space-y-12">
-              <div className="p-12 bg-background-base rounded-10 border border-border-faint">
+              <div className="p-12 bg-background rounded-lg border border-border">
                 <div className="space-y-12">
                   {/* Variable Name */}
                   <div>
-                    <label className="block text-sm text-accent-black mb-6">
+                    <label className="block text-sm text-foreground mb-6">
                       Variable Name
                     </label>
                     <input
@@ -226,22 +226,22 @@ return result;`,
                       value={stateKey}
                       onChange={(e) => setStateKey(e.target.value)}
                       placeholder="myVariable"
-                      className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black font-mono focus:outline-none focus:border-heat-100"
+                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary"
                     />
-                    <p className="text-xs text-black-alpha-48 mt-4">
-                      Access later with <code className="px-4 py-1 bg-background-base rounded text-heat-100 font-mono text-xs">{`{{state.${stateKey}}}`}</code>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Access later with <code className="px-4 py-1 bg-background rounded text-primary font-mono text-xs">{`{{state.${stateKey}}}`}</code>
                     </p>
                   </div>
 
                   {/* Value Type */}
                   <div>
-                    <label className="block text-sm text-accent-black mb-6">
+                    <label className="block text-sm text-foreground mb-6">
                       Value Type
                     </label>
                     <select
                       value={valueType}
                       onChange={(e) => setValueType(e.target.value as any)}
-                      className="w-full px-12 py-8 bg-accent-white border border-border-faint rounded-8 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors appearance-none cursor-pointer"
+                      className="w-full px-12 py-8 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
                     >
                       <option value="string">String</option>
                       <option value="number">Number</option>
@@ -254,7 +254,7 @@ return result;`,
                   {/* Value Input */}
                   <div>
                     <div className="flex items-center justify-between mb-6">
-                      <label className="block text-sm text-accent-black">
+                      <label className="block text-sm text-foreground">
                         Value
                       </label>
                       <VariableReferencePicker
@@ -264,7 +264,7 @@ return result;`,
                       />
                     </div>
                     {renderValueInput()}
-                    <p className="text-xs text-black-alpha-48 mt-4">
+                    <p className="text-xs text-muted-foreground mt-4">
                       {valueType === 'string' && 'Use {{variables}} to reference other data'}
                       {valueType === 'number' && 'Can use {{lastOutput.price}} to reference numbers'}
                       {valueType === 'boolean' && 'true or false'}
@@ -282,7 +282,7 @@ return result;`,
                     description: 'Currently you can set one variable per node. Add another Set State node for more variables.'
                   });
                 }}
-                className="px-12 py-8 bg-background-base hover:bg-black-alpha-4 border border-border-faint rounded-8 text-sm text-accent-black transition-colors flex items-center gap-6"
+                className="px-12 py-8 bg-background hover:bg-secondary border border-border rounded-md text-sm text-foreground transition-colors flex items-center gap-6"
               >
                 <svg
                   className="w-14 h-14"
@@ -307,11 +307,11 @@ return result;`,
       {nodeType.includes("query") && (
         <div className="space-y-20">
           <div>
-            <h3 className="text-sm font-medium text-accent-black mb-12 flex items-center gap-8">
+            <h3 className="text-sm font-medium text-foreground mb-12 flex items-center gap-8">
               <Database className="w-16 h-16 text-amber-500" />
               Database Query
             </h3>
-            <p className="text-[13px] text-black-alpha-48 mb-16">
+            <p className="text-[13px] text-muted-foreground mb-16">
               Execute a SQL query against your connected database.
             </p>
 
@@ -324,7 +324,7 @@ return result;`,
                 <select
                   value={selectedConnectorId}
                   onChange={(e) => setSelectedConnectorId(e.target.value)}
-                  className="w-full px-12 py-10 bg-accent-white border border-border-faint rounded-10 text-sm text-accent-black focus:outline-none focus:border-heat-100 transition-colors cursor-pointer appearance-none"
+                  className="w-full px-12 py-10 bg-accent-white border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors cursor-pointer appearance-none"
                 >
                   <option value="">Select a Data Source</option>
                   {connectors?.map((c) => (
@@ -362,7 +362,7 @@ return result;`,
                     value={sqlQuery}
                     onChange={(e) => setSqlQuery(e.target.value)}
                     rows={12}
-                    className="w-full pl-36 pr-12 py-12 bg-black-alpha-4 text-accent-black border border-border-faint rounded-12 text-sm font-mono focus:outline-none focus:border-amber-500 transition-all resize-none"
+                    className="w-full pl-36 pr-12 py-12 bg-secondary text-foreground border border-border rounded-xl text-sm font-mono focus:outline-none focus:border-amber-500 transition-all resize-none"
                     placeholder="SELECT * FROM table_name WHERE id = {{state.user_id}}"
                     spellCheck={false}
                   />

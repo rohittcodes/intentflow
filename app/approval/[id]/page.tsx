@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { CheckCircle2, XCircle, Clock, AlertCircle, ShieldCheck, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import Button from "@/components/shared/button/Button";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 /**
@@ -63,10 +63,10 @@ export default function ApprovalPage() {
 
   if (!approvalData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-base">
-        <div className="flex flex-col items-center gap-16">
-          <div className="w-48 h-48 border-4 border-heat-100 border-t-transparent rounded-full animate-spin" />
-          <p className="text-body-medium text-black-alpha-48 font-medium">Loading approval details...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground font-medium">Loading approval details...</p>
         </div>
       </div>
     );
@@ -74,17 +74,17 @@ export default function ApprovalPage() {
 
   if (approvalData.status === "not_found") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-base p-20">
-        <div className="max-w-400 w-full bg-accent-white border border-border-faint rounded-24 p-40 text-center shadow-xl">
-          <div className="w-64 h-64 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-24">
-            <AlertCircle className="w-32 h-32" />
+      <div className="min-h-screen flex items-center justify-center bg-background p-5">
+        <div className="max-w-md w-full bg-card border rounded-2xl p-10 text-center shadow-xl">
+          <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8" />
           </div>
-          <h1 className="text-display-small text-accent-black mb-12">Approval Not Found</h1>
-          <p className="text-body-medium text-black-alpha-48 mb-32">
+          <h1 className="text-2xl font-bold text-foreground mb-3">Approval Not Found</h1>
+          <p className="text-sm text-muted-foreground mb-8">
             This approval request may have expired or been deleted. Please check the workflow status.
           </p>
-          <Link href="/app">
-            <Button variant="primary" className="w-full">Return to Dashboard</Button>
+          <Link href="/dashboard">
+            <Button className="w-full">Return to Dashboard</Button>
           </Link>
         </div>
       </div>
@@ -94,62 +94,58 @@ export default function ApprovalPage() {
   const { approval } = approvalData;
 
   return (
-    <div className="min-h-screen bg-background-base flex items-center justify-center p-20 font-sans selection:bg-heat-100/30">
-      <div className="max-w-500 w-full relative">
-        {/* Background Gradients */}
-        <div className="absolute -top-100 -left-100 w-300 h-300 bg-heat-100/10 blur-[100px] rounded-full" />
-        <div className="absolute -bottom-100 -right-100 w-300 h-300 bg-blue-500/10 blur-[100px] rounded-full" />
-
+    <div className="min-h-screen bg-background flex items-center justify-center p-5 selection:bg-primary/20">
+      <div className="max-w-lg w-full relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-accent-white/80 backdrop-blur-2xl border border-border-faint rounded-32 p-40 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] overflow-hidden"
+          className="relative bg-card/80 backdrop-blur-xl border rounded-3xl p-10 shadow-2xl overflow-hidden"
         >
           {/* Status Badge */}
-          <div className="flex justify-center mb-32">
+          <div className="flex justify-center mb-8">
             {resolvedStatus === 'approved' ? (
-              <div className="flex items-center gap-8 px-16 py-8 rounded-full bg-green-50 text-green-600 border border-green-100">
-                <CheckCircle2 className="w-16 h-16" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 border border-green-500/20">
+                <CheckCircle2 className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Approved</span>
               </div>
             ) : resolvedStatus === 'rejected' ? (
-              <div className="flex items-center gap-8 px-16 py-8 rounded-full bg-red-50 text-red-600 border border-red-100">
-                <XCircle className="w-16 h-16" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                <XCircle className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Rejected</span>
               </div>
             ) : (
-              <div className="flex items-center gap-8 px-16 py-8 rounded-full bg-amber-50 text-amber-600 border border-amber-100">
-                <Clock className="w-16 h-16" />
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                <Clock className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Action Required</span>
               </div>
             )}
           </div>
 
-          <div className="text-center mb-40">
-            <h1 className="text-display-small text-accent-black mb-12 tracking-tight">Workflow Approval</h1>
-            <p className="text-body-medium text-black-alpha-48 max-w-320 mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-foreground mb-3 tracking-tight">Workflow Approval</h1>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
               A human decision is needed to continue the execution of this workflow.
             </p>
           </div>
 
           {/* Context Card */}
-          <div className="bg-background-base rounded-24 p-24 mb-40 border border-border-faint shadow-inner">
-            <div className="flex items-center gap-12 mb-16">
-              <div className="w-32 h-32 rounded-10 bg-accent-black flex items-center justify-center">
-                <ShieldCheck className="w-18 h-18 text-white" />
+          <div className="bg-muted/50 rounded-2xl p-6 mb-10 border shadow-inner">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="text-left">
-                <span className="text-[10px] uppercase tracking-widest text-black-alpha-40 font-bold">Request Message</span>
-                <p className="text-label-medium text-accent-black line-clamp-1">Context from Node {approval?.nodeId}</p>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Request Message</span>
+                <p className="text-sm font-medium text-foreground line-clamp-1">Context from Node {approval?.nodeId}</p>
               </div>
             </div>
-            <div className="p-20 bg-accent-white border border-border-faint rounded-16">
-              <p className="text-body-medium text-accent-black italic leading-relaxed">
+            <div className="p-5 bg-background border rounded-xl">
+              <p className="text-sm text-foreground italic leading-relaxed">
                 "{approval?.message}"
               </p>
             </div>
-            <div className="mt-20 flex items-center gap-8 text-[11px] text-black-alpha-40 font-medium">
-              <Clock className="w-12 h-12" />
+            <div className="mt-5 flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
+              <Clock className="w-3 h-3" />
               <span>Created at {new Date(approval!.createdAt).toLocaleString()}</span>
             </div>
           </div>
@@ -161,25 +157,26 @@ export default function ApprovalPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="grid grid-cols-2 gap-16"
+                className="grid grid-cols-2 gap-4"
               >
-                <button
+                <Button
+                  variant="outline"
                   onClick={handleReject}
                   disabled={isProcessing}
-                  className="group relative h-56 rounded-20 bg-background-base border border-border-faint text-accent-black text-label-medium font-bold hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                  className="h-14 rounded-xl font-bold hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95 border-border"
                 >
-                  <span className="relative z-10">Reject</span>
-                </button>
-                <button
+                  Reject
+                </Button>
+                <Button
                   onClick={handleApprove}
                   disabled={isProcessing}
-                  className="group relative h-56 rounded-20 bg-heat-100 text-white text-label-medium font-bold hover:bg-heat-200 shadow-[0_8px_24px_rgba(250,93,25,0.25)] hover:shadow-[0_12px_32px_rgba(250,93,25,0.4)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                  className="h-14 rounded-xl font-bold shadow-lg transition-all active:scale-95"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-8">
+                  <span className="flex items-center justify-center gap-2">
                     {isProcessing ? "Processing..." : "Approve & Resume"}
-                    <ChevronRight className="w-16 h-16 group-hover:translate-x-4 transition-transform" />
+                    <ChevronRight className="w-4 h-4" />
                   </span>
-                </button>
+                </Button>
               </motion.div>
             ) : (
               <motion.div
@@ -188,18 +185,18 @@ export default function ApprovalPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center"
               >
-                <div className={`p-24 rounded-24 border ${resolvedStatus === 'approved' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                <div className={`p-6 rounded-2xl border ${resolvedStatus === 'approved' ? 'bg-green-500/10 border-green-500/20' : 'bg-destructive/10 border-destructive/20'
                   }`}>
-                  <p className={`text-label-medium font-bold ${resolvedStatus === 'approved' ? 'text-green-700' : 'text-red-700'
+                  <p className={`text-sm font-bold ${resolvedStatus === 'approved' ? 'text-green-700' : 'text-destructive'
                     }`}>
                     This request has been {resolvedStatus}.
                   </p>
-                  <p className="text-body-small text-black-alpha-48 mt-8">
+                  <p className="text-xs text-muted-foreground mt-2">
                     You can close this window now. The workflow has been notified.
                   </p>
                 </div>
-                <Link href="/app">
-                  <Button variant="secondary" className="mt-24 w-full">Back to App</Button>
+                <Link href="/dashboard" className="block mt-6">
+                  <Button variant="secondary" className="w-full">Back to App</Button>
                 </Link>
               </motion.div>
             )}
@@ -207,8 +204,8 @@ export default function ApprovalPage() {
         </motion.div>
 
         {/* Brand Footer */}
-        <div className="mt-32 text-center">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-black-alpha-32 font-black">
+        <div className="mt-8 text-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-black">
             Powered by Intentflow Agentic Engine
           </p>
         </div>

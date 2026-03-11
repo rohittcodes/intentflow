@@ -104,19 +104,19 @@ export default function OutputDrawer({
             {/* Header */}
             <div className="flex items-center justify-between p-20 border-b border-black-alpha-8">
               <div className="flex items-center gap-12">
-                <Code2 className="w-20 h-20 text-heat-100" />
+                <Code2 className="w-20 h-20 text-primary" />
                 <div>
-                  <h2 className="text-label-large font-bold text-accent-black">
+                  <h2 className="text-sm font-medium font-bold text-foreground">
                     Node Inspector
                   </h2>
-                  <p className="text-body-small text-black-alpha-56">
+                  <p className="text-xs text-black-alpha-56">
                     {nodeName || nodeId}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="w-32 h-32 rounded-8 hover:bg-black-alpha-4 flex items-center justify-center transition-colors"
+                className="w-32 h-32 rounded-md hover:bg-secondary flex items-center justify-center transition-colors"
               >
                 <X className="w-18 h-18 text-black-alpha-56" />
               </button>
@@ -127,7 +127,7 @@ export default function OutputDrawer({
               {!nodeResult ? (
                 <div className="text-center py-40">
                   <Clock className="w-48 h-48 text-black-alpha-24 mx-auto mb-16" />
-                  <p className="text-body-medium text-black-alpha-48">
+                  <p className="text-sm text-muted-foreground">
                     No execution data available
                   </p>
                 </div>
@@ -147,7 +147,7 @@ export default function OutputDrawer({
                             {nodeResult.status || "Unknown"}
                           </p>
                           {duration !== null && (
-                            <p className="text-body-small opacity-70">
+                            <p className="text-xs opacity-70">
                               {duration}s execution time
                             </p>
                           )}
@@ -193,9 +193,9 @@ export default function OutputDrawer({
                         {nodeResult.toolCalls.map((call, idx) => (
                           <div
                             key={idx}
-                            className="p-12 bg-background-base rounded-12 border border-black-alpha-8"
+                            className="p-12 bg-background rounded-xl border border-black-alpha-8"
                           >
-                            <p className="text-label-small font-bold text-accent-black mb-8">
+                            <p className="text-label-small font-bold text-foreground mb-8">
                               {call.name || `Tool ${idx + 1}`}
                             </p>
                             {call.arguments && (
@@ -237,11 +237,11 @@ export default function OutputDrawer({
                         {nodeResult.logs.map((log, idx) => (
                           <div
                             key={idx}
-                            className={`p-10 rounded-8 border text-[11px] leading-relaxed ${log.level === 'error'
+                            className={`p-10 rounded-md border text-[11px] leading-relaxed ${log.level === 'error'
                                 ? 'bg-red-50 border-red-100 text-red-700'
                                 : log.level === 'warn'
                                   ? 'bg-amber-50 border-amber-100 text-amber-700'
-                                  : 'bg-black-alpha-4 border-black-alpha-8 text-black-alpha-64'
+                                  : 'bg-secondary border-black-alpha-8 text-foreground/64'
                               }`}
                           >
                             <div className="flex justify-between mb-4 font-bold uppercase tracking-wider text-[9px]">
@@ -267,8 +267,8 @@ export default function OutputDrawer({
                       isExpanded={expandedSections.has("error")}
                       onToggle={() => toggleSection("error")}
                     >
-                      <div className="p-12 bg-red-50 border border-red-200 rounded-12">
-                        <pre className="text-body-small text-red-700 font-mono whitespace-pre-wrap break-words">
+                      <div className="p-12 bg-red-50 border border-red-200 rounded-xl">
+                        <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-words">
                           {nodeResult.error}
                         </pre>
                       </div>
@@ -276,21 +276,21 @@ export default function OutputDrawer({
                   )}
 
                   {/* Metadata */}
-                  <div className="p-16 bg-background-base rounded-16 border border-black-alpha-8">
+                  <div className="p-16 bg-background rounded-16 border border-black-alpha-8">
                     <p className="text-[10px] uppercase tracking-wider text-black-alpha-40 font-bold mb-12">
                       Metadata
                     </p>
-                    <div className="space-y-8 text-body-small">
+                    <div className="space-y-8 text-xs">
                       <div className="flex justify-between">
                         <span className="text-black-alpha-56">Node ID</span>
-                        <span className="text-accent-black font-mono text-xs">
+                        <span className="text-foreground font-mono text-xs">
                           {nodeResult.nodeId}
                         </span>
                       </div>
                       {nodeResult.startedAt && (
                         <div className="flex justify-between">
                           <span className="text-black-alpha-56">Started</span>
-                          <span className="text-accent-black">
+                          <span className="text-foreground">
                             {new Date(nodeResult.startedAt).toLocaleTimeString()}
                           </span>
                         </div>
@@ -298,7 +298,7 @@ export default function OutputDrawer({
                       {nodeResult.completedAt && (
                         <div className="flex justify-between">
                           <span className="text-black-alpha-56">Completed</span>
-                          <span className="text-accent-black">
+                          <span className="text-foreground">
                             {new Date(nodeResult.completedAt).toLocaleTimeString()}
                           </span>
                         </div>
@@ -310,15 +310,15 @@ export default function OutputDrawer({
                           </p>
                           <div className="flex justify-between">
                             <span className="text-black-alpha-56">Input Tokens</span>
-                            <span className="text-accent-black">{nodeResult.usage.input_tokens}</span>
+                            <span className="text-foreground">{nodeResult.usage.input_tokens}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-black-alpha-56">Output Tokens</span>
-                            <span className="text-accent-black">{nodeResult.usage.output_tokens}</span>
+                            <span className="text-foreground">{nodeResult.usage.output_tokens}</span>
                           </div>
                           <div className="flex justify-between font-bold">
                             <span className="text-black-alpha-56">Total Tokens</span>
-                            <span className="text-accent-black">{nodeResult.usage.total_tokens || (nodeResult.usage.input_tokens! + nodeResult.usage.output_tokens!)}</span>
+                            <span className="text-foreground">{nodeResult.usage.total_tokens || (nodeResult.usage.input_tokens! + nodeResult.usage.output_tokens!)}</span>
                           </div>
                         </div>
                       )}
@@ -350,9 +350,9 @@ function Section({
     <div className="border border-black-alpha-8 rounded-16 overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-16 bg-background-base hover:bg-black-alpha-4 transition-colors"
+        className="w-full flex items-center justify-between p-16 bg-background hover:bg-secondary transition-colors"
       >
-        <span className="text-label-medium font-bold text-accent-black">
+        <span className="text-label-medium font-bold text-foreground">
           {title}
         </span>
         {isExpanded ? (
@@ -381,7 +381,7 @@ function Section({
 // Code Block Component
 function CodeBlock({ code, compact = false }: { code: string; compact?: boolean }) {
   return (
-    <div className={`bg-[#1E1E1E] rounded-12 overflow-hidden ${compact ? 'max-h-200' : 'max-h-400'} overflow-y-auto`}>
+    <div className={`bg-[#1E1E1E] rounded-xl overflow-hidden ${compact ? 'max-h-200' : 'max-h-400'} overflow-y-auto`}>
       <pre className="p-12 text-[11px] leading-relaxed font-mono text-[#D4D4D4]">
         {code}
       </pre>

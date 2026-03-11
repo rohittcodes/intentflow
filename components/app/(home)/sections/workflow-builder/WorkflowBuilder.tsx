@@ -3,7 +3,7 @@
 
 import { useCallback, useRef, DragEvent, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+
 import {
   ReactFlow,
   Background,
@@ -22,7 +22,7 @@ import {
   useKeyPress,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import "@/styles/workflow-execution.css";
+// import "@/styles/workflow-execution.css"; // Broken after cleanup
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -96,8 +96,19 @@ import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { validateWorkflow, ValidationResult } from "@/lib/workflow/validation";
 import { ApiKeys } from "@/lib/workflow/types";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/shadcn/tooltip";
-import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertTriangle, CheckCircle2, Info, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface WorkflowBuilderProps {
   onBack: () => void;
@@ -156,7 +167,7 @@ const nodeCategories = [
       { type: "router", label: "Router", color: "bg-[#FEE7C2] dark:bg-[#FFAE2B]", icon: GitBranch },
       { type: "while", label: "While", color: "bg-[#FEE7C2] dark:bg-[#FFAE2B]", icon: Repeat },
       { type: "user-approval", label: "User approval", color: "bg-[#E5E7EB] dark:bg-[#9CA3AF]", icon: CheckCircle },
-      { type: "guardrails", label: "Guardrails", color: "bg-heat-100", icon: Shield },
+      { type: "guardrails", label: "Guardrails", color: "bg-primary", icon: Shield },
     ],
   },
   {
@@ -652,133 +663,172 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   }, [workflow, runWorkflow]);
 
   return (
-    <div className="h-screen w-full flex flex-col bg-background-base text-accent-black overflow-hidden font-sans selection:bg-heat-100/30">
-      {/* Modern Top Bar */}
-      <header className="h-64 border-b border-black-alpha-8 bg-accent-white/80 backdrop-blur-xl flex items-center justify-between px-20 z-[100]">
-        <div className="flex items-center gap-16">
-          <button onClick={onBack} className="w-36 h-36 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 flex items-center justify-center transition-all group">
-            <ChevronLeft className="w-20 h-20 text-black-alpha-56 group-hover:text-accent-black" />
-          </button>
+    <div className="h-screen w-full flex flex-col bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30">
+      {/* Standardized Top Bar */}
+      <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 z-[100] shrink-0">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={onBack} 
+            className="h-9 w-9"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
           <div className="flex flex-col">
-            <div className="flex items-center gap-8">
-              <WorkflowNameEditor workflow={workflow} renameTrigger={renameTrigger} onSave={(name) => saveWorkflow({ ...workflow!, name })} />
-              <div className={`px-8 py-2 rounded-full border text-[10px] uppercase tracking-wider font-bold flex items-center gap-4 ${workflow?.isDeployed ? 'bg-green-100 border-green-200 text-green-700' : 'bg-black-alpha-4 border-black-alpha-8 text-black-alpha-56'}`}>
+            <div className="flex items-center gap-3">
+              <WorkflowNameEditor 
+                workflow={workflow} 
+                renameTrigger={renameTrigger} 
+                onSave={(name) => saveWorkflow({ ...workflow!, name })} 
+              />
+              <Badge variant={workflow?.isDeployed ? "default" : "secondary"} className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider">
                 {workflow?.isDeployed ? (
-                  <>
-                    <span className="w-4 h-4 rounded-full bg-green-500 animate-pulse" />
+                  <span className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground animate-pulse" />
                     Live
-                  </>
+                  </span>
                 ) : (
                   'Draft'
                 )}
-              </div>
+              </Badge>
             </div>
-            <p className="text-[11px] text-black-alpha-56 font-medium flex items-center gap-4">
-              <span className={`w-6 h-6 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-black-alpha-24' : 'bg-green-500')}`} />
-              {isSaving ? 'Saving changes...' : (!convexId ? 'Unsaved' : 'Changes saved')}
-            </p>
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
+              <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-muted-foreground/30' : 'bg-green-500')}`} />
+              {isSaving ? 'Saving' : (!convexId ? 'Unsaved' : 'Saved')}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-12">
-          <div className="relative" ref={workflowMenuRef}>
-            <button onClick={() => setShowWorkflowMenu(!showWorkflowMenu)} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
-              Workflow <ChevronDown className={`w-14 h-14 transition-transform ${showWorkflowMenu ? 'rotate-180' : ''}`} />
-            </button>
-            <AnimatePresence>
-              {showWorkflowMenu && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute right-0 mt-8 w-200 bg-accent-white border border-black-alpha-8 rounded-12 shadow-2xl z-[110] overflow-hidden p-4">
-                  <button onClick={handleDuplicateWorkflow} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Duplicate</button>
-                  <button onClick={() => { setShowSaveAsTemplateModal(true); setShowWorkflowMenu(false); }} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Save as Template</button>
-                  <button onClick={handleAutoLayout} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors flex items-center justify-between">
-                    Auto Layout
-                    <Wand2 className="w-14 h-14 text-black-alpha-32" />
-                  </button>
-                  {workflow?.isDeployed ? (
-                    <button onClick={handleUnpublish} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors border-b border-black-alpha-8 mb-4 pb-12 flex items-center justify-between">
-                      Unpublish
-                      <CloudOff className="w-14 h-14 text-black-alpha-32" />
-                    </button>
-                  ) : (
-                    <button onClick={handleDeploy} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors border-b border-black-alpha-8 mb-4 pb-12 flex items-center justify-between">
-                      Deploy
-                      <CloudUpload className="w-14 h-14 text-black-alpha-32" />
-                    </button>
-                  )}
-                  <button onClick={handleClearCanvas} className="w-full px-12 py-8 text-left text-xs font-semibold text-accent-black hover:bg-black-alpha-4 rounded-8 transition-colors">Clear</button>
-                  <button onClick={confirmDeleteWorkflow} className="w-full px-12 py-8 text-left text-xs font-semibold text-red-500 hover:bg-red-500/10 rounded-8 transition-colors">Delete</button>
-                </motion.div>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2">
+                Workflow
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={handleDuplicateWorkflow} className="gap-2">
+                <Copy className="h-4 w-4" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowSaveAsTemplateModal(true)} className="gap-2">
+                <LayoutGrid className="h-4 w-4" /> Save as Template
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAutoLayout} className="gap-2">
+                <Wand2 className="h-4 w-4" /> Auto Layout
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {workflow?.isDeployed ? (
+                <DropdownMenuItem onClick={handleUnpublish} className="gap-2">
+                  <CloudOff className="h-4 w-4" /> Unpublish
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={handleDeploy} className="gap-2">
+                  <CloudUpload className="h-4 w-4" /> Deploy
+                </DropdownMenuItem>
               )}
-            </AnimatePresence>
-          </div>
-          <div className="flex items-center gap-4 mr-8 border-r border-black-alpha-8 pr-12">
-            <button
-              onClick={handleUndo}
-              disabled={!activeUndoRedo.canUndo}
-              className={`w-32 h-32 rounded-8 flex items-center justify-center transition-all ${activeUndoRedo.canUndo ? 'text-black-alpha-56 hover:bg-black-alpha-4 hover:text-accent-black' : 'text-black-alpha-16 cursor-not-allowed'}`}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="w-16 h-16" />
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={!activeUndoRedo.canRedo}
-              className={`w-32 h-32 rounded-8 flex items-center justify-center transition-all ${activeUndoRedo.canRedo ? 'text-black-alpha-56 hover:bg-black-alpha-4 hover:text-accent-black' : 'text-black-alpha-16 cursor-not-allowed'}`}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="w-16 h-16" />
-            </button>
+              <DropdownMenuItem onClick={handleClearCanvas} className="gap-2">
+                <Undo className="h-4 w-4" /> Clear Canvas
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={confirmDeleteWorkflow} className="text-destructive gap-2 focus:text-destructive">
+                <Trash2 className="h-4 w-4" /> Move to Trash
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <div className="flex items-center gap-1 border-r pr-2 mr-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleUndo}
+                    disabled={!activeUndoRedo.canUndo}
+                    className="h-8 w-8"
+                  >
+                    <Undo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRedo}
+                    disabled={!activeUndoRedo.canRedo}
+                    className="h-8 w-8"
+                  >
+                    <Redo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
-          <button onClick={handleShowSettings} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
-            <Settings2 className="w-16 h-16" /> Config
-          </button>
+          <Button variant="outline" size="sm" onClick={handleShowSettings} className="h-9 gap-2">
+            <Settings2 className="h-4 w-4" />
+            Config
+          </Button>
 
           {/* Validation Indicator */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={`flex items-center gap-6 px-12 py-8 rounded-10 border transition-all cursor-help ${validationResult.isValid ? 'bg-green-500/5 border-green-500/20 text-green-600' :
-                  validationResult.errors.some(e => e.severity === 'error') ? 'bg-red-500/5 border-red-500/20 text-red-600' :
-                    'bg-amber-500/5 border-amber-500/20 text-amber-600'
-                  }`}>
+                <Badge 
+                  variant="outline" 
+                  className={`h-9 px-3 cursor-help gap-2 ${
+                    validationResult.isValid ? 'bg-green-50 text-green-700 border-green-200' :
+                    validationResult.errors.some(e => e.severity === 'error') ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                    'bg-amber-50 text-amber-700 border-amber-200'
+                  }`}
+                >
                   {validationResult.isValid ? (
-                    <CheckCircle2 className="w-14 h-14" />
+                    <CheckCircle2 className="h-4 w-4" />
                   ) : validationResult.errors.some(e => e.severity === 'error') ? (
-                    <AlertTriangle className="w-14 h-14" />
+                    <AlertTriangle className="h-4 w-4" />
                   ) : (
-                    <Info className="w-14 h-14" />
+                    <Info className="h-4 w-4" />
                   )}
-                  <span className="text-[11px] font-bold uppercase tracking-wider">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
                     {validationResult.isValid ? 'Valid' :
                       validationResult.errors.some(e => e.severity === 'error') ?
                         `${validationResult.errors.filter(e => e.severity === 'error').length} Errors` :
                         `${validationResult.errors.length} Warnings`
                     }
                   </span>
-                </div>
+                </Badge>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="w-280 p-0 bg-accent-white border border-black-alpha-12 shadow-2xl">
-                <div className="p-12 border-b border-black-alpha-8 bg-black-alpha-4">
-                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-black-alpha-56">Workflow Validation</h4>
+              <TooltipContent side="bottom" className="w-[280px] p-0 shadow-lg">
+                <div className="px-3 py-2 border-b bg-muted/50">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Workflow Validation</h4>
                 </div>
-                <div className="max-h-300 overflow-y-auto p-4">
+                <div className="max-h-[300px] overflow-y-auto p-1">
                   {validationResult.errors.length === 0 ? (
-                    <div className="p-12 text-xs text-black-alpha-44 text-center">No issues detected</div>
+                    <div className="p-4 text-xs text-muted-foreground text-center italic">No issues detected</div>
                   ) : (
                     validationResult.errors.map((error, i) => (
-                      <div key={i} className="p-10 flex gap-10 hover:bg-black-alpha-4 rounded-8 transition-colors">
+                      <div key={i} className="p-2 flex gap-3 hover:bg-muted rounded-md transition-colors">
                         {error.severity === 'error' ? (
-                          <XCircle className="w-14 h-14 text-red-500 mt-2 shrink-0" />
+                          <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                         ) : error.severity === 'warning' ? (
-                          <AlertTriangle className="w-14 h-14 text-amber-500 mt-2 shrink-0" />
+                          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                         ) : (
-                          <Info className="w-14 h-14 text-blue-500 mt-2 shrink-0" />
+                          <Info className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                         )}
-                        <div className="space-y-2">
-                          <p className="text-xs font-semibold text-accent-black leading-tight">{error.message}</p>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold leading-tight">{error.message}</p>
                           {error.nodeId && (
-                            <p className="text-[10px] text-black-alpha-44 font-medium uppercase tracking-tighter">Node: {error.nodeId}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">Node: {error.nodeId}</p>
                           )}
                         </div>
                       </div>
@@ -789,92 +839,135 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
             </Tooltip>
           </TooltipProvider>
 
-          <button onClick={handleShowTestAPI} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
-            <Activity className="w-16 h-16" /> API
-          </button>
+          <Button variant="outline" size="sm" onClick={handleShowTestAPI} className="h-9 gap-2">
+            <Activity className="h-4 w-4" />
+            API
+          </Button>
+
           {!isRunning ? (
-            <button onClick={handlePreview} className="flex items-center gap-8 px-16 py-8 rounded-10 bg-heat-100 hover:bg-heat-200 text-white text-sm font-semibold shadow-[0_0_20px_rgba(250,93,25,0.3)] transition-all active:scale-95">
-              <Play className="w-16 h-16 fill-current" /> Run
-            </button>
+            <Button 
+              onClick={handlePreview} 
+              className="h-9 px-4 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm"
+            >
+              <Play className="h-4 w-4 fill-current" />
+              Run
+            </Button>
           ) : (
-            <button onClick={stopWorkflow} className="flex items-center gap-8 px-16 py-8 rounded-10 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-all">
-              <StopCircle className="w-16 h-16" /> Stop
-            </button>
+            <Button 
+              variant="destructive"
+              size="sm"
+              onClick={stopWorkflow} 
+              className="h-9 px-4 gap-2"
+            >
+              <StopCircle className="h-4 w-4" /> 
+              Stop
+            </Button>
           )}
-          <button onClick={handleSave} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-semibold transition-all">
-            <Save className="w-16 h-16" /> Save
-          </button>
+
+          <Button variant="outline" size="sm" onClick={handleSave} className="h-9 gap-2">
+            <Save className="h-4 w-4" />
+            Save
+          </Button>
         </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Nav */}
-        <nav className="w-64 border-r border-black-alpha-8 bg-accent-white flex flex-col items-center py-20 gap-12 z-40">
+        <nav className="w-14 border-r bg-background flex flex-col items-center py-4 gap-4 z-40 shrink-0">
           {[
             { id: 'nodes', icon: LayoutGrid, tooltip: 'Nodes' },
             { id: 'library', icon: Layers, tooltip: 'Library' },
             { id: 'settings', icon: Settings2, tooltip: 'Settings' }
           ].map((tab) => (
-            <button key={tab.id} onClick={() => { setActiveSidebarTab(tab.id as any); setSidebarExpanded(true); }} className={`w-40 h-40 rounded-12 flex items-center justify-center transition-all group relative ${activeSidebarTab === tab.id ? 'bg-heat-100 text-white' : 'text-black-alpha-56 hover:bg-black-alpha-4 hover:text-accent-black'}`}>
-              <tab.icon className="w-20 h-20" />
-            </button>
+            <TooltipProvider key={tab.id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeSidebarTab === tab.id ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => { setActiveSidebarTab(tab.id as any); setSidebarExpanded(true); }}
+                    className={`h-10 w-10 transition-all ${activeSidebarTab === tab.id ? 'shadow-md shadow-primary/20' : ''}`}
+                  >
+                    <tab.icon className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">{tab.tooltip}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </nav>
 
         {/* Sidebar Content */}
         <AnimatePresence mode="wait">
           {sidebarExpanded && (
-            <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 280, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="relative border-r border-black-alpha-8 bg-accent-white flex flex-col overflow-hidden shadow-2xl">
-              <div className="flex items-center justify-between p-20 border-b border-black-alpha-8">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-black-alpha-56">{activeSidebarTab}</h3>
-                <button onClick={() => setSidebarExpanded(false)} className="w-24 h-24 rounded-6 hover:bg-black-alpha-4 flex items-center justify-center text-black-alpha-56 transition-all"><ChevronLeft className="w-16 h-16" /></button>
+            <motion.aside 
+              initial={{ width: 0, opacity: 0 }} 
+              animate={{ width: 300, opacity: 1 }} 
+              exit={{ width: 0, opacity: 0 }} 
+              className="relative border-r bg-background flex flex-col overflow-hidden shadow-sm h-full"
+            >
+              <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{activeSidebarTab}</h3>
+                <Button variant="ghost" size="icon" onClick={() => setSidebarExpanded(false)} className="h-7 w-7">
+                  <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+                </Button>
               </div>
-              <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-black-alpha-8 scrollbar-track-transparent">
-                {activeSidebarTab === 'nodes' && (
-                  <div className="p-20 space-y-24">
-                    {nodeCategories.map((cat) => (
-                      <div key={cat.category}>
-                        <h4 className="text-[10px] font-bold text-black-alpha-56 uppercase tracking-wider mb-12 px-8">{cat.category}</h4>
-                        <div className="grid grid-cols-1 gap-8">
-                          {cat.nodes.map((node) => (
-                            <motion.div key={node.type} draggable onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)} className="flex items-center gap-12 p-10 rounded-12 bg-background-base border border-black-alpha-8 hover:border-heat-100/50 hover:bg-black-alpha-4 transition-all cursor-grab active:cursor-grabbing">
-                              <div className={`w-32 h-32 rounded-10 ${node.color} flex items-center justify-center`}><node.icon className="w-16 h-16 text-white" /></div>
-                              <span className="text-xs font-semibold text-accent-black">{node.label}</span>
-                            </motion.div>
-                          ))}
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-6">
+                  {activeSidebarTab === 'nodes' && (
+                    <div className="space-y-6">
+                      {nodeCategories.map((cat) => (
+                        <div key={cat.category} className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">{cat.category}</h4>
+                          <div className="grid grid-cols-1 gap-2">
+                            {cat.nodes.map((node) => (
+                              <motion.div 
+                                key={node.type} 
+                                draggable 
+                                onDragStart={(e) => onDragStart(e as any, node.type, node.label, node.color)} 
+                                className="flex items-center gap-3 p-2 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all cursor-grab active:cursor-grabbing group"
+                              >
+                                <div className={`h-8 w-8 rounded-md ${node.color} flex items-center justify-center shadow-sm brightness-110 group-hover:brightness-125 transition-all`}>
+                                  <node.icon className="h-4 w-4 text-white" />
+                                </div>
+                                <span className="text-xs font-medium text-foreground">{node.label}</span>
+                              </motion.div>
+                            ))}
+                          </div>
+                          {cat !== nodeCategories[nodeCategories.length - 1] && <Separator className="mt-4 opacity-50" />}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {activeSidebarTab === 'library' && (
-                  <LibraryPanel
-                    onAddSource={() => setShowSourceSelector(true)}
-                    onAddMCPServer={() => setShowSettings(true)}
-                  />
-                )}
-                {activeSidebarTab === 'settings' && (
-                  <WorkflowSettingsPanel
-                    workflow={workflow}
-                    onUpdateWorkflow={(updates) => saveWorkflow({ ...workflow!, ...updates })}
-                    onOpenGlobalSettings={handleShowSettings}
-                    snapToGrid={snapToGrid}
-                    setSnapToGrid={setSnapToGrid}
-                    gridStyle={gridStyle}
-                    setGridStyle={setGridStyle}
-                    edgeStyle={edgeStyle}
-                    setEdgeStyle={setEdgeStyle}
-                    maxIterations={maxIterations}
-                    setMaxIterations={setMaxIterations}
-                    timeout={timeout}
-                    setTimeout={setTimeoutSec}
-                    maxTokens={maxTokens}
-                    setMaxTokens={setMaxTokens}
-                    maxRuntimeSeconds={maxRuntimeSeconds}
-                    setMaxRuntimeSeconds={setMaxRuntimeSeconds}
-                  />
-                )}
-              </div>
+                      ))}
+                    </div>
+                  )}
+                  {activeSidebarTab === 'library' && (
+                    <LibraryPanel
+                      onAddSource={() => setShowSourceSelector(true)}
+                      onAddMCPServer={() => setShowSettings(true)}
+                    />
+                  )}
+                  {activeSidebarTab === 'settings' && (
+                    <WorkflowSettingsPanel
+                      workflow={workflow}
+                      onUpdateWorkflow={(updates) => saveWorkflow({ ...workflow!, ...updates })}
+                      onOpenGlobalSettings={handleShowSettings}
+                      snapToGrid={snapToGrid}
+                      setSnapToGrid={setSnapToGrid}
+                      gridStyle={gridStyle}
+                      setGridStyle={setGridStyle}
+                      edgeStyle={edgeStyle}
+                      setEdgeStyle={setEdgeStyle}
+                      maxIterations={maxIterations}
+                      setMaxIterations={setMaxIterations}
+                      timeout={timeout}
+                      setTimeout={setTimeoutSec}
+                      maxTokens={maxTokens}
+                      setMaxTokens={setMaxTokens}
+                      maxRuntimeSeconds={maxRuntimeSeconds}
+                      setMaxRuntimeSeconds={setMaxRuntimeSeconds}
+                    />
+                  )}
+                </div>
+              </ScrollArea>
             </motion.aside>
           )}
         </AnimatePresence>
@@ -939,65 +1032,81 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         {/* Unified Inspector */}
         <AnimatePresence>
           {inspectorOpen && (
-            <motion.aside initial={{ width: 0, opacity: 0 }} animate={{ width: 380, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="relative border-l border-black-alpha-8 bg-accent-white flex flex-col overflow-hidden shadow-2xl h-full">
-              <div className="flex items-center justify-between p-20 border-b border-black-alpha-8">
-                <div className="flex items-center gap-10">
-                  <div className={`w-28 h-28 rounded-8 ${activeNode ? getNodeColor(activeNode.type || '') : 'bg-heat-100'} flex items-center justify-center`}>
-                    <LayoutGrid className="w-14 h-14 text-white" />
+            <motion.aside 
+              initial={{ width: 0, opacity: 0 }} 
+              animate={{ width: 400, opacity: 1 }} 
+              exit={{ width: 0, opacity: 0 }} 
+              className="relative border-l bg-background flex flex-col overflow-hidden shadow-lg h-full"
+            >
+              <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <div className={`h-8 w-8 rounded-lg ${activeNode ? getNodeColor(activeNode.type || '') : 'bg-primary'} flex items-center justify-center shadow-sm`}>
+                    <LayoutGrid className="h-4 w-4 text-white" />
                   </div>
-                  <h3 className="text-sm font-bold text-accent-black tracking-tight">
+                  <h3 className="text-sm font-bold tracking-tight">
                     {showSettings ? 'Project Settings' : (activeNode?.data?.nodeName || activeNode?.data?.label || 'Properties')}
                   </h3>
                 </div>
-                <button onClick={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); setShowSettings(false); }} className="w-28 h-28 rounded-8 hover:bg-black-alpha-4 flex items-center justify-center text-black-alpha-56 transition-all"><ChevronRight className="w-18 h-18" /></button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); setShowSettings(false); }} 
+                  className="h-7 w-7"
+                >
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Button>
               </div>
 
-              {showSettings ? (
-                <SettingsPanel isOpen={true} onClose={() => { setShowSettings(false); setInspectorOpen(false); }} />
-              ) : showTestEndpoint && workflow ? (
-                <TestEndpointPanel key={workflow.id} workflowId={workflow.id} workflow={{ ...workflow }} environment={environment} onClose={() => setShowTestEndpoint(false)} />
-              ) : showExecution ? (
-                <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onRetry={retryExecution} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
-              ) : (activeNode?.data as any)?.nodeType === 'mcp' ? (
-                <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'router' ? (
-                <RouterNodePanel node={activeNode as any} updateNodeData={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType?.includes('if') || (activeNode?.data as any)?.nodeType?.includes('while') || (activeNode?.data as any)?.nodeType?.includes('appr') ? (
-                <LogicNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType?.includes('trans') || (activeNode?.data as any)?.nodeType?.includes('set-state') || (activeNode?.data as any)?.nodeType?.includes('query') ? (
-                <DataNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'extract' ? (
-                <ExtractNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onAddMCP={() => { }} />
-              ) : (activeNode?.data as any)?.nodeType === 'retriever' ? (
-                <RetrieverNodePanel node={activeNode as any} nodes={[]} updateNodeData={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'memory' ? (
-                <MemoryNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'http' ? (
-                <HTTPNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'start' ? (
-                <StartNodePanel node={activeNode as any} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
-              ) : (activeNode?.data as any)?.nodeType === 'workflow' ? (
-                <div className="p-40 space-y-24">
-                  <div className="p-20 rounded-16 bg-teal-50 border border-teal-100 space-y-12">
-                    <div className="flex items-center gap-12">
-                      <div className="w-40 h-40 rounded-12 bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-200">
-                        <Layers className="w-20 h-20 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-teal-900">{activeNode?.data?.label}</h4>
-                        <p className="text-[10px] font-medium text-teal-600 uppercase tracking-wider">Nested Workflow</p>
+              <ScrollArea className="flex-1">
+                <div className="p-6">
+                  {showSettings ? (
+                    <SettingsPanel isOpen={true} onClose={() => { setShowSettings(false); setInspectorOpen(false); }} />
+                  ) : showTestEndpoint && workflow ? (
+                    <TestEndpointPanel key={workflow.id} workflowId={workflow.id} workflow={{ ...workflow }} environment={environment} onClose={() => setShowTestEndpoint(false)} />
+                  ) : showExecution ? (
+                    <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onRetry={retryExecution} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
+                  ) : (activeNode?.data as any)?.nodeType === 'mcp' ? (
+                    <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'router' ? (
+                    <RouterNodePanel node={activeNode as any} updateNodeData={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType?.includes('if') || (activeNode?.data as any)?.nodeType?.includes('while') || (activeNode?.data as any)?.nodeType?.includes('appr') ? (
+                    <LogicNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType?.includes('trans') || (activeNode?.data as any)?.nodeType?.includes('set-state') || (activeNode?.data as any)?.nodeType?.includes('query') ? (
+                    <DataNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'extract' ? (
+                    <ExtractNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onAddMCP={() => { }} />
+                  ) : (activeNode?.data as any)?.nodeType === 'retriever' ? (
+                    <RetrieverNodePanel node={activeNode as any} nodes={[]} updateNodeData={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'memory' ? (
+                    <MemoryNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'http' ? (
+                    <HTTPNodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'start' ? (
+                    <StartNodePanel node={activeNode as any} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
+                  ) : (activeNode?.data as any)?.nodeType === 'workflow' ? (
+                    <div className="space-y-6">
+                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                            <Layers className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold">{activeNode?.data?.label}</h4>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Nested Workflow</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          This node represents a nested workflow. Any changes made in the side canvas will be saved directly to this workflow asset.
+                        </p>
                       </div>
                     </div>
-                    <p className="text-xs text-teal-700 leading-relaxed">
-                      This node represents a nested workflow. Any changes made in the side canvas will be saved directly to this workflow asset.
-                    </p>
-                  </div>
+                  ) : activeNode ? (
+                    <NodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onAddMCP={() => { }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onOpenSettings={handleShowSettings} />
+                  ) : (
+                    <div className="py-20 text-center text-muted-foreground italic text-xs">Select a node to edit</div>
+                  )}
                 </div>
-              ) : activeNode ? (
-                <NodePanel node={activeNode as any} nodes={[]} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onAddMCP={() => { }} onDelete={handleDeleteNode} onUpdate={handleUpdateNodeData} onOpenSettings={handleShowSettings} />
-              ) : (
-                <div className="p-40 text-center text-black-alpha-56">Select a node to edit</div>
-              )}
+              </ScrollArea>
             </motion.aside>
           )}
         </AnimatePresence>
@@ -1054,8 +1163,6 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
 export default function WorkflowBuilder(props: WorkflowBuilderProps) {
   return (
-    <ErrorBoundary>
-      <WorkflowBuilderInner {...props} />
-    </ErrorBoundary>
+    <WorkflowBuilderInner {...props} />
   );
 }

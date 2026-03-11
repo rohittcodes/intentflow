@@ -62,15 +62,15 @@ export default function InputNodePanel({
     <div className="flex-1 overflow-y-auto p-20 space-y-20">
       {/* Trigger Type Selection */}
       <div>
-        <label className="block text-sm font-medium text-black-alpha-48 mb-4">
+        <label className="block text-sm font-medium text-muted-foreground mb-4">
           Trigger Type
         </label>
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => setTriggerType("manual")}
-            className={`flex flex-col items-center justify-center p-4 rounded-8 border transition-all ${triggerType === "manual"
-              ? "bg-heat-4 border-heat-100 text-heat-100"
-              : "bg-background-base border-border-faint text-accent-black hover:bg-black-alpha-4"
+            className={`flex flex-col items-center justify-center p-4 rounded-md border transition-all ${triggerType === "manual"
+              ? "bg-secondary border-primary text-primary"
+              : "bg-background border-border text-foreground hover:bg-secondary"
               }`}
           >
             <Zap className="w-6 h-6 mb-2" />
@@ -79,9 +79,9 @@ export default function InputNodePanel({
 
           <button
             onClick={() => setTriggerType("webhook")}
-            className={`flex flex-col items-center justify-center p-4 rounded-8 border transition-all ${triggerType === "webhook"
-              ? "bg-heat-4 border-heat-100 text-heat-100"
-              : "bg-background-base border-border-faint text-accent-black hover:bg-black-alpha-4"
+            className={`flex flex-col items-center justify-center p-4 rounded-md border transition-all ${triggerType === "webhook"
+              ? "bg-secondary border-primary text-primary"
+              : "bg-background border-border text-foreground hover:bg-secondary"
               }`}
           >
             <Globe className="w-6 h-6 mb-2" />
@@ -90,9 +90,9 @@ export default function InputNodePanel({
 
           <button
             onClick={() => setTriggerType("schedule")}
-            className={`flex flex-col items-center justify-center p-4 rounded-8 border transition-all ${triggerType === "schedule"
-              ? "bg-heat-4 border-heat-100 text-heat-100"
-              : "bg-background-base border-border-faint text-accent-black hover:bg-black-alpha-4"
+            className={`flex flex-col items-center justify-center p-4 rounded-md border transition-all ${triggerType === "schedule"
+              ? "bg-secondary border-primary text-primary"
+              : "bg-background border-border text-foreground hover:bg-secondary"
               }`}
           >
             <Clock className="w-6 h-6 mb-2" />
@@ -110,22 +110,22 @@ export default function InputNodePanel({
             exit={{ opacity: 0, height: 0 }}
             className="space-y-4"
           >
-            <div className="p-4 bg-background-base rounded-8 border border-border-faint">
-              <label className="block text-xs font-medium text-black-alpha-48 mb-2">
+            <div className="p-4 bg-background rounded-md border border-border">
+              <label className="block text-xs font-medium text-muted-foreground mb-2">
                 Webhook URL
               </label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs bg-black-alpha-4 p-2 rounded text-accent-black break-all">
+                <code className="flex-1 text-xs bg-secondary p-2 rounded text-foreground break-all">
                   {webhookUrl}
                 </code>
                 <button
                   onClick={handleCopy}
-                  className="p-2 hover:bg-black-alpha-8 rounded-6 transition-colors"
+                  className="p-2 hover:bg-secondary/80 rounded-6 transition-colors"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-green-500" />
                   ) : (
-                    <Copy className="w-4 h-4 text-black-alpha-48" />
+                    <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </button>
               </div>
@@ -145,7 +145,7 @@ export default function InputNodePanel({
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm font-medium text-black-alpha-48 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 CRON Expression
               </label>
               <input
@@ -153,10 +153,10 @@ export default function InputNodePanel({
                 value={cronExpression}
                 onChange={(e) => setCronExpression(e.target.value)}
                 placeholder="0 9 * * *"
-                className="w-full px-4 py-2 bg-background-base border border-border-faint rounded-8 text-sm font-mono focus:outline-none focus:border-heat-100"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md text-sm font-mono focus:outline-none focus:border-primary"
               />
-              <p className="text-xs text-black-alpha-48 mt-2">
-                Need help? <a href="https://crontab.guru/" target="_blank" rel="noopener noreferrer" className="text-heat-100 hover:underline">Cron Guru</a>
+              <p className="text-xs text-muted-foreground mt-2">
+                Need help? <a href="https://crontab.guru/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cron Guru</a>
               </p>
             </div>
           </motion.div>
@@ -165,9 +165,9 @@ export default function InputNodePanel({
 
       {/* Input Schema / Variables Note */}
       <div>
-        <div className="p-4 bg-heat-4 border border-heat-10 rounded-8">
-          <h4 className="text-xs font-medium text-heat-100 mb-1">Input Variables</h4>
-          <p className="text-xs text-heat-100 opacity-80">
+        <div className="p-4 bg-secondary border border-heat-10 rounded-md">
+          <h4 className="text-xs font-medium text-primary mb-1">Input Variables</h4>
+          <p className="text-xs text-primary opacity-80">
             Inputs sent via Webhook body or Schedule payload will be available as <code>{`{{input.variableName}}`}</code> in your workflow.
           </p>
         </div>

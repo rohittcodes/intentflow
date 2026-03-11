@@ -105,33 +105,33 @@ export default function GuardrailsNodePanel({
   return (
     <div className="p-20 space-y-20">
       {/* Header Description */}
-      <div className="p-12 bg-heat-4 rounded-10 border border-heat-12 flex gap-12 items-start">
-        <Shield className="w-16 h-16 text-heat-100 mt-2 shrink-0" />
-        <p className="text-xs text-heat-100 leading-relaxed">
+      <div className="p-12 bg-secondary rounded-lg border border-heat-12 flex gap-12 items-start">
+        <Shield className="w-16 h-16 text-primary mt-2 shrink-0" />
+        <p className="text-xs text-primary leading-relaxed">
           Guardrails inspect content for safety violations before passing it to the next node.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border-faint">
+      <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab("checks")}
-          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "checks" ? "text-accent-black" : "text-black-alpha-48 hover:text-accent-black"
+          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "checks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
         >
           Safety Checks
           {activeTab === "checks" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-heat-100" />
+            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
           )}
         </button>
         <button
           onClick={() => setActiveTab("actions")}
-          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "actions" ? "text-accent-black" : "text-black-alpha-48 hover:text-accent-black"
+          className={`px-12 py-8 text-sm font-medium transition-colors relative ${activeTab === "actions" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             }`}
         >
           Actions
           {activeTab === "actions" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-heat-100" />
+            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
           )}
         </button>
       </div>
@@ -155,12 +155,12 @@ export default function GuardrailsNodePanel({
               ].map((item) => (
                 <div key={item.id} className="flex items-start justify-between">
                   <div>
-                    <label className="text-sm font-medium text-accent-black block">{item.label}</label>
-                    <p className="text-xs text-black-alpha-48">{item.desc}</p>
+                    <label className="text-sm font-medium text-foreground block">{item.label}</label>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
                   </div>
                   <button
                     onClick={() => toggleCheck(item.id as keyof typeof config.checks)}
-                    className={`w-40 h-24 rounded-full transition-colors relative shrink-0 ${config.checks[item.id as keyof typeof config.checks] ? "bg-heat-100" : "bg-black-alpha-12"
+                    className={`w-40 h-24 rounded-full transition-colors relative shrink-0 ${config.checks[item.id as keyof typeof config.checks] ? "bg-primary" : "bg-muted"
                       }`}
                   >
                     <motion.div
@@ -173,8 +173,8 @@ export default function GuardrailsNodePanel({
             </div>
 
             {/* Custom Rules */}
-            <div className="pt-16 border-t border-border-faint">
-              <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+            <div className="pt-16 border-t border-border">
+              <label className="block text-sm font-medium text-muted-foreground mb-8">
                 Custom Rules
               </label>
               <div className="flex gap-8 mb-8">
@@ -183,20 +183,20 @@ export default function GuardrailsNodePanel({
                   onChange={(e) => setNewRule(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addRule()}
                   placeholder="e.g. No mention of competitors"
-                  className="flex-1 px-12 py-8 bg-background-base border border-border-faint rounded-8 text-sm focus:outline-none focus:border-heat-100"
+                  className="flex-1 px-12 py-8 bg-background border border-border rounded-md text-sm focus:outline-none focus:border-primary"
                 />
                 <button
                   onClick={addRule}
-                  className="px-12 py-8 bg-heat-4 text-heat-100 rounded-8 text-sm font-medium hover:bg-heat-8 transition-colors"
+                  className="px-12 py-8 bg-secondary text-primary rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors"
                 >
                   Add
                 </button>
               </div>
               <div className="space-y-4">
                 {config.customRules.map((rule, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-8 bg-background-base rounded-8 group">
-                    <span className="text-sm text-accent-black">{rule}</span>
-                    <button onClick={() => removeRule(idx)} className="text-black-alpha-32 hover:text-heat-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div key={idx} className="flex items-center justify-between p-8 bg-background rounded-md group">
+                    <span className="text-sm text-foreground">{rule}</span>
+                    <button onClick={() => removeRule(idx)} className="text-black-alpha-32 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                       <XCircle className="w-16 h-16" />
                     </button>
                   </div>
@@ -217,36 +217,36 @@ export default function GuardrailsNodePanel({
           >
             {/* Action on Violation */}
             <div>
-              <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+              <label className="block text-sm font-medium text-muted-foreground mb-8">
                 Action on Violation
               </label>
               <div className="grid grid-cols-2 gap-8">
                 <button
                   onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'block' }))}
-                  className={`p-12 rounded-10 border text-left transition-all ${config.actionOnViolation === 'block'
-                    ? 'border-heat-100 bg-heat-4'
-                    : 'border-border-faint hover:border-black-alpha-20'
+                  className={`p-12 rounded-lg border text-left transition-all ${config.actionOnViolation === 'block'
+                    ? 'border-primary bg-secondary'
+                    : 'border-border hover:border-black-alpha-20'
                     }`}
                 >
                   <div className="flex items-center gap-8 mb-4">
-                    <XCircle className={`w-16 h-16 ${config.actionOnViolation === 'block' ? 'text-heat-100' : 'text-black-alpha-48'}`} />
-                    <span className={`text-sm font-medium ${config.actionOnViolation === 'block' ? 'text-heat-100' : 'text-accent-black'}`}>Block</span>
+                    <XCircle className={`w-16 h-16 ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-foreground'}`}>Block</span>
                   </div>
-                  <p className="text-xs text-black-alpha-48">Stop execution and throw error.</p>
+                  <p className="text-xs text-muted-foreground">Stop execution and throw error.</p>
                 </button>
 
                 <button
                   onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'fallback' }))}
-                  className={`p-12 rounded-10 border text-left transition-all ${config.actionOnViolation === 'fallback'
-                    ? 'border-heat-100 bg-heat-4'
-                    : 'border-border-faint hover:border-black-alpha-20'
+                  className={`p-12 rounded-lg border text-left transition-all ${config.actionOnViolation === 'fallback'
+                    ? 'border-primary bg-secondary'
+                    : 'border-border hover:border-black-alpha-20'
                     }`}
                 >
                   <div className="flex items-center gap-8 mb-4">
-                    <AlertTriangle className={`w-16 h-16 ${config.actionOnViolation === 'fallback' ? 'text-heat-100' : 'text-black-alpha-48'}`} />
-                    <span className={`text-sm font-medium ${config.actionOnViolation === 'fallback' ? 'text-heat-100' : 'text-accent-black'}`}>Fallback</span>
+                    <AlertTriangle className={`w-16 h-16 ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-foreground'}`}>Fallback</span>
                   </div>
-                  <p className="text-xs text-black-alpha-48">Return static response.</p>
+                  <p className="text-xs text-muted-foreground">Return static response.</p>
                 </button>
               </div>
             </div>
@@ -258,13 +258,13 @@ export default function GuardrailsNodePanel({
                 animate={{ opacity: 1, height: 'auto' }}
                 className="overflow-hidden"
               >
-                <label className="block text-sm font-medium text-black-alpha-48 mb-8">
+                <label className="block text-sm font-medium text-muted-foreground mb-8">
                   Fallback Response
                 </label>
                 <textarea
                   value={config.fallbackResponse}
                   onChange={(e) => setConfig(prev => ({ ...prev, fallbackResponse: e.target.value }))}
-                  className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-sm h-80 focus:outline-none focus:border-heat-100 resize-none"
+                  className="w-full px-12 py-8 bg-background border border-border rounded-md text-sm h-80 focus:outline-none focus:border-primary resize-none"
                 />
               </motion.div>
             )}

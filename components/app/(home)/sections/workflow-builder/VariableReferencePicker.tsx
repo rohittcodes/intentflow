@@ -128,7 +128,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
       <button
         ref={buttonRef}
         onClick={handleOpen}
-        className="px-12 py-6 bg-heat-4 hover:bg-heat-8 border border-heat-100 rounded-6 text-body-small text-heat-100 transition-colors flex items-center gap-6"
+        className="px-12 py-6 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-primary transition-colors flex items-center gap-6"
       >
         <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -148,7 +148,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed w-400 max-w-[calc(100vw-40px)] bg-accent-white border border-border-faint rounded-12 shadow-2xl z-[9999] overflow-hidden"
+              className="fixed w-400 max-w-[calc(100vw-40px)] bg-accent-white border border-border rounded-xl shadow-2xl z-[9999] overflow-hidden"
               style={{
                 top: `${buttonPosition.top}px`,
                 right: `${buttonPosition.right}px`,
@@ -156,15 +156,15 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-12 border-b border-border-faint">
-                <h4 className="text-label-small text-accent-black">Available Variables</h4>
+              <div className="p-12 border-b border-border">
+                <h4 className="text-label-small text-foreground">Available Variables</h4>
               </div>
 
               <div className="max-h-320 overflow-y-auto">
                 {variables.map((group, groupIndex) => (
                   <div key={groupIndex}>
-                    <div className="px-12 py-8 bg-background-base">
-                      <p className="text-body-small text-black-alpha-48 font-medium">
+                    <div className="px-12 py-8 bg-background">
+                      <p className="text-xs text-muted-foreground font-medium">
                         {group.category}
                       </p>
                     </div>
@@ -176,38 +176,38 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                           onSelect(item.path);
                           setIsOpen(false);
                         }}
-                        className={`w-full px-12 py-10 text-left hover:bg-heat-4 transition-colors border-b border-border-faint last:border-0 ${item.isField ? 'pl-24 bg-background-base' : ''
+                        className={`w-full px-12 py-10 text-left hover:bg-secondary transition-colors border-b border-border last:border-0 ${item.isField ? 'pl-24 bg-background' : ''
                           }`}
                       >
                         <div className="flex items-start justify-between gap-8">
                           <div className="flex-1 min-w-0">
                             {item.isNested && (
-                              <span className="text-body-small text-heat-100 mr-6">↳↳</span>
+                              <span className="text-xs text-primary mr-6">↳↳</span>
                             )}
                             {item.isField && !item.isNested && (
-                              <span className="text-body-small text-heat-100 mr-6">↳</span>
+                              <span className="text-xs text-primary mr-6">↳</span>
                             )}
-                            <p className={`text-body-small font-medium break-all ${item.isField || item.isInputVariable || item.isNested ? 'text-heat-100' : 'text-accent-black'
+                            <p className={`text-xs font-medium break-all ${item.isField || item.isInputVariable || item.isNested ? 'text-primary' : 'text-foreground'
                               }`}>
                               {item.name}
                             </p>
-                            <p className="text-body-small text-black-alpha-48 mt-2 font-mono text-[10px]">
+                            <p className="text-xs text-muted-foreground mt-2 font-mono text-[10px]">
                               {`{{${item.path}}}`}
                             </p>
                             {item.description && (
-                              <p className="text-body-small text-black-alpha-48 mt-4 truncate">
+                              <p className="text-xs text-muted-foreground mt-4 truncate">
                                 {item.description}
                               </p>
                             )}
                           </div>
                           <div className="flex flex-col gap-4 items-end">
                             {item.propertyType && (
-                              <span className="px-6 py-2 bg-black-alpha-4 text-black-alpha-64 rounded-4 text-[10px] font-medium flex-shrink-0">
+                              <span className="px-6 py-2 bg-secondary text-foreground/64 rounded-4 text-[10px] font-medium flex-shrink-0">
                                 {item.propertyType}
                               </span>
                             )}
                             {(item.nodeType || item.type) && (
-                              <span className="px-6 py-2 bg-heat-4 text-heat-100 rounded-4 text-body-small font-medium flex-shrink-0">
+                              <span className="px-6 py-2 bg-secondary text-primary rounded-4 text-xs font-medium flex-shrink-0">
                                 {item.nodeType || item.type}
                               </span>
                             )}
@@ -219,8 +219,8 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                 ))}
               </div>
 
-              <div className="p-12 bg-background-base border-t border-border-faint">
-                <p className="text-body-small text-black-alpha-48">
+              <div className="p-12 bg-background border-t border-border">
+                <p className="text-xs text-muted-foreground">
                   Click a variable to insert its reference
                 </p>
               </div>

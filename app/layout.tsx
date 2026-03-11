@@ -6,17 +6,13 @@ import { Toaster } from "sonner";
 import { ClerkProvider, useAuth } from '@clerk/nextjs';
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
-import ColorStyles from "@/components/shared/color-styles/color-styles";
-import Scrollbar from "@/components/ui/scrollbar";
 import { BigIntProvider } from "@/components/providers/BigIntProvider";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from "react";
-import "styles/main.css";
+import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin"],
@@ -24,8 +20,7 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
 });
 
-// Metadata must be in a separate server component
-// For now, set via document head
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export default function RootLayout({
   children,
@@ -38,19 +33,22 @@ export default function RootLayout({
     <ClerkProvider>
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <QueryClientProvider client={queryClient}>
-          <html lang="en" className={cn("font-sans", inter.variable)}>
+          <html lang="en" className={cn("font-sans antialiased", inter.variable)}>
             <head>
               <title>Intentflow</title>
               <meta name="description" content="Build AI agents and workflows with visual programming" />
               <link rel="icon" href="/favicon.png" />
-              <ColorStyles />
             </head>
             <body
-              className={`${GeistMono.variable} ${robotoMono.variable} font-sans text-accent-black bg-background-base overflow-x-clip`}
+              className={cn(
+                "min-h-screen bg-background font-sans antialiased",
+                GeistMono.variable,
+                robotoMono.variable,
+                inter.variable
+              )}
             >
               <BigIntProvider>
-                <main className="overflow-x-clip">{children}</main>
-                <Scrollbar />
+                <main>{children}</main>
                 <Toaster position="bottom-right" />
               </BigIntProvider>
             </body>

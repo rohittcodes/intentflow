@@ -60,7 +60,7 @@ export default function NodeIOBadges({ node }: NodeIOBadgesProps) {
   return (
     <div className="absolute -bottom-3 right-2 pointer-events-none">
       {/* Subtle Output Indicator */}
-      <div className="px-4 py-1 bg-black-alpha-4 text-black-alpha-48 text-[9px] font-mono rounded-full border border-border-faint whitespace-nowrap">
+      <div className="px-4 py-1 bg-secondary text-muted-foreground text-[9px] font-mono rounded-full border border-border whitespace-nowrap">
         → {outputInfo}
       </div>
     </div>

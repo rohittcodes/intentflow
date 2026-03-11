@@ -8,16 +8,15 @@ import {
   Plus,
   Database,
   Search,
-  Trash2,
   FileText,
-  Upload,
-  Settings,
-  MoreVertical,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  AlertCircle,
+  Loader2
 } from "lucide-react";
-import Button from "@/components/ui/shadcn/button";
-import { Input } from "@/components/ui/shadcn/input";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -26,14 +25,14 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogDescription
-} from "@/components/ui/shadcn/dialog";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/shadcn/card";
-import { Badge } from "@/components/ui/shadcn/badge";
+} from "@/components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import NamespaceDetail from "@/components/knowledge/NamespaceDetail";
 import { useWorkspace } from "@/components/providers/WorkspaceProvider";
-import { Alert, AlertDescription } from "@/components/ui/Alert";
-import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 export default function KnowledgePage() {
   const { activeWorkspaceId, activeProjectId } = useWorkspace();
@@ -73,7 +72,6 @@ export default function KnowledgePage() {
     }
   };
 
-
   const filteredNamespaces = namespaces?.filter(ns =>
     ns.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     ns.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -93,130 +91,137 @@ export default function KnowledgePage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto w-full p-32 space-y-32"
+      className="pb-8 space-y-8"
     >
-      {!activeProjectId && (
-        <Alert variant="destructive" className="flex items-center bg-heat-4 border-heat-100/20 text-heat-100 gap-8 rounded-16 mb-32 [&>svg]:relative [&>svg]:left-0 [&>svg]:top-0 [&>svg~*]:pl-0">
-          <AlertCircle className="h-20 w-20 shrink-0" />
-          <AlertDescription className="text-label-medium">
-            You need to select or create a <strong>Project</strong> in the sidebar to manage your workflows.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-16">
-        <div>
-          <h1 className="text-title-h3 text-accent-black mb-8">Knowledge Base</h1>
-          <p className="text-body-medium text-black-alpha-64">Manage your documents and semantic search namespaces for RAG.</p>
-        </div>
-
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-8 h-44 px-24 bg-heat-100 hover:bg-heat-200 text-white rounded-8 shadow-sm" disabled={!activeProjectId}>
-              <Plus className="w-18 h-18" /> Create Namespace
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="max-w-448 p-32 gap-0">
-            <DialogHeader className="mb-24">
-              <DialogTitle className="text-title-h4 mb-8">Create New Namespace</DialogTitle>
-              <DialogDescription className="text-body-medium text-black-alpha-48 leading-relaxed">
-                A namespace is a container for related documents. You can use it in your workflows to retrieve context for RAG.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-24 mb-32">
-              <div className="space-y-10">
-                <label className="text-label-small font-semibold text-accent-black">Namespace Name</label>
-                <Input
-                  placeholder="e.g. Legal Documents, Technical Docs"
-                  value={newNamespaceName}
-                  onChange={(e) => setNewNamespaceName(e.target.value)}
-                  className="h-44 bg-background-base border-black-alpha-12 focus:border-heat-100 rounded-8 transition-all"
-                />
-              </div>
-              <div className="space-y-10">
-                <label className="text-label-small font-semibold text-accent-black">Description (optional)</label>
-                <Input
-                  placeholder="Briefly describe what's inside this namespace"
-                  value={newNamespaceDesc}
-                  onChange={(e) => setNewNamespaceDesc(e.target.value)}
-                  className="h-44 bg-background-base border-black-alpha-12 focus:border-heat-100 rounded-8 transition-all"
-                />
-              </div>
-            </div>
-            <DialogFooter className="gap-12">
-              <Button variant="secondary" onClick={() => setIsCreateDialogOpen(false)} className="h-44 px-24">Cancel</Button>
-              <Button onClick={handleCreateNamespace} className="h-44 px-24 bg-heat-100 hover:bg-heat-200">Create Namespace</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-16 top-1/2 -translate-y-1/2 w-18 h-18 text-black-alpha-40" />
-        <Input
-          placeholder="Search namespaces..."
-          className="pl-48 h-52 bg-white border-black-alpha-12 focus:border-heat-100 transition-all rounded-12 shadow-sm"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      {namespaces === undefined ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-200 bg-black-alpha-4 animate-pulse rounded-16" />
-          ))}
-        </div>
-      ) : filteredNamespaces?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-64 bg-accent-white rounded-24 border border-dashed border-black-alpha-16 text-center">
-          <BookOpen className="w-64 h-64 text-black-alpha-24 mb-16" />
-          <h3 className="text-label-large text-accent-black">No namespaces found</h3>
-          <p className="text-black-alpha-56 mt-4 mb-24 max-w-320"> Create your first namespace to start building your AI knowledge base. </p>
-          <Button variant="secondary" onClick={() => setIsCreateDialogOpen(true)}>
-            Create your first namespace
+      <PageHeader
+        title="Knowledge Base"
+        actions={
+          <Button
+            disabled={!activeProjectId}
+            className="h-9 px-4 font-bold tracking-tight text-xs uppercase"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Create Namespace
           </Button>
+        }
+      />
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden border-border bg-background">
+          <DialogHeader className="p-8 pb-4">
+            <DialogTitle className="text-2xl font-bold tracking-tight">Create Namespace</DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed mt-2">
+              A namespace is a container for related documents. You can use it in your workflows to retrieve context for RAG.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-8 py-4 space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Namespace Name</label>
+              <Input
+                placeholder="e.g. Legal Documents, Technical Docs"
+                value={newNamespaceName}
+                onChange={(e) => setNewNamespaceName(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description (optional)</label>
+              <Input
+                placeholder="Briefly describe what's inside this namespace"
+                value={newNamespaceDesc}
+                onChange={(e) => setNewNamespaceDesc(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-8 pt-4 bg-muted/50 border-t">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="h-9 font-bold">Cancel</Button>
+            <Button onClick={handleCreateNamespace} className="h-9 font-bold uppercase tracking-widest text-[10px] px-8">Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {!activeProjectId ? (
+        <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed border-border/50 rounded-[32px] bg-muted/10 mt-8">
+          <div className="p-4 rounded-full bg-background border border-border mb-6">
+            <Database className="h-8 w-8 text-muted-foreground/30" />
+          </div>
+          <h3 className="text-xl font-bold tracking-tight mb-2">Select a Project</h3>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto font-medium">
+            You need to create a <strong className="font-bold text-foreground">Project</strong> to manage your knowledge base.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-24">
-          {filteredNamespaces?.map((ns) => (
-            <Card
-              key={ns._id}
-              className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-black-alpha-8 hover:border-heat-100 rounded-16 overflow-hidden flex flex-col bg-white hover:-translate-y-4"
-              onClick={() => setSelectedNamespaceId(ns._id)}
-            >
-              <CardHeader className="p-24 pb-16 flex flex-row items-start justify-between">
-                <div className="flex items-start gap-16">
-                  <div className="p-12 bg-heat-100/10 rounded-12 text-heat-100 group-hover:bg-heat-100 group-hover:text-white transition-all duration-300 shadow-sm">
-                    <Database className="w-24 h-24" />
-                  </div>
-                  <div className="space-y-4 overflow-hidden">
-                    <CardTitle className="text-title-h5 text-accent-black group-hover:text-heat-100 transition-colors truncate">
-                      {ns.name}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2 text-body-small text-black-alpha-48 leading-relaxed">
-                      {ns.description || "No description provided."}
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="px-24 pb-24 pt-0 flex-1 flex flex-col justify-end">
-                <div className="flex items-center justify-between mt-20 pt-20 border-t border-black-alpha-8">
-                  <div className="flex items-center gap-12">
-                    <div className="flex items-center gap-6 bg-black-alpha-4 text-black-alpha-64 border-none font-medium text-xs px-10 py-6 rounded-8">
-                      <FileText className="w-14 h-14 opacity-60" />
-                      {ns.documentCount || 0} chunks
+        <>
+
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder="Search namespaces..."
+              className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 transition-all rounded-2xl text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {namespaces === undefined ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-[240px] rounded-3xl animate-pulse bg-muted" />
+              ))}
+            </div>
+          ) : filteredNamespaces?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-border/50 rounded-[32px] bg-muted/10">
+              <div className="p-4 rounded-full bg-background border border-border mb-6">
+                <BookOpen className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h3 className="text-lg font-bold tracking-tight mb-2">No namespaces found</h3>
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-8 font-medium italic"> Create your first namespace to start building your AI knowledge base. </p>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)} className="h-9 rounded-full px-8 font-bold border-border shadow-sm">
+                Create your first namespace
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredNamespaces?.map((ns) => (
+                <Card
+                  key={ns._id}
+                  className="group cursor-pointer hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col rounded-[32px] border-border overflow-hidden"
+                  onClick={() => setSelectedNamespaceId(ns._id)}
+                >
+                  <CardHeader className="p-8 pb-4">
+                    <div className="flex items-start gap-5">
+                      <div className="p-3.5 bg-muted rounded-[20px] text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm">
+                        <Database className="h-6 w-6" />
+                      </div>
+                      <div className="space-y-1.5 overflow-hidden flex-1">
+                        <CardTitle className="text-xl font-bold tracking-tight group-hover:text-primary transition-colors truncate">
+                          {ns.name}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2 text-[11px] font-medium leading-relaxed min-h-[32px]">
+                          {ns.description || "No description provided."}
+                        </CardDescription>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center text-black-alpha-40 group-hover:text-heat-100 group-hover:translate-x-4 transition-all duration-300">
-                    <span className="text-label-x-small font-bold mr-6">OPEN</span>
-                    <ChevronRight className="w-18 h-18" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </CardHeader>
+                  <CardContent className="px-8 pb-8 pt-0 flex-1 flex flex-col justify-end">
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-border/50">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground font-bold text-[9px] tracking-widest uppercase">
+                          <FileText className="h-3 w-3" />
+                          {ns.documentCount || 0} CHUNKS
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-black tracking-widest text-muted-foreground group-hover:text-primary transition-all">
+                        GO
+                        <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   );
