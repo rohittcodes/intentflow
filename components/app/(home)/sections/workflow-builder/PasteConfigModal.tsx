@@ -61,7 +61,11 @@ export default function PasteConfigModal({ isOpen, onClose, onSave }: PasteConfi
             }
 
             // Identify known services by URL or name
-            if (serverName.includes('context7') || url.includes('context7')) {
+            if (serverName.includes('rube') || url.includes('rube.app/mcp')) {
+              name = 'Rube MCP';
+              category = 'web';
+              description = 'Web scraping, searching, and data extraction';
+            } else if (serverName.includes('context7') || url.includes('context7')) {
               name = 'Context7';
               category = 'ai';
               description = 'Documentation and code assistance';

@@ -5,6 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import VariableReferencePicker from "./VariableReferencePicker";
 import GuardrailsNodePanel from "./GuardrailsNodePanel";
+import ApprovalNodePanel from "./ApprovalNodePanel";
+import MemoryNodePanel from "./MemoryNodePanel";
 import InputNodePanel from "./InputNodePanel";
 import RouterNodePanel from "./RouterNodePanel";
 import { toast } from "sonner";
@@ -13,6 +15,7 @@ import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { Id } from "@/convex/_generated/dataModel";
 import FirecrawlLogo from "@/components/icons/FirecrawlLogo";
+import { llmProviders } from "@/lib/config/llm-config";
 
 interface NodePanelProps {
   node: any | null;
@@ -48,51 +51,51 @@ export default function NodePanel({
 
   // Fetch enabled MCP servers from central registry
   const mcpServers = useQuery(api.mcpServers.getEnabledMCPs,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   // Fetch user's LLM API keys to determine available models
   const userLLMKeys = useQuery(api.userLLMKeys.getUserLLMKeys,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
-  // Get available models based on active API keys
+  // Get available models based on active API keys grouped by use cases
   const getAvailableModels = () => {
     if (!userLLMKeys) return [];
 
-    const models: { provider: string; models: Array<{ id: string; name: string }> }[] = [];
-
-    // Check for active keys and add corresponding models
     const activeKeys = userLLMKeys.filter(key => key.isActive);
+    const availableModelIds = new Set<string>();
 
     activeKeys.forEach(key => {
-      if (key.provider === 'anthropic') {
-        models.push({
-          provider: 'Anthropic',
-          models: [
-            { id: 'anthropic/claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5' },
-            { id: 'anthropic/claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5' },
-          ]
-        });
-      } else if (key.provider === 'openai') {
-        models.push({
-          provider: 'OpenAI',
-          models: [
-            { id: 'openai/gpt-4o', name: 'GPT-5' },
-            { id: 'openai/gpt-4o-mini', name: 'GPT-5 Mini' },
-          ]
-        });
-      } else if (key.provider === 'groq') {
-        models.push({
-          provider: 'Groq',
-          models: [
-            { id: 'groq/openai/gpt-oss-120b', name: 'GPT OSS 120B' },
-          ]
-        });
+      const providerConfig = llmProviders.find(p => p.id === key.provider);
+      if (providerConfig) {
+        providerConfig.models.forEach(m => availableModelIds.add(`${m.provider}/${m.id}`));
       }
     });
 
-    return models;
+    const grouped: Record<string, Array<{ id: string; name: string; provider: string }>> = {};
+
+    llmProviders.forEach(provider => {
+      provider.models.forEach(model => {
+        const fullId = `${model.provider}/${model.id}`;
+        if (availableModelIds.has(fullId)) {
+          const m = { id: fullId, name: model.name, provider: provider.name };
+          const useCases = model.useCases && model.useCases.length > 0 ? model.useCases : ['Other'];
+          useCases.forEach(uc => {
+            if (!grouped[uc]) grouped[uc] = [];
+
+            // Check to avoid adding same model to same category multiple times just in case
+            if (!grouped[uc].find(existingItem => existingItem.id === m.id)) {
+              grouped[uc].push(m);
+            }
+          });
+        }
+      });
+    });
+
+    return Object.entries(grouped)
+      .map(([category, models]) => ({ provider: category, models }))
+      .sort((a, b) => a.provider.localeCompare(b.provider));
   };
 
   // Helper to update JSON schema from fields array
@@ -246,7 +249,7 @@ export default function NodePanel({
                 id: server._id,
                 name: server.name,
                 url: server.url,
-                label: server.label || server.name,
+                label: server.name,
                 authType: server.authType,
               };
             }
@@ -294,6 +297,19 @@ export default function NodePanel({
         <GuardrailsNodePanel
           node={node}
           updateNodeData={onUpdate}
+        />
+      ) : nodeData.type === "user-approval" ? (
+        <ApprovalNodePanel
+          node={node}
+          updateNodeData={onUpdate}
+        />
+      ) : nodeData.type === "memory" ? (
+        <MemoryNodePanel
+          node={node}
+          nodes={nodes ?? []}
+          onClose={onClose}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
         />
       ) : nodeData.type === "start" || nodeData.type === "custom-input" ? (
         <InputNodePanel
@@ -398,12 +414,12 @@ export default function NodePanel({
                   </div>
                 ) : (
                   <>
-                    {getAvailableModels().map((provider) => (
-                      <div key={provider.provider}>
-                        <div className="text-xs font-medium text-black-alpha-48 mb-4">
-                          {provider.provider}
+                    {getAvailableModels().map((categoryGroup) => (
+                      <div key={categoryGroup.provider} className="mb-8">
+                        <div className="text-xs font-semibold text-black-alpha-48 mb-6 mt-4 uppercase tracking-wide">
+                          {categoryGroup.provider}
                         </div>
-                        {provider.models.map((modelOption) => (
+                        {categoryGroup.models.map((modelOption) => (
                           <button
                             key={modelOption.id}
                             onClick={() => {
@@ -415,7 +431,12 @@ export default function NodePanel({
                               : 'hover:bg-black-alpha-4 text-accent-black'
                               }`}
                           >
-                            {modelOption.name}
+                            <div className="flex justify-between items-center">
+                              <span>{modelOption.name}</span>
+                              <span className={`text-[10px] ${model === modelOption.id ? 'text-white/70' : 'text-black-alpha-40'}`}>
+                                {modelOption.provider}
+                              </span>
+                            </div>
                           </button>
                         ))}
                       </div>

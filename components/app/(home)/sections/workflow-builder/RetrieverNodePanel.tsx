@@ -20,7 +20,7 @@ export default function RetrieverNodePanel({
   updateNodeData,
 }: RetrieverNodePanelProps) {
   const data = node.data || {};
-  const namespaces = useQuery(api.knowledge.listNamespaces);
+  const namespaces = useQuery(api.knowledge.listNamespaces, {});
 
   const [name, setName] = useState(data.nodeName || data.label || "Retriever");
   const [namespaceId, setNamespaceId] = useState<string>(data.namespaceId || "");

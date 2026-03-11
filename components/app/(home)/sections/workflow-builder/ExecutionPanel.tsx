@@ -30,6 +30,7 @@ interface ExecutionPanelProps {
   currentNodeId: string | null;
   onRun: (input: string) => void;
   onResumePendingAuth: () => Promise<void>;
+  onRetry: (threadId: string, executionId?: string) => void;
   onClose: () => void;
   environment: 'draft' | 'production';
   pendingAuth: WorkflowPendingAuth | null;
@@ -77,6 +78,7 @@ export default function ExecutionPanel({
   currentNodeId,
   onRun,
   onResumePendingAuth,
+  onRetry,
   onClose,
   environment,
   pendingAuth,
@@ -1279,12 +1281,26 @@ export default function ExecutionPanel({
                         </pre>
                       </div>
                     </div>
-                    <button
-                      onClick={handleReset}
-                      className="mt-8 w-full px-16 py-10 bg-accent-black hover:bg-black-alpha-80 text-white rounded-8 text-body-small font-medium transition-colors"
-                    >
-                      Try Again
-                    </button>
+                    <div className="flex gap-12 mt-8 w-full">
+                      {execution?.threadId && (
+                        <button
+                          onClick={() => onRetry(execution.threadId!, execution.id)}
+                          className="flex-1 px-16 py-10 bg-accent-black hover:bg-black-alpha-80 text-white rounded-8 text-body-small font-medium transition-colors"
+                        >
+                          Retry from Checkpoint
+                        </button>
+                      )}
+
+                      <button
+                        onClick={handleReset}
+                        className={`px-16 py-10 rounded-8 text-body-small font-medium transition-colors ${execution?.threadId
+                          ? "flex-1 bg-background-base hover:bg-black-alpha-4 text-accent-black border border-border-faint"
+                          : "w-full bg-accent-black hover:bg-black-alpha-80 text-white"
+                          }`}
+                      >
+                        Start Over
+                      </button>
+                    </div>
                   </motion.div>
                 )}
 

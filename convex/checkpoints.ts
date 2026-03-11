@@ -7,6 +7,28 @@ export const getCheckpoint = query({
     checkpointId: v.optional(v.string()),
   },
   handler: async (ctx, { threadId, checkpointId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // Check if thread belongs to user
+    // First, try to find thread by ID (if strictly a Convex ID)
+    let threadIdToUpdate = ctx.db.normalizeId("threads", threadId);
+    let ownerId: string | undefined;
+
+    if (threadIdToUpdate) {
+      const thread = await ctx.db.get(threadIdToUpdate);
+      ownerId = thread?.userId;
+    } else {
+      const existingThread = await ctx.db
+        .query("threads")
+        .withIndex("by_extThreadId", (q) => q.eq("extThreadId", threadId))
+        .first();
+      ownerId = existingThread?.userId;
+    }
+
+    if (ownerId && identity?.subject !== ownerId) {
+      return null;
+    }
+
     if (checkpointId) {
       return await ctx.db
         .query("checkpoints")
@@ -32,8 +54,27 @@ export const listCheckpoints = query({
     beforeId: v.optional(v.string()),
   },
   handler: async (ctx, { threadId, limit, beforeId }) => {
-    // TODO: support pagination with beforeId using cursor if needed
-    // For now simple list
+    const identity = await ctx.auth.getUserIdentity();
+
+    // Check ownership
+    let threadIdToUpdate = ctx.db.normalizeId("threads", threadId);
+    let ownerId: string | undefined;
+
+    if (threadIdToUpdate) {
+      const thread = await ctx.db.get(threadIdToUpdate);
+      ownerId = thread?.userId;
+    } else {
+      const existingThread = await ctx.db
+        .query("threads")
+        .withIndex("by_extThreadId", (q) => q.eq("extThreadId", threadId))
+        .first();
+      ownerId = existingThread?.userId;
+    }
+
+    if (ownerId && identity?.subject !== ownerId) {
+      return [];
+    }
+
     return await ctx.db
       .query("checkpoints")
       .withIndex("by_threadId", (q) => q.eq("threadId", threadId))

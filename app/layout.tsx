@@ -1,7 +1,7 @@
 "use client";
 
 import { GeistMono } from "geist/font/mono";
-import { Roboto_Mono } from "next/font/google";
+import { Roboto_Mono, Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { ClerkProvider, useAuth } from '@clerk/nextjs';
 import { ConvexProviderWithClerk } from "convex/react-clerk";
@@ -12,6 +12,9 @@ import { BigIntProvider } from "@/components/providers/BigIntProvider";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from "react";
 import "styles/main.css";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -35,7 +38,7 @@ export default function RootLayout({
     <ClerkProvider>
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <QueryClientProvider client={queryClient}>
-          <html lang="en">
+          <html lang="en" className={cn("font-sans", inter.variable)}>
             <head>
               <title>Intentflow</title>
               <meta name="description" content="Build AI agents and workflows with visual programming" />

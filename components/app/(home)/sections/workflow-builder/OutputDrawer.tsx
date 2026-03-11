@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown, ChevronRight, Clock, CheckCircle2, XCircle, Code2 } from "lucide-react";
+import { X, ChevronDown, ChevronRight, Clock, CheckCircle2, XCircle, Code2, List, Activity } from "lucide-react";
 import { useState } from "react";
 import { NodeExecutionResult } from "@/lib/workflow/types";
 
@@ -226,6 +226,40 @@ export default function OutputDrawer({
                     </Section>
                   )}
 
+                  {/* Logs Section */}
+                  {nodeResult.logs && nodeResult.logs.length > 0 && (
+                    <Section
+                      title={`Execution Logs (${nodeResult.logs.length})`}
+                      isExpanded={expandedSections.has("logs")}
+                      onToggle={() => toggleSection("logs")}
+                    >
+                      <div className="space-y-8">
+                        {nodeResult.logs.map((log, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-10 rounded-8 border text-[11px] leading-relaxed ${log.level === 'error'
+                                ? 'bg-red-50 border-red-100 text-red-700'
+                                : log.level === 'warn'
+                                  ? 'bg-amber-50 border-amber-100 text-amber-700'
+                                  : 'bg-black-alpha-4 border-black-alpha-8 text-black-alpha-64'
+                              }`}
+                          >
+                            <div className="flex justify-between mb-4 font-bold uppercase tracking-wider text-[9px]">
+                              <span>{log.level}</span>
+                              <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                            <p>{log.message}</p>
+                            {log.data && (
+                              <div className="mt-4">
+                                <CodeBlock code={formatJSON(log.data)} compact />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </Section>
+                  )}
+
                   {/* Error Section */}
                   {nodeResult.error && (
                     <Section
@@ -267,6 +301,25 @@ export default function OutputDrawer({
                           <span className="text-accent-black">
                             {new Date(nodeResult.completedAt).toLocaleTimeString()}
                           </span>
+                        </div>
+                      )}
+                      {nodeResult.usage && (
+                        <div className="mt-12 pt-12 border-t border-black-alpha-8 space-y-8">
+                          <p className="text-[10px] uppercase tracking-wider text-black-alpha-40 font-bold mb-8">
+                            Token Usage
+                          </p>
+                          <div className="flex justify-between">
+                            <span className="text-black-alpha-56">Input Tokens</span>
+                            <span className="text-accent-black">{nodeResult.usage.input_tokens}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-black-alpha-56">Output Tokens</span>
+                            <span className="text-accent-black">{nodeResult.usage.output_tokens}</span>
+                          </div>
+                          <div className="flex justify-between font-bold">
+                            <span className="text-black-alpha-56">Total Tokens</span>
+                            <span className="text-accent-black">{nodeResult.usage.total_tokens || (nodeResult.usage.input_tokens! + nodeResult.usage.output_tokens!)}</span>
+                          </div>
                         </div>
                       )}
                     </div>

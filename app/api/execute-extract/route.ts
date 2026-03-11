@@ -26,6 +26,9 @@ export async function POST(request: NextRequest) {
         lastOutput: context || '',
       },
       chatHistory: [],
+      nodeResults: {},
+      pendingAuth: {},
+      loopResults: [],
     };
 
     // Create a minimal workflow node

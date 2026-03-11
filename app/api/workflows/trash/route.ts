@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Restore the workflow
     await convex.mutation(api.workflows.restoreFromTrash, {
-      id: workflowId,
+      id: workflowId as any,
     });
 
     return NextResponse.json({
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest) {
 
     // Permanently delete the workflow
     await convex.mutation(api.workflows.permanentlyDelete, {
-      id: workflowId,
+      id: workflowId as any,
     });
 
     return NextResponse.json({

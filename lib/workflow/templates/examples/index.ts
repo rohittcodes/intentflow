@@ -6,14 +6,14 @@
  */
 
 import { simpleAgent } from './01-simple-agent';
-import { agentWithFirecrawl } from './02-agent-with-firecrawl';
-import { scrapeSummarizeDocs } from './03-scrape-summarize-docs';
+import { agentWithRube } from './02-agent-with-firecrawl';
+import { rubeScrapeSummarizeDocs } from './03-scrape-summarize-docs';
 import { advancedWorkflow } from './04-advanced-workflow';
 
 export const exampleTemplates = {
   'example-01-simple-agent': simpleAgent,
-  'example-02-agent-with-firecrawl': agentWithFirecrawl,
-  'example-03-scrape-summarize-docs': scrapeSummarizeDocs,
+  'example-02-agent-with-rube': agentWithRube,
+  'example-03-rube-summarize-docs': rubeScrapeSummarizeDocs,
   'example-04-advanced-workflow': advancedWorkflow,
 };
 
@@ -26,16 +26,16 @@ export const exampleTemplatesList = [
     estimatedTime: '1-2 minutes',
   },
   {
-    id: 'example-02-agent-with-firecrawl',
-    name: 'Example 2: Agent with Firecrawl',
-    description: 'An agent that can search and scrape the web using Firecrawl',
+    id: 'example-02-agent-with-rube',
+    name: 'Example 2: Agent with Rube MCP',
+    description: 'An agent that can search and scrape the web using Rube MCP',
     difficulty: 'beginner',
     estimatedTime: '2-3 minutes',
   },
   {
-    id: 'example-03-scrape-summarize-docs',
-    name: 'Example 3: Scrape, Summarize & Post to Docs',
-    description: 'Scrape a website, summarize content, and create a Google Doc',
+    id: 'example-03-rube-summarize-docs',
+    name: 'Example 3: Rube Scrape, Summarize & Post to Docs',
+    description: 'Scrape a website with Rube, summarize content, and create a Google Doc',
     difficulty: 'intermediate',
     estimatedTime: '3-5 minutes',
   },

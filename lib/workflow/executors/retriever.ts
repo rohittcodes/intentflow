@@ -32,8 +32,7 @@ export async function executeRetrieverNode(
   try {
     // 3. Perform semantic search using the unified searchKnowledge action
     // This action handles embedding the query and searching the vector index
-
-    const results = await convex.action(api.knowledge.searchKnowledge, {
+    const results = await convex.action(api.knowledgeActions.searchKnowledge, {
       queryText,
       namespaceId,
       limit,

@@ -10,7 +10,8 @@ import {
   MousePointer2,
   ExternalLink,
   Save,
-  Info
+  Info,
+  Shield
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -29,6 +30,11 @@ interface WorkflowSettingsPanelProps {
   setMaxIterations: (val: number) => void;
   timeout: number;
   setTimeout: (val: number) => void;
+  // Financial Guardrails
+  maxTokens: number;
+  setMaxTokens: (val: number) => void;
+  maxRuntimeSeconds: number;
+  setMaxRuntimeSeconds: (val: number) => void;
 }
 
 export default function WorkflowSettingsPanel({
@@ -44,7 +50,11 @@ export default function WorkflowSettingsPanel({
   maxIterations,
   setMaxIterations,
   timeout,
-  setTimeout
+  setTimeout,
+  maxTokens,
+  setMaxTokens,
+  maxRuntimeSeconds,
+  setMaxRuntimeSeconds,
 }: WorkflowSettingsPanelProps) {
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-accent-white">
@@ -154,6 +164,115 @@ export default function WorkflowSettingsPanel({
                 className="w-64 px-8 py-6 bg-background-base border border-border-faint rounded-6 text-body-small text-center text-accent-black"
               />
             </div>
+          </div>
+        </SettingsSection>
+
+        {/* Financial Guardrails */}
+        <SettingsSection label="Financial Guardrails" icon={<Shield className="w-16 h-16" />}>
+          <div className="space-y-16">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-body-small font-semibold text-accent-black">Max Tokens</p>
+                <p className="text-[11px] text-black-alpha-48">Token budget cap (0 = unlimited)</p>
+              </div>
+              <input
+                type="number"
+                value={maxTokens || 0}
+                min={0}
+                step={10000}
+                onChange={(e) => setMaxTokens(parseInt(e.target.value) || 0)}
+                className="w-80 px-8 py-6 bg-background-base border border-border-faint rounded-6 text-body-small text-center text-accent-black"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-body-small font-semibold text-accent-black">Max Runtime (s)</p>
+                <p className="text-[11px] text-black-alpha-48">Wall-clock cap (0 = unlimited)</p>
+              </div>
+              <input
+                type="number"
+                value={maxRuntimeSeconds || 0}
+                min={0}
+                step={30}
+                onChange={(e) => setMaxRuntimeSeconds(parseInt(e.target.value) || 0)}
+                className="w-80 px-8 py-6 bg-background-base border border-border-faint rounded-6 text-body-small text-center text-accent-black"
+              />
+            </div>
+            {(maxTokens > 0 || maxRuntimeSeconds > 0) && (
+              <div className="flex items-start gap-8 p-10 bg-heat-4 border border-heat-100/20 rounded-8">
+                <Shield className="w-12 h-12 text-heat-100 mt-1 shrink-0" />
+                <p className="text-[11px] text-black-alpha-56">
+                  Guardrails active: execution will be interrupted if limits are exceeded.
+                </p>
+              </div>
+            )}
+          </div>
+        </SettingsSection>
+
+        {/* Webhooks Config */}
+        <SettingsSection label="Webhooks" icon={<Zap className="w-16 h-16" />}>
+          <div className="space-y-16">
+            <div>
+              <label className="text-[11px] font-bold text-black-alpha-48 uppercase tracking-wider mb-6 block">
+                Webhook on Success URL
+              </label>
+              <input
+                type="url"
+                value={workflow?.settings?.webhookOnSuccessUrl || ""}
+                onChange={(e) => onUpdateWorkflow({ settings: { ...workflow?.settings, webhookOnSuccessUrl: e.target.value } })}
+                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black outline-none focus:border-heat-100 transition-colors"
+                placeholder="https://..."
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-black-alpha-48 uppercase tracking-wider mb-6 block">
+                Webhook on Failure URL
+              </label>
+              <input
+                type="url"
+                value={workflow?.settings?.webhookOnFailureUrl || ""}
+                onChange={(e) => onUpdateWorkflow({ settings: { ...workflow?.settings, webhookOnFailureUrl: e.target.value } })}
+                className="w-full px-12 py-8 bg-background-base border border-border-faint rounded-8 text-body-small text-accent-black outline-none focus:border-heat-100 transition-colors"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+        </SettingsSection>
+
+        {/* Embeddable UI */}
+        <SettingsSection label="Embeddable" icon={<Maximize2 className="w-16 h-16" />}>
+          <div className="space-y-16">
+            <ToggleItem
+              label="Publicly Embeddable"
+              description="Allow running this workflow in an iframe without auth"
+              active={workflow?.settings?.isEmbeddable || false}
+              onToggle={() => onUpdateWorkflow({ settings: { ...workflow?.settings, isEmbeddable: !workflow?.settings?.isEmbeddable } })}
+            />
+
+            {workflow?.settings?.isEmbeddable && (
+              <div className="space-y-8">
+                <label className="text-[11px] font-bold text-black-alpha-48 uppercase tracking-wider block">
+                  Embed Code snippet
+                </label>
+                <p className="text-[11px] text-black-alpha-56 mb-8">
+                  Copy this snippet to embed. <strong className="text-heat-100">Replace YOUR_API_KEY with an API key from Settings.</strong>
+                </p>
+                <div className="relative group">
+                  <pre className="w-full p-12 bg-background-base border border-border-faint rounded-8 text-[11px] font-mono text-black-alpha-64 overflow-x-auto">
+                    {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : 'https://intentflow.com'}/embed/${workflow?.customId || workflow?._id}?apiKey=YOUR_API_KEY" width="100%" height="600" frameborder="0"></iframe>`}
+                  </pre>
+                  <button
+                    className="absolute top-8 right-8 p-4 bg-accent-white border border-border-faint rounded-6 text-black-alpha-48 hover:text-heat-100 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                    onClick={() => {
+                      const snippet = `<iframe src="${typeof window !== 'undefined' ? window.location.origin : 'https://intentflow.com'}/embed/${workflow?.customId || workflow?._id}?apiKey=YOUR_API_KEY" width="100%" height="600" frameborder="0"></iframe>`;
+                      navigator.clipboard.writeText(snippet);
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </SettingsSection>
 

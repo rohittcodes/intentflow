@@ -10,7 +10,7 @@ import { mutation, query } from "./_generated/server";
  * - Perfect for pausing workflows waiting for human input
  */
 
-// Create a new approval request
+// Create a new approval request with ownership check
 export const create = mutation({
   args: {
     approvalId: v.string(),
@@ -18,9 +18,15 @@ export const create = mutation({
     nodeId: v.optional(v.string()),
     executionId: v.optional(v.string()),
     message: v.string(),
-    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db.get(args.workflowId);
+
+    if (!workflow || (workflow.userId && identity?.subject !== workflow.userId)) {
+      throw new Error("Unauthorized");
+    }
+
     const now = new Date().toISOString();
 
     const approvalDoc = await ctx.db.insert("approvals", {
@@ -30,7 +36,7 @@ export const create = mutation({
       nodeId: args.nodeId,
       message: args.message,
       status: "pending",
-      userId: args.userId,
+      userId: identity?.subject,
       createdAt: now,
     });
 
@@ -38,30 +44,35 @@ export const create = mutation({
   },
 });
 
-// Get approval by approvalId (for polling or one-time checks)
+// Get approval by approvalId with ownership check
 export const getByApprovalId = query({
   args: { approvalId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     const approval = await ctx.db
       .query("approvals")
       .withIndex("by_approvalId", (q) => q.eq("approvalId", args.approvalId))
       .first();
+
+    if (!approval || (approval.userId && identity?.subject !== approval.userId)) {
+      return null;
+    }
 
     return approval;
   },
 });
 
-// Watch approval status - REAL-TIME SUBSCRIPTION
-// Use this in your frontend to automatically resume when approved
+// Watch approval status - REAL-TIME SUBSCRIPTION with ownership check
 export const watchStatus = query({
   args: { approvalId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     const approval = await ctx.db
       .query("approvals")
       .withIndex("by_approvalId", (q) => q.eq("approvalId", args.approvalId))
       .first();
 
-    if (!approval) {
+    if (!approval || (approval.userId && identity?.subject !== approval.userId)) {
       return { status: "not_found", approval: null };
     }
 
@@ -72,20 +83,20 @@ export const watchStatus = query({
   },
 });
 
-// Approve an approval request
+// Approve an approval request with ownership check
 export const approve = mutation({
   args: {
     approvalId: v.string(),
-    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     const approval = await ctx.db
       .query("approvals")
       .withIndex("by_approvalId", (q) => q.eq("approvalId", args.approvalId))
       .first();
 
-    if (!approval) {
-      throw new Error(`Approval ${args.approvalId} not found`);
+    if (!approval || (approval.userId && identity?.subject !== approval.userId)) {
+      throw new Error("Unauthorized");
     }
 
     if (approval.status !== "pending") {
@@ -97,28 +108,28 @@ export const approve = mutation({
     await ctx.db.patch(approval._id, {
       status: "approved",
       respondedAt: now,
-      respondedBy: args.userId,
+      respondedBy: identity?.subject,
     });
 
     return { success: true, status: "approved" };
   },
 });
 
-// Reject an approval request
+// Reject an approval request with ownership check
 export const reject = mutation({
   args: {
     approvalId: v.string(),
-    userId: v.optional(v.string()),
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     const approval = await ctx.db
       .query("approvals")
       .withIndex("by_approvalId", (q) => q.eq("approvalId", args.approvalId))
       .first();
 
-    if (!approval) {
-      throw new Error(`Approval ${args.approvalId} not found`);
+    if (!approval || (approval.userId && identity?.subject !== approval.userId)) {
+      throw new Error("Unauthorized");
     }
 
     if (approval.status !== "pending") {
@@ -130,17 +141,24 @@ export const reject = mutation({
     await ctx.db.patch(approval._id, {
       status: "rejected",
       respondedAt: now,
-      respondedBy: args.userId,
+      respondedBy: identity?.subject,
     });
 
     return { success: true, status: "rejected", reason: args.reason };
   },
 });
 
-// List pending approvals for a workflow
+// List pending approvals for a workflow with ownership check
 export const listPending = query({
   args: { workflowId: v.id("workflows") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db.get(args.workflowId);
+
+    if (!workflow || (workflow.userId && identity?.subject !== workflow.userId)) {
+      return [];
+    }
+
     const approvals = await ctx.db
       .query("approvals")
       .withIndex("by_workflow", (q) => q.eq("workflowId", args.workflowId))
@@ -151,10 +169,17 @@ export const listPending = query({
   },
 });
 
-// List all approvals for a workflow
+// List all approvals for a workflow with ownership check
 export const listByWorkflow = query({
   args: { workflowId: v.id("workflows") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db.get(args.workflowId);
+
+    if (!workflow || (workflow.userId && identity?.subject !== workflow.userId)) {
+      return [];
+    }
+
     const approvals = await ctx.db
       .query("approvals")
       .withIndex("by_workflow", (q) => q.eq("workflowId", args.workflowId))
@@ -165,13 +190,17 @@ export const listByWorkflow = query({
   },
 });
 
-// Get approvals for a specific execution (useful for tracking what's blocking a run)
+// Get approvals for a specific execution with ownership check
 export const getByExecution = query({
   args: { executionId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // We could check the execution first, or filter approvals by userId
     const approvals = await ctx.db
       .query("approvals")
       .withIndex("by_execution", (q) => q.eq("executionId", args.executionId))
+      .filter((q) => q.eq(q.field("userId"), identity?.subject))
       .order("desc")
       .collect();
 

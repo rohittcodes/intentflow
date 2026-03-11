@@ -2,13 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAPIKeys } from '@/lib/api/config';
 import { executeAgentNode } from '@/lib/workflow/executors/agent';
 import { WorkflowNode, WorkflowState } from '@/lib/workflow/types';
+import { auth } from '@clerk/nextjs/server';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '@/convex/_generated/api';
 
 export const dynamic = 'force-dynamic';
 
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
     const body = await request.json();
     const { instructions, model, context, jsonSchema, mcpTools = [] } = body;
+
+    // Check usage limits if user is authenticated
+    if (userId) {
+      const usage = await convex.query(api.usage.checkUsageLimit, { userId });
+      if (!usage.allowed) {
+        return NextResponse.json(
+          { 
+            error: 'Usage limit reached', 
+            message: `You have reached your monthly execution limit for the ${usage.tier} tier (${usage.limit}). Please upgrade for more.` 
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     // Get API keys from server
     const apiKeys = getServerAPIKeys();
@@ -22,10 +42,14 @@ export async function POST(request: NextRequest) {
     // Create a minimal workflow state
     const state: WorkflowState = {
       variables: {
+        userId: userId || undefined,
         input: context || '',
         lastOutput: context || '',
       },
       chatHistory: [],
+      nodeResults: {},
+      pendingAuth: {},
+      loopResults: [],
     };
 
     // Create a minimal workflow node
@@ -46,6 +70,12 @@ export async function POST(request: NextRequest) {
 
     // Execute the agent node
     const result = await executeAgentNode(node, state, apiKeys);
+
+    // Increment usage if successful and user is authenticated
+    if (userId) {
+      // Background execution of counter increment
+      convex.mutation(api.usage.incrementUsage, { userId }).catch(console.error);
+    }
 
     // Extract the response data
     const responseText = result.__agentValue;
@@ -68,4 +98,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}

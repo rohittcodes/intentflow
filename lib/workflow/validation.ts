@@ -1,119 +1,178 @@
-import { Workflow, WorkflowNode } from './types';
+import { Workflow, WorkflowNode, ApiKeys } from './types';
+
+export type ValidationSeverity = 'error' | 'warning' | 'info';
 
 export interface ValidationError {
-  nodeId: string;
-  field: string;
+  nodeId?: string;
+  field?: string;
   message: string;
+  severity: ValidationSeverity;
+  type: 'structural' | 'configuration' | 'auth' | 'other';
 }
 
-export function validateWorkflow(workflow: Workflow): ValidationError[] {
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}
+
+/**
+ * Validates a workflow for structural and configuration errors.
+ * 
+ * @param workflow The workflow to validate
+ * @param apiKeys Currently available API keys for auth validation
+ * @returns ValidationResult containing errors and warnings
+ */
+export function validateWorkflow(workflow: Workflow, apiKeys: ApiKeys = {}): ValidationResult {
   const errors: ValidationError[] = [];
+  const { nodes, edges } = workflow;
 
-  // Check if workflow has at least a start and end node
-  const hasStart = workflow.nodes.some(n => n.type === 'start');
-  const hasEnd = workflow.nodes.some(n => n.type === 'end');
-
-  if (!hasStart) {
+  // 1. Basic checks
+  if (nodes.length === 0) {
     errors.push({
-      nodeId: 'workflow',
-      field: 'nodes',
-      message: 'Workflow must have a Start node',
+      message: 'Workflow has no nodes.',
+      severity: 'error',
+      type: 'structural'
+    });
+    return { isValid: false, errors };
+  }
+
+  // 2. Connectivity Checks
+  const connectedNodeIds = new Set<string>();
+  edges.forEach(edge => {
+    connectedNodeIds.add(edge.source);
+    connectedNodeIds.add(edge.target);
+  });
+
+  if (nodes.length > 1) {
+    nodes.forEach(node => {
+      // Notes and standalone memory nodes might not need connections
+      if (node.type === 'note') return;
+
+      const hasOutgoing = edges.some(e => e.source === node.id);
+      const hasIncoming = edges.some(e => e.target === node.id);
+
+      if (!hasIncoming && node.type !== 'start' && node.type !== 'data-query') {
+        errors.push({
+          nodeId: node.id,
+          message: `Node "${node.data.label || node.id}" has no incoming connections.`,
+          severity: 'warning',
+          type: 'structural'
+        });
+      }
+
+      if (!hasOutgoing && node.type !== 'end' && node.type !== 'set-state') {
+        errors.push({
+          nodeId: node.id,
+          message: `Node "${node.data.label || node.id}" has no outgoing connections.`,
+          severity: 'warning',
+          type: 'structural'
+        });
+      }
     });
   }
 
-  // Validate each node
-  workflow.nodes.forEach((node) => {
-    const nodeErrors = validateNode(node);
+  // 3. Node-specific checks
+  nodes.forEach(node => {
+    const nodeErrors = validateNode(node, apiKeys);
     errors.push(...nodeErrors);
   });
 
-  // Check for disconnected nodes (except end nodes)
-  workflow.nodes.forEach((node) => {
-    if (node.type !== 'start' && node.type !== 'end') {
-      const hasIncoming = workflow.edges.some(e => e.target === node.id);
-      if (!hasIncoming) {
-        errors.push({
-          nodeId: node.id,
-          field: 'connections',
-          message: 'Node is not connected to workflow',
-        });
-      }
-    }
-  });
-
-  return errors;
+  const isValid = !errors.some(e => e.severity === 'error');
+  return { isValid, errors };
 }
 
-export function validateNode(node: WorkflowNode): ValidationError[] {
+export function validateNode(node: WorkflowNode, apiKeys: ApiKeys = {}): ValidationError[] {
   const errors: ValidationError[] = [];
-  const nodeType = (node.data as any).nodeType || node.type;
+  const data = node.data;
 
-  switch (nodeType) {
+  switch (node.type) {
     case 'agent':
-      if (!node.data.instructions || node.data.instructions.trim() === '') {
-        errors.push({
-          nodeId: node.id,
-          field: 'instructions',
-          message: 'Agent must have instructions',
-        });
-      }
-      if (!node.data.model) {
-        errors.push({
-          nodeId: node.id,
-          field: 'model',
-          message: 'Agent must have a model selected',
-        });
-      }
+      validateAgentNode(node, apiKeys, errors);
       break;
 
     case 'mcp':
-      if (!node.data.mcpServers || node.data.mcpServers.length === 0) {
+      if (!data.mcpTool) {
         errors.push({
           nodeId: node.id,
-          field: 'mcpServers',
-          message: 'MCP node must have at least one server configured',
+          field: 'mcpTool',
+          message: 'No MCP tool selected.',
+          severity: 'error',
+          type: 'configuration'
         });
       }
       break;
 
     case 'if-else':
-    case 'if / else':
-      if (!node.data.condition || node.data.condition.trim() === '') {
+      if (!data.condition?.trim()) {
         errors.push({
           nodeId: node.id,
           field: 'condition',
-          message: 'If/Else must have a condition',
+          message: 'If/Else must have a condition.',
+          severity: 'error',
+          type: 'configuration'
         });
       }
       break;
 
     case 'while':
-      if (!node.data.condition || node.data.condition.trim() === '') {
+      if (!data.whileCondition?.trim()) {
         errors.push({
           nodeId: node.id,
-          field: 'condition',
-          message: 'While loop must have a condition',
+          field: 'whileCondition',
+          message: 'While loop must have a condition.',
+          severity: 'error',
+          type: 'configuration'
         });
       }
       break;
 
     case 'transform':
-      if (!node.data.transformScript || node.data.transformScript.trim() === '') {
+      if (!data.transformScript?.trim()) {
         errors.push({
           nodeId: node.id,
           field: 'transformScript',
-          message: 'Transform must have a script',
+          message: 'Transform must have a script.',
+          severity: 'error',
+          type: 'configuration'
         });
       }
       break;
 
-    case 'set-state':
-    case 'set state':
-      if (!node.data.stateKey || node.data.stateKey.trim() === '') {
+    case 'arcade':
+      if (!data.arcadeTool) {
         errors.push({
           nodeId: node.id,
-          field: 'stateKey',
-          message: 'Set State must have a variable name',
+          field: 'arcadeTool',
+          message: 'No Arcade tool selected.',
+          severity: 'error',
+          type: 'configuration'
+        });
+      }
+      if (!apiKeys.arcade) {
+        errors.push({
+          nodeId: node.id,
+          message: 'Arcade API key is missing.',
+          severity: 'error',
+          type: 'auth'
+        });
+      }
+      break;
+
+    case 'data-query':
+      if (!data.scrapeUrl?.trim() && !data.searchQuery?.trim()) {
+        errors.push({
+          nodeId: node.id,
+          message: 'Data Query node has no URL or search query.',
+          severity: 'error',
+          type: 'configuration'
+        });
+      }
+      if (!apiKeys.firecrawl && data.scrapeUrl) {
+        errors.push({
+          nodeId: node.id,
+          message: 'Firecrawl API key is missing (required for scraping).',
+          severity: 'error',
+          type: 'auth'
         });
       }
       break;
@@ -122,10 +181,51 @@ export function validateNode(node: WorkflowNode): ValidationError[] {
   return errors;
 }
 
-export function getNodeValidationStatus(node: WorkflowNode): 'valid' | 'warning' | 'error' {
-  const errors = validateNode(node);
+function validateAgentNode(node: WorkflowNode, apiKeys: ApiKeys, errors: ValidationError[]) {
+  const { data } = node;
+  const provider = (data.model || '').split('/')[0]?.toLowerCase();
 
+  // Check Provider key
+  if (provider === 'openai' && !apiKeys.openai) {
+    errors.push({
+      nodeId: node.id,
+      field: 'model',
+      message: 'OpenAI API key is missing.',
+      severity: 'error',
+      type: 'auth'
+    });
+  } else if (provider === 'anthropic' && !apiKeys.anthropic) {
+    errors.push({
+      nodeId: node.id,
+      field: 'model',
+      message: 'Anthropic API key is missing.',
+      severity: 'error',
+      type: 'auth'
+    });
+  } else if ((provider === 'groq' || provider === 'llama' || provider === 'mixtral') && !apiKeys.groq) {
+    errors.push({
+      nodeId: node.id,
+      field: 'model',
+      message: 'Groq API key is missing.',
+      severity: 'error',
+      type: 'auth'
+    });
+  }
+
+  // Check Prompt (Warning)
+  if (!data.instructions?.trim() && !data.systemPrompt?.trim()) {
+    errors.push({
+      nodeId: node.id,
+      field: 'instructions',
+      message: 'Agent has no instructions or system prompt.',
+      severity: 'warning',
+      type: 'configuration'
+    });
+  }
+}
+
+export function getNodeValidationStatus(node: WorkflowNode, apiKeys: ApiKeys = {}): 'valid' | 'warning' | 'error' {
+  const errors = validateNode(node, apiKeys);
   if (errors.length === 0) return 'valid';
-  if (errors.some(e => e.field !== 'connections')) return 'error';
-  return 'warning';
+  return errors.some(e => e.severity === 'error') ? 'error' : 'warning';
 }

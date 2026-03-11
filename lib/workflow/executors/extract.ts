@@ -47,9 +47,7 @@ export async function executeExtractNode(
       const tools = data.mcpTools.map((mcp: any) => ({
         type: 'mcp' as const,
         server_label: mcp.name,
-        server_url: mcp.url.includes('{FIRECRAWL_API_KEY}')
-          ? mcp.url.replace('{FIRECRAWL_API_KEY}', apiKeys?.firecrawl || '')
-          : mcp.url,
+        server_url: mcp.url,
         authorization: mcp.accessToken ? `Bearer ${mcp.accessToken}` : undefined,
         require_approval: 'never' as const,
       }));

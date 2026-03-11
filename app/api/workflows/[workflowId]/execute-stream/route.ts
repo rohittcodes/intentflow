@@ -17,9 +17,8 @@ export async function POST(
 ) {
   // Validate API key
   const authResult = await validateApiKey(request);
-  if (!authResult.authenticated) {
-    return createUnauthorizedResponse(authResult.error || 'Authentication required');
-  }
+  // We do not reject immediately if unauthenticated because embeddable workflows allow anonymous execution.
+  // Validation will be checked once we load the workflow document.
 
   const { workflowId } = await params;
 
@@ -39,7 +38,7 @@ export async function POST(
       let workflow: any;
       let threadId: string = '';
       let initialInput: any = '';
-      let executionId: string = `exec_${Date.now()}`;
+      let executionId: string = '';
       let executor: LangGraphExecutor;
       const nodeResults: Record<string, any> = {};
 
@@ -58,7 +57,12 @@ export async function POST(
           return;
         }
 
-        const convex = await getAuthenticatedConvexClient();
+        let convex;
+        if (authResult.authenticated) {
+          convex = await getAuthenticatedConvexClient();
+        } else {
+          convex = getConvexClient();
+        }
 
         // Look up workflow - try customId first, then try as Convex ID
         let workflowDoc = await convex.query(api.workflows.getWorkflowByCustomId, {
@@ -78,7 +82,17 @@ export async function POST(
 
         if (!workflowDoc) {
           sendEvent('error', {
-            error: `Workflow ${workflowId} not found`,
+            error: authResult.authenticated ? `Workflow ${workflowId} not found` : 'Authentication required',
+            workflowId,
+          });
+          controller.close();
+          return;
+        }
+
+        const isEmbeddable = (workflowDoc.settings as any)?.isEmbeddable === true;
+        if (!authResult.authenticated) {
+          sendEvent('error', {
+            error: authResult.error || 'Authentication required to execute this workflow',
             workflowId,
           });
           controller.close();
@@ -94,26 +108,74 @@ export async function POST(
         workflow = workflowData as any;
 
         // Get API keys - check user keys first, then fall back to environment
-        const { getLLMApiKey } = await import('@/lib/api/llm-keys');
-        const userId = authResult.userId;
+        const { getAllCombinedApiKeys } = await import('@/lib/api/llm-keys');
+        const apiKeys = await getAllCombinedApiKeys(authResult.userId || undefined);
 
-        const apiKeys = {
-          anthropic: (userId ? await getLLMApiKey('anthropic', userId) : undefined) || process.env.ANTHROPIC_API_KEY,
-          groq: (userId ? await getLLMApiKey('groq', userId) : undefined) || process.env.GROQ_API_KEY,
-          openai: (userId ? await getLLMApiKey('openai', userId) : undefined) || process.env.OPENAI_API_KEY,
-          firecrawl: process.env.FIRECRAWL_API_KEY,
-          arcade: process.env.ARCADE_API_KEY,
-        };
+        // Usage checks
+        if (authResult.userId) {
+          const usage = await convex.query(api.usage.checkUsageLimit, { userId: authResult.userId });
+          if (!usage.allowed) {
+            sendEvent('error', {
+              error: 'Usage limit exceeded',
+              message: `You have reached your limit of ${usage.limit} executions for the current period.`,
+              usage
+            });
+            controller.close();
+            return;
+          }
+          await convex.mutation(api.usage.incrementUsage, { userId: authResult.userId });
+        }
+
+        // Validate workflow
+        const { validateWorkflow } = await import('@/lib/workflow/validation');
+        const validation = validateWorkflow(workflow, apiKeys);
+        if (!validation.isValid) {
+          sendEvent('error', {
+            error: 'Invalid workflow configuration',
+            details: validation.errors.filter(e => e.severity === 'error'),
+          });
+          controller.close();
+          return;
+        }
+
+        // Check if we are resuming from a checkpoint
+        const isResuming = inputs.resumeFromCheckpoint === true;
 
         // Prepare initial input - pass as object if it's an object, otherwise as string
-        if (typeof inputs === 'object' && Object.keys(inputs).length > 0) {
+        if (isResuming) {
+          initialInput = null; // null triggers checkpoint resume in LangGraphExecutor
+        } else if (typeof inputs === 'object' && Object.keys(inputs).length > 0) {
           initialInput = inputs.input || inputs;
         } else {
           initialInput = inputs.url || inputs.input || '';
         }
 
         // LangGraph Execution Path
-        threadId = inputs.threadId || `thread_${workflowId}_${Date.now()}`;
+        if (isResuming && inputs.threadId) {
+          threadId = inputs.threadId;
+          if (inputs.executionId) {
+            executionId = inputs.executionId;
+            try {
+              await convex.mutation(api.executions.resumeExecution, { id: executionId as any });
+            } catch (err) {
+              console.warn("Failed to resume execution row in convex:", err);
+            }
+          }
+        } else {
+          threadId = inputs.threadId || `thread_${workflowId}_${Date.now()}`;
+          try {
+            executionId = await convex.mutation(api.executions.createExecution, {
+              workflowId: workflow.id as any,
+              input: initialInput,
+              threadId,
+              maxTokens: (workflow.settings as any)?.maxTokens,
+              maxRuntimeSeconds: (workflow.settings as any)?.maxRuntimeSeconds,
+            });
+          } catch (err) {
+            console.error("Failed to create execution row in convex:", err);
+            executionId = `exec_${Date.now()}`; // fallback
+          }
+        }
 
         // Fetch all connectors for the user
         const connectors = await convex.query(api.knowledgeConnectors.listConnectors);
@@ -159,7 +221,8 @@ export async function POST(
           },
           apiKeys,
           convex, // Pass convex client for persistence
-          connectors || [] // Pass connectors for dynamic resolution
+          connectors || [], // Pass connectors for dynamic resolution
+          authResult.userId // Pass userId for memory node scoping
         );
 
         // Send start event with threadId
@@ -170,6 +233,27 @@ export async function POST(
           totalNodes: workflow.nodes.length,
           timestamp: new Date().toISOString(),
         });
+
+        // ── Wall-Clock Runtime Cap ───────────────────────────────────────────
+        // Read maxRuntimeSeconds from workflow settings (set via WorkflowSettingsPanel).
+        // If set to a positive value, we use an AbortController to abort the
+        // execution stream and close the SSE connection when the cap is reached.
+        const maxRuntimeSec: number = Number((workflow.settings as any)?.maxRuntimeSeconds ?? 0);
+        const abortController = new AbortController();
+        let runtimeCapTimer: ReturnType<typeof setTimeout> | null = null;
+        if (maxRuntimeSec > 0) {
+          runtimeCapTimer = setTimeout(() => {
+            abortController.abort();
+            sendEvent('workflow_timeout', {
+              workflowId,
+              executionId,
+              maxRuntimeSeconds: maxRuntimeSec,
+              message: `Workflow exceeded the ${maxRuntimeSec}s runtime limit and was aborted.`,
+              timestamp: new Date().toISOString(),
+            });
+            controller.close();
+          }, maxRuntimeSec * 1000);
+        }
 
         // Execute with streaming
         const executionStream = await executor.executeStream(initialInput, {
@@ -226,6 +310,36 @@ export async function POST(
         // Send completion event
         const status = finalState?.pendingAuth ? 'waiting-auth' : 'completed';
 
+        // Clear the runtime cap timer — execution finished before the wall-clock limit
+        if (runtimeCapTimer) clearTimeout(runtimeCapTimer);
+
+        // Save execution state in Convex
+        try {
+          if (executionId && !executionId.startsWith('exec_')) {
+            await convex.mutation(api.executions.updateExecution, {
+              id: executionId as any,
+              nodeResults: finalState?.nodeResults || {},
+              cumulativeUsage: finalState?.cumulativeUsage || { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+            });
+
+            if (status === 'completed') {
+              await convex.mutation(api.executions.completeExecution, {
+                id: executionId as any,
+                output: finalState?.nodeResults || {},
+              });
+            } else if (status === 'waiting-auth') {
+              await convex.mutation(api.executions.updateExecution, {
+                id: executionId as any,
+                status: 'suspended',
+                isSuspended: true,
+                suspendedAt: new Date().toISOString()
+              });
+            }
+          }
+        } catch (dbErr) {
+          console.error("Failed to commit execution result to Convex:", dbErr);
+        }
+
         sendEvent('workflow_completed', {
           workflowId,
           executionId,
@@ -234,13 +348,58 @@ export async function POST(
           timestamp: new Date().toISOString(),
         });
 
+        // ── Webhook Out ───────────────────────────────────────────
+        if (status === 'completed' && workflow?.settings?.webhookOnSuccessUrl) {
+          fetch(workflow.settings.webhookOnSuccessUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflowId,
+              executionId,
+              status: 'success',
+              results: finalState?.nodeResults || {},
+              timestamp: new Date().toISOString()
+            })
+          }).catch(err => console.error("Failed to fire success webhook", err));
+        }
+
         controller.close();
       } catch (error) {
         console.error('Workflow execution error:', error);
+
+        // Save failed state to Convex
+        if (executionId && !executionId.startsWith('exec_')) {
+          try {
+            // To be completely safe and avoid missing the ID if convex was uninitialized, check string
+            const { getAuthenticatedConvexClient } = await import('@/lib/convex/client');
+            const convexFallback = await getAuthenticatedConvexClient();
+            await convexFallback.mutation(api.executions.completeExecution, {
+              id: executionId as any,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            });
+          } catch (ign) { }
+        }
+
         sendEvent('error', {
           error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: new Date().toISOString(),
         });
+
+        // ── Webhook Out (Failure) ───────────────────────────────────────────
+        if (workflow?.settings?.webhookOnFailureUrl) {
+          fetch(workflow.settings.webhookOnFailureUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workflowId,
+              executionId,
+              status: 'failed',
+              error: error instanceof Error ? error.message : 'Unknown error',
+              timestamp: new Date().toISOString()
+            })
+          }).catch(err => console.error("Failed to fire failure webhook", err));
+        }
+
         controller.close();
       }
     },

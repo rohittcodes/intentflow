@@ -6,10 +6,10 @@
 
 <div align="center">
 
-**Build, test, and deploy AI agent workflows with a visual no-code interface**
+**Build, test, and deploy AI agent workflows with a visual no-code Universal MCP interface**
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![Firecrawl](https://img.shields.io/badge/Powered%20by-Firecrawl-orange)](https://firecrawl.dev)
+[![Universal MCP](https://img.shields.io/badge/Powered%20by-Universal%20MCP-blue)](#)
 
 [Documentation](#documentation) • [Examples](#example-workflows)
 
@@ -19,14 +19,16 @@
 
 ## What is Intentflow?
 
-Intentflow is a visual workflow builder for creating AI agent pipelines powered by [Firecrawl](https://firecrawl.dev). Design complex agent workflows with a drag-and-drop interface, then execute them with real-time streaming updates.
+Intentflow is an advanced, visual no-code platform that empowers you to build, test, and deploy sophisticated AI agent workflows effortlessly. Built around a **Universal MCP (Model Context Protocol)** architecture, and leveraging state-of-the-art LLMs (like Claude and OpenAI), Intentflow allows anyone to design complex automated pipelines by dynamically connecting *any* MCP server through an intuitive drag-and-drop canvas.
+
+By abstracting away the complexities of state management, external integrations, and code execution, Intentflow lets you focus purely on the logic and goals of your AI agents. Once designed, workflows can be executed instantly with real-time streaming updates, embedded securely into other applications using API keys, or triggered programmatically via webhooks or schedules.
 
 **Perfect for:**
-- Web scraping and data extraction workflows
-- Multi-step AI agent pipelines
-- Automated research and content generation
-- Data transformation and analysis
-- Web automation with human-in-the-loop approvals
+- **Custom Tool Integration**: Seamlessly connect any custom or community MCP server to your workflows.
+- **Automated Research & Synthesis**: Search, scrape, and let AI synthesize actionable insights using your preferred tools.
+- **Multi-Step AI Orchestration**: Chain together LLM reasoning steps with universal MCP connectors and sandboxed code.
+- **Web Automation with Oversight**: Execute complex tasks securely with human-in-the-loop approval gates.
+- **Embedded AI Capabilities**: Run your customized agent workflows dynamically via APIs.
 
 > **Note:** This project is actively under development. Some features are still in progress and we welcome contributions and PRs!
 
@@ -41,8 +43,10 @@ Intentflow is a visual workflow builder for creating AI agent pipelines powered 
 - **Template library** with pre-built workflows
 - **MCP protocol support** for extensible tool integration
 
-### Powered by Firecrawl
-- **Native Firecrawl integration** for web scraping and searching
+### Universal MCP Support
+- **Generic MCP Server connections** dynamically discovered and used in workflows
+- **Native Anthropic integration** for powerful tool-calling agents
+- Built-in connectors available (e.g., Firecrawl, Deepwiki, and more)
 
 ### Enterprise Features
 - **LangGraph execution engine** for reliable state management
@@ -57,7 +61,7 @@ Intentflow is a visual workflow builder for creating AI agent pipelines powered 
 
 | Technology | Purpose |
 |-----------|---------|
-| **[Firecrawl](https://firecrawl.dev)** | Web scraping API for converting websites into LLM-ready data |
+| **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** | Standardized protocol enabling agents to interact with universally compatible external tools |
 | **[Next.js 16 (canary)](https://nextjs.org/)** | React framework with App Router for frontend and API routes |
 | **[TypeScript](https://www.typescriptlang.org/)** | Type-safe development across the stack |
 | **[LangGraph](https://github.com/langchain-ai/langgraph)** | Workflow orchestration engine with state management, conditional routing, and human-in-the-loop support |

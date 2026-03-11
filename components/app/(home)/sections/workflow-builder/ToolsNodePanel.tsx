@@ -424,8 +424,10 @@ export default function ToolsNodePanel({ node, onClose, onDelete, onUpdate }: To
                       <option value="openai/gpt-5">GPT-5</option>
                     </optgroup>
                     <optgroup label="Groq (Fastest)">
-                      <option value="groq/openai/gpt-oss-20b">GPT OSS 20B</option>
-                      <option value="groq/openai/gpt-oss-120b">GPT OSS 120B</option>
+                      <option value="groq/gpt-oss-20b">GPT OSS 20B</option>
+                      <option value="groq/gpt-oss-120b">GPT OSS 120B</option>
+                      <option value="groq/llama-3.3-70b">Llama 3.3 70B</option>
+                      <option value="groq/safety-gpt-oss-20b">Safety GPT OSS 20B</option>
                     </optgroup>
                     <optgroup label="Anthropic">
                       <option value="anthropic/claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>

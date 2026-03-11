@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
 
+export interface ApiKeys {
+  anthropic?: string;
+  groq?: string;
+  openai?: string;
+  firecrawl?: string;
+  arcade?: string;
+  e2b?: string;
+  google?: string;
+}
+
 // Workflow and Node Types
 
 export interface WorkflowNode {
@@ -29,6 +39,7 @@ export interface NodeData {
   jsonSchema?: any;
   mcpTools?: any[];
   systemPrompt?: string;
+  discoveryMode?: 'static' | 'dynamic' | 'optimized';
 
   // MCP node data
   mcpServers?: MCPServer[];
@@ -70,12 +81,13 @@ export interface NodeData {
   // Note node data
   noteText?: string;
 
-  // Memory node data
-  memoryOperation?: 'store' | 'retrieve' | 'append' | 'clear';
-  memoryKey?: string;
-  memoryValue?: string;
-  memoryScope?: 'thread' | 'user';
-  injectIntoAI?: boolean;
+  // Memory node data (Mem0-style)
+  memoryMode?: 'smart' | 'retrieve' | 'clear'; // smart = LLM extract+manage, retrieve = semantic search, clear = delete scope
+  memoryScope?: 'thread' | 'workflow' | 'user';
+  memoryScopeId?: string;      // auto-populated at runtime from threadId/workflowId/userId
+  memoryQuery?: string;        // retrieve mode: what to search for (supports {{variable}})
+  memoryTopK?: number;         // retrieve mode: how many memories to inject (default 5)
+  memoryAgentId?: string;      // label / tag for attribution (e.g. node name)
 
   // Additional node data properties
   transformType?: string;
@@ -181,6 +193,7 @@ export interface WorkflowExecution {
   completedAt?: string;
   error?: string;
   pendingAuth?: WorkflowPendingAuth;
+  threadId?: string;
 }
 
 export interface NodeExecutionResult {
@@ -192,18 +205,46 @@ export interface NodeExecutionResult {
   error?: string;
   startedAt?: string;
   completedAt?: string;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+    total_tokens?: number;
+  };
   toolCalls?: Array<{
     name?: string;
     arguments?: any;
     output?: any;
   }>;
+  logs?: Array<{
+    timestamp: string;
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    data?: any;
+  }>;
   pendingAuth?: WorkflowPendingAuth;
+}
+
+
+export interface ApprovalNodeData {
+  instructions: string;
+  autoApproveOnTimeout?: boolean;
+  timeoutSeconds?: number;
 }
 
 export interface WorkflowState {
   variables: Record<string, any>;
   chatHistory: Array<{ role: string; content: string }>;
   memory?: Record<string, any>;
+  currentNodeId?: string;
+  nodeResults: Record<string, NodeExecutionResult>;
+  pendingAuth: any;
+  loopResults: Array<any>;
+  // Advanced Guardrails
+  cumulativeUsage?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+  };
 }
 
 export interface WorkflowPendingAuth {

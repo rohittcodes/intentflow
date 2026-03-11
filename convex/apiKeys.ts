@@ -5,25 +5,30 @@ import { mutation, query } from "./_generated/server";
  * API Key Management for Secure Workflow API Access
  */
 
-// Generate secure random token
+// Generate secure random token using Web Crypto API
 function generateSecureToken(length: number): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').substring(0, length);
 }
 
-// Simple hash function
-function hashKey(key: string): string {
-  // Simple hash for Convex environment
-  // In production, consider using a more robust hashing method
+// Secure hash function using Web Crypto API (supported by Convex)
+async function hashKey(key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(key);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `v2:${hashHex}`;
+}
+
+// Legacy hash function for backward compatibility
+function legacyHashKey(key: string): string {
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     const char = key.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return 'hash_' + Math.abs(hash).toString(36) + '_' + key.length;
 }
@@ -41,7 +46,7 @@ export const generate = mutation({
 
     // Generate secure key
     const key = `sk_live_${generateSecureToken(32)}`;
-    const keyHash = hashKey(key);
+    const keyHash = await hashKey(key);
     const keyPrefix = key.substring(0, 15) + "...";
 
     const apiKeyId = await ctx.db.insert("apiKeys", {
@@ -109,12 +114,29 @@ export const revoke = mutation({
 export const verify = mutation({
   args: { key: v.string() },
   handler: async (ctx, args) => {
-    const keyHash = hashKey(args.key);
-
-    const apiKey = await ctx.db
+    // Try v2 hash first
+    const v2Hash = await hashKey(args.key);
+    let apiKey = await ctx.db
       .query("apiKeys")
-      .withIndex("by_key", (q) => q.eq("key", keyHash))
+      .withIndex("by_key", (q) => q.eq("key", v2Hash))
       .first();
+
+    // Fallback to legacy hash if not found
+    if (!apiKey) {
+      const v1Hash = legacyHashKey(args.key);
+      apiKey = await ctx.db
+        .query("apiKeys")
+        .withIndex("by_key", (q) => q.eq("key", v1Hash))
+        .first();
+
+      // Auto-migrate to v2 if legacy key is found
+      if (apiKey) {
+        console.log(`Migrating legacy API key ${apiKey._id} to v2 hash`);
+        await ctx.db.patch(apiKey._id, {
+          key: v2Hash,
+        });
+      }
+    }
 
     if (!apiKey) {
       return { valid: false, error: "Invalid API key" };

@@ -14,7 +14,7 @@ import { StateGraph, Annotation, START, END, MemorySaver, Command, Send, interru
 import { BaseCheckpointSaver } from "@langchain/langgraph-checkpoint";
 import { ConvexHttpClient } from "convex/browser";
 import { ConvexCheckpointer } from "./checkpointer";
-import { Workflow, WorkflowState, NodeExecutionResult, WorkflowNode, WorkflowEdge, WorkflowPendingAuth } from './types';
+import { Workflow, WorkflowState, NodeExecutionResult, WorkflowNode, WorkflowEdge, WorkflowPendingAuth, ApiKeys } from './types';
 import { executeAgentNode } from './executors/agent';
 import { executeMCPNode } from './executors/mcp';
 import { executeLogicNode } from './executors/logic';
@@ -92,6 +92,20 @@ export const WorkflowStateAnnotation = Annotation.Root({
     reducer: (left, right) => [...left, ...right],
     default: () => [],
   }),
+
+  // Advanced Guardrails - Cumulative token usage
+  cumulativeUsage: Annotation<{
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+  }>({
+    reducer: (left, right) => ({
+      input_tokens: (left?.input_tokens || 0) + (right?.input_tokens || 0),
+      output_tokens: (left?.output_tokens || 0) + (right?.output_tokens || 0),
+      total_tokens: (left?.total_tokens || 0) + (right?.total_tokens || 0),
+    }),
+    default: () => ({ input_tokens: 0, output_tokens: 0, total_tokens: 0 }),
+  }),
 });
 
 /**
@@ -101,7 +115,7 @@ export const WorkflowStateAnnotation = Annotation.Root({
 export class LangGraphExecutor {
   private workflow: Workflow;
   private graph: any; // Compiled StateGraph
-  private apiKeys?: { anthropic?: string; groq?: string; openai?: string; firecrawl?: string; arcade?: string };
+  private apiKeys?: ApiKeys;
   private onNodeUpdate?: (nodeId: string, result: NodeExecutionResult) => void;
   private checkpointer: BaseCheckpointSaver;
   private convex?: any; // ConvexHttpClient for persistence
@@ -112,19 +126,22 @@ export class LangGraphExecutor {
   private lastStreamState: any = null;
   private edgesBySource: Map<string, WorkflowEdge[]> = new Map();
   private connectors: any[] = [];
+  private userId?: string;
 
   constructor(
     workflow: Workflow,
     onNodeUpdate?: (nodeId: string, result: NodeExecutionResult) => void,
-    apiKeys?: { anthropic?: string; groq?: string; openai?: string; firecrawl?: string; arcade?: string },
+    apiKeys?: ApiKeys,
     convex?: any,
-    connectors: any[] = []
+    connectors: any[] = [],
+    userId?: string
   ) {
     this.workflow = JSON.parse(JSON.stringify(workflow));
     this.onNodeUpdate = onNodeUpdate;
     this.apiKeys = apiKeys;
     this.convex = convex;
     this.connectors = connectors;
+    this.userId = userId;
     this.checkpointer = convex ? new ConvexCheckpointer(convex) : new MemorySaver();
     this.graph = this.buildGraph();
   }
@@ -370,13 +387,48 @@ export class LangGraphExecutor {
    */
   private createNodeExecutor(node: WorkflowNode) {
     return async (state: typeof WorkflowStateAnnotation.State) => {
-      console.log(`Executing node: ${node.id}`);
+      const nodeType = (node.data as any)?.nodeType || node.type;
+
+      // Determine input based on node type
+      const nodeInput = nodeType === 'start' ? state.variables.input : state.variables.lastOutput;
+
+      // Guardrail Check: Financial Cap
+      const totalTokens = state.cumulativeUsage?.total_tokens || 0;
+      const maxTokens = (this.workflow as any).settings?.maxTokens ?? Infinity;
+
+      if (totalTokens > maxTokens) {
+        const errorMsg = `Financial Guardrail: Workflow exceeded token limit of ${maxTokens} (Current: ${totalTokens})`;
+        console.error(errorMsg);
+
+        const failureResult: NodeExecutionResult = {
+          nodeId: node.id,
+          status: 'failed',
+          startedAt: new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+          error: errorMsg,
+          logs: [{
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            message: errorMsg
+          }]
+        };
+        this.onNodeUpdate?.(node.id, failureResult);
+        throw new Error(errorMsg);
+      }
 
       // Notify UI
       const result: NodeExecutionResult = {
         nodeId: node.id,
         status: 'running',
         startedAt: new Date().toISOString(),
+        input: nodeInput,
+        logs: [
+          {
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            message: `Execution phase: ${nodeType}`,
+          }
+        ],
       };
       this.onNodeUpdate?.(node.id, result);
 
@@ -409,6 +461,24 @@ export class LangGraphExecutor {
           toolCalls = (output as any).__agentToolCalls;
           chatHistoryUpdates = (output as any).__chatHistoryUpdates || [];
           variableUpdates = (output as any).__variableUpdates || {};
+          const agentLogs = (output as any).__logs || [];
+          const agentUsage = (output as any).__usage || {};
+
+          if (agentLogs.length > 0) {
+            result.logs?.push(...agentLogs);
+          }
+
+          if (agentUsage && Object.keys(agentUsage).length > 0) {
+            const usageUpdates = {
+              input_tokens: agentUsage.input_tokens || agentUsage.prompt_tokens || 0,
+              output_tokens: agentUsage.output_tokens || agentUsage.completion_tokens || 0,
+              total_tokens: agentUsage.total_tokens || 0,
+            };
+            result.usage = usageUpdates;
+
+            // Apply cumulative update signal
+            (result as any).__cumulativeUsageUpdate = usageUpdates;
+          }
 
           console.log(`Extracted from agent output:`, {
             actualOutput: typeof actualOutput === 'string' ? actualOutput.substring(0, 100) : actualOutput,
@@ -424,6 +494,18 @@ export class LangGraphExecutor {
         result.toolCalls = toolCalls;
         result.status = 'completed';
         result.completedAt = new Date().toISOString();
+
+        // Add completion log
+        const logMsg = toolCalls && toolCalls.length > 0
+          ? `Node completed with ${toolCalls.length} tool calls`
+          : `Node completed successfully`;
+
+        result.logs?.push({
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: logMsg
+        });
+
         this.onNodeUpdate?.(node.id, result);
 
         // For while loops, extract the iteration counter from output
@@ -469,12 +551,20 @@ export class LangGraphExecutor {
           currentNodeId: node.id,
           nodeResults: { [node.id]: result }, // Reducer merges this
           pendingAuth: null,
+          cumulativeUsage: (result as any).__cumulativeUsageUpdate || { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
           ...(loopResultsUpdate ? { loopResults: loopResultsUpdate } : {}),
         };
       } catch (error) {
         result.status = 'failed';
         result.error = error instanceof Error ? error.message : 'Unknown error';
         result.completedAt = new Date().toISOString();
+
+        result.logs?.push({
+          timestamp: new Date().toISOString(),
+          level: 'error',
+          message: `Node failed: ${result.error}`
+        });
+
         this.onNodeUpdate?.(node.id, result);
 
         throw error;
@@ -539,7 +629,22 @@ export class LangGraphExecutor {
       }
 
       case 'memory': {
-        return await executeMemoryNode(node, state as WorkflowState);
+        return await executeMemoryNode(node, state as WorkflowState, {
+          apiKeys: this.apiKeys,
+          convex: this.convex,
+          userId: this.userId,
+          threadId: this.activeThreadId,
+          workflowId: this.workflow.id,
+        });
+      }
+
+      case 'approval': {
+        return {
+          __pendingApproval: true,
+          message: data.instructions || 'Approval required to proceed',
+          status: 'pending-approval',
+          createdAt: new Date().toISOString()
+        };
       }
 
       case 'transform':
@@ -559,6 +664,12 @@ export class LangGraphExecutor {
       case 'http-request':
         return await executeHTTPNode(node, state as WorkflowState, this.connectors);
 
+      case 'extract':
+        return await executeExtractNode(node, state as WorkflowState, this.apiKeys);
+
+      case 'retriever':
+        return await executeRetrieverNode(node, state as WorkflowState);
+
       case 'if-else': {
         const condition = data.condition || 'true';
         const evalFn = new Function('input', 'state', 'lastOutput', `return ${condition}`);
@@ -571,6 +682,9 @@ export class LangGraphExecutor {
         const tempState: WorkflowState = {
           variables: state.variables,
           chatHistory: state.chatHistory,
+          nodeResults: state.nodeResults || {},
+          pendingAuth: state.pendingAuth || null,
+          loopResults: state.loopResults || {},
         };
         return await this.executeWhileNode(node, tempState, state);
       }
@@ -591,7 +705,7 @@ export class LangGraphExecutor {
           return await executeDataNode(node, state as WorkflowState, this.connectors);
         }
 
-        return await this.executeNode(node, tempState);
+        return { message: `Node type ${nodeType} not implemented in LangGraph yet` };
     }
   }
 
@@ -609,6 +723,9 @@ export class LangGraphExecutor {
       const tempState: WorkflowState = {
         variables: state.variables,
         chatHistory: state.chatHistory,
+        nodeResults: state.nodeResults || {},
+        pendingAuth: state.pendingAuth || null,
+        loopResults: state.loopResults || {},
       };
 
       const result = await executeLogicNode(node, tempState);
@@ -1107,6 +1224,25 @@ export class LangGraphExecutor {
       this.activeExecutionId = config.executionId;
     }
     this.pendingAuth = null;
+
+    // Resuming from checkpoint if input is null
+    if (input === null) {
+      console.log(`Resuming workflow for thread: ${threadId}`);
+      const rawStream = await this.graph.stream(null, {
+        configurable: { thread_id: threadId },
+        streamMode: "values" as const,
+        recursionLimit,
+      });
+
+      const fallback = this.lastStreamState ?? {
+        variables: {},
+        nodeResults: {},
+        pendingAuth: null,
+        currentNodeId: '',
+      };
+
+      return this.wrapStreamWithInterruptHandling(rawStream, fallback);
+    }
 
     const initialState = {
       variables: {

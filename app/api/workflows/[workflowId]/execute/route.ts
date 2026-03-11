@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LangGraphExecutor } from '@/lib/workflow/langgraph';
 import { validateApiKey, createUnauthorizedResponse } from '@/lib/api/auth';
+import { validateWorkflow } from '@/lib/workflow/validation';
+import { getAuthenticatedConvexClient, api } from '@/lib/convex/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,14 +32,42 @@ export async function POST(
 
     console.log('API: Loaded workflow:', workflow.name);
 
-    const apiKeys = {
-      anthropic: process.env.ANTHROPIC_API_KEY,
-      groq: process.env.GROQ_API_KEY,
-      openai: process.env.OPENAI_API_KEY,
-      firecrawl: process.env.FIRECRAWL_API_KEY,
-      arcade: process.env.ARCADE_API_KEY,
-    };
+    const { getAllCombinedApiKeys } = await import('@/lib/api/llm-keys');
+    const apiKeys = await getAllCombinedApiKeys(authResult.userId || undefined);
 
+    // 3. Validate workflow
+    const validation = validateWorkflow(workflow as any, apiKeys);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Invalid workflow configuration',
+          details: validation.errors.filter(e => e.severity === 'error')
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. Check usage limits
+    if (authResult.userId) {
+      const convex = await getAuthenticatedConvexClient();
+      const usage = await convex.query(api.usage.checkUsageLimit, { userId: authResult.userId });
+
+      if (!usage.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Usage limit exceeded',
+            message: `You have reached your limit of ${usage.limit} executions for the current period. Please upgrade to a higher tier to continue.`,
+            usage
+          },
+          { status: 429 }
+        );
+      }
+
+      // 5. Increment usage
+      await convex.mutation(api.usage.incrementUsage, { userId: authResult.userId });
+    }
+
+    // 6. Create execution record
     // Execute workflow using LangGraph
     const executor = new LangGraphExecutor(workflow, undefined, apiKeys);
     const execution = await executor.execute(input || '');

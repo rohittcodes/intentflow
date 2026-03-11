@@ -152,21 +152,21 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
   }
 
   return (
-    <div className="space-y-24">
+    <div className="space-y-32 h-full">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-20 border-black-alpha-8">
+      <div className="flex items-center justify-between border-b pb-24 border-black-alpha-8">
         <div className="flex items-center gap-16">
-          <Button variant="secondary" onClick={onBack} className="rounded-full w-40 h-40 p-0 flex items-center justify-center">
+          <Button variant="secondary" onClick={onBack} className="rounded-full w-44 h-44 p-0 flex items-center justify-center border-black-alpha-8 shadow-sm transition-all hover:bg-black-alpha-4">
             <ArrowLeft className="w-20 h-20" />
           </Button>
           <div>
             <div className="flex items-center gap-12">
-              <h1 className="text-2xl font-bold text-accent-black">{namespace.name}</h1>
-              <div className="py-2 px-6 bg-heat-8 text-heat-100 hover:bg-heat-8 border-none font-normal">
+              <h1 className="text-title-h4 text-accent-black font-bold">{namespace.name}</h1>
+              <div className="py-4 px-10 bg-heat-100/10 text-heat-100 rounded-full font-bold text-[10px] tracking-wider uppercase">
                 {namespace.documentCount || 0} chunks
               </div>
             </div>
-            <p className="text-black-alpha-56 text-body-small mt-2">{namespace.description}</p>
+            <p className="text-body-small text-black-alpha-56 mt-4">{namespace.description}</p>
           </div>
         </div>
 
@@ -296,7 +296,7 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
 
           <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="secondary" className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full w-40 h-40 p-0 flex items-center justify-center">
+              <Button variant="secondary" className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full w-44 h-44 p-0 flex items-center justify-center border-black-alpha-8">
                 <Trash2 className="w-18 h-18" />
               </Button>
             </DialogTrigger>
@@ -304,12 +304,12 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
               <DialogHeader className="mb-24">
                 <DialogTitle className="text-title-h4 mb-8 text-accent-black">Delete Namespace?</DialogTitle>
                 <DialogDescription className="text-body-medium text-black-alpha-48 leading-relaxed">
-                  This will permanently delete the namespace <span className="font-semibold text-accent-black">"{namespace.name}"</span> and all <span className="font-semibold text-accent-black">{namespace.documentCount}</span> document chunks within it. This action <span className="text-red-500 font-medium">cannot be undone</span>.
+                  This will permanently delete the namespace <span className="font-semibold text-accent-black">"{namespace.name}"</span> and all <span className="font-semibold text-accent-black">{namespace.documentCount}</span> document chunks within it. This action <span className="text-heat-100 font-bold">cannot be undone</span>.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="gap-12">
-                <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)} className="h-44 px-24">Cancel</Button>
-                <Button variant="secondary" className="h-44 px-24 bg-red-500 text-white hover:bg-red-600 border-none" onClick={handleDeleteNamespace}>Delete Namespace</Button>
+                <Button variant="secondary" onClick={() => setIsDeleteDialogOpen(false)} className="h-44 px-24 rounded-8">Cancel</Button>
+                <Button variant="primary" className="h-44 px-24 bg-red-500 text-white hover:bg-red-600 border-none rounded-8 font-semibold" onClick={handleDeleteNamespace}>Delete Namespace</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -318,8 +318,8 @@ export default function NamespaceDetail({ namespaceId, onBack }: NamespaceDetail
 
       {/* Knowledge Connectors Section */}
       <div className="space-y-16">
-        <h2 className="text-label-medium text-accent-black flex items-center gap-8">
-          <Database className="w-16 h-16 opacity-40" />
+        <h2 className="text-label-medium font-bold text-accent-black flex items-center gap-8">
+          <Database className="w-18 h-18 opacity-40" />
           Active Connectors
         </h2>
 

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 import type { Node } from "@xyflow/react";
+import { llmProviders } from "@/lib/config/llm-config";
 
 interface ExtractNodePanelProps {
   node: Node | null;
@@ -102,17 +103,15 @@ export default function ExtractNodePanel({
           onChange={(e) => setModel(e.target.value)}
           className="w-full px-12 py-10 bg-background-base border border-border-faint rounded-8 text-body-medium text-accent-black focus:outline-none focus:border-heat-100 transition-colors"
         >
-          <optgroup label="Anthropic">
-            <option value="anthropic/claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>
-            <option value="anthropic/claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
-          </optgroup>
-          <optgroup label="OpenAI">
-            <option value="gpt-4o">GPT-5</option>
-            <option value="gpt-4o-mini">GPT-5 Mini</option>
-          </optgroup>
-          <optgroup label="Groq">
-            <option value="groq/openai/gpt-oss-120b">GPT OSS 120B</option>
-          </optgroup>
+          {llmProviders.map(provider => (
+            <optgroup key={provider.id} label={provider.name}>
+              {provider.models.map(m => (
+                <option key={`${m.provider}/${m.id}`} value={`${m.provider}/${m.id}`}>
+                  {m.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
         </select>
       </div>
 

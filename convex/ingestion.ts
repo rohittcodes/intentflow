@@ -2,8 +2,9 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import OpenAI from "openai";
+import { Pinecone } from "@pinecone-database/pinecone";
 
 /**
  * Recursive Character Text Splitter Implementation
@@ -82,7 +83,7 @@ export const ingestDocument = action({
     fileName: v.optional(v.string()),
     metadata: v.optional(v.any()),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; count: number }> => {
+  handler: async (ctx, args): Promise<{ success: boolean; count: number; pineconeSuccess?: boolean }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthorized");
 
@@ -165,13 +166,44 @@ export const ingestDocument = action({
       });
     }
 
-    // 3. Store in Convex
+    let pineconeSuccess = false;
+
+    // 3. Try Storing in Pinecone First (If Configured)
+    try {
+      const pineconeConfig = await ctx.runQuery(internal.pineconeConnectors.getInternalPineconeConfig, {
+        userId: identity.subject
+      });
+
+      if (pineconeConfig?.apiKey && pineconeConfig?.indexName) {
+        console.log(`🌲 Pushing ${documentsToStore.length} chunks to Pinecone Index: ${pineconeConfig.indexName}`);
+
+        const pc = new Pinecone({ apiKey: pineconeConfig.apiKey });
+        const index = pc.index(pineconeConfig.indexName);
+
+        // Map to Pinecone vector format
+        const vectors = documentsToStore.map((doc, idx) => ({
+          id: `chunk_${Date.now()}_${idx}`,
+          values: doc.embedding,
+          metadata: {
+            text: doc.content, // Pinecone convention for RAG is storing content in metadata.text
+            ...doc.metadata
+          }
+        }));
+        await index.upsert({ records: vectors as any });
+        console.log(`✅ Successfully upserted chunks to Pinecone!`);
+        pineconeSuccess = true;
+      }
+    } catch (pcError) {
+      console.error("❌ Failed to push to Pinecone, falling back to Convex:", pcError);
+    }
+
+    // 4. Always Store in Convex (Backup / Native Option)
     const result: { count: number } = await ctx.runMutation(api.knowledge.storeDocuments, {
       namespaceId: args.namespaceId,
       documents: documentsToStore,
     });
 
-    console.log(`✅ Successfully stored ${result.count} document chunks`);
-    return { success: true, count: result.count };
+    console.log(`✅ Successfully stored ${result.count} document chunks natively`);
+    return { success: true, count: result.count, pineconeSuccess };
   },
 });

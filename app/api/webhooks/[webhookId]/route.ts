@@ -8,10 +8,10 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { webhookId: string } }
+  { params }: { params: Promise<{ webhookId: string }> }
 ) {
   try {
-    const { webhookId } = params;
+    const { webhookId } = await params;
 
     // 1. Look up the workflow and webhook configuration
     const result = await convex.query(api.webhooks.getWorkflowByWebhookId, { webhookId });
@@ -48,7 +48,7 @@ export async function POST(
 
     // 4. Initialize Executor
     // LangGraphExecutor(workflow, onNodeUpdate?, apiKeys?, client?)
-    const executor = new LangGraphExecutor(workflow, undefined, {}, convex);
+    const executor = new LangGraphExecutor({ ...workflow, id: workflow._id } as any, undefined, {}, convex as any);
 
     // 5. Execute Workflow (Wait for completion or timeout)
     // Note: Vercel serverless has timeout limits (10s-60s). 
@@ -73,7 +73,8 @@ export async function POST(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { webhookId: string } }
+  { params }: { params: Promise<{ webhookId: string }> }
 ) {
-  return NextResponse.json({ message: `Webhook ${params.webhookId} is active. Use POST to trigger.` });
+  const { webhookId } = await params;
+  return NextResponse.json({ message: `Webhook ${webhookId} is active. Use POST to trigger.` });
 }

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LangGraphExecutor } from '@/lib/workflow/langgraph';
+import { ApiKeys } from '@/lib/workflow/types';
 import { getWorkflow } from '@/lib/workflow/storage';
 import { getServerAPIKeys } from '@/lib/api/config';
 import { validateApiKey } from '@/lib/api/auth';
+import { getAuthenticatedConvexClient, api } from '@/lib/convex/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,17 +39,40 @@ export async function POST(
       );
     }
 
-    // Get API keys - check user keys first, then fall back to environment
-    const { getLLMApiKey } = await import('@/lib/api/llm-keys');
-    const userId = authResult.userId;
-    
-    const apiKeys = {
-      anthropic: userId ? await getLLMApiKey('anthropic', userId) : null || process.env.ANTHROPIC_API_KEY,
-      groq: userId ? await getLLMApiKey('groq', userId) : null || process.env.GROQ_API_KEY,
-      openai: userId ? await getLLMApiKey('openai', userId) : null || process.env.OPENAI_API_KEY,
-      firecrawl: process.env.FIRECRAWL_API_KEY, // Firecrawl keys are still environment-only for now
-      arcade: process.env.ARCADE_API_KEY,
-    };
+    const { getAllCombinedApiKeys } = await import('@/lib/api/llm-keys');
+    const apiKeys = await getAllCombinedApiKeys(authResult.userId || undefined);
+
+    // Usage checks
+    if (authResult.userId) {
+      const convex = await getAuthenticatedConvexClient();
+      const usage = await convex.query(api.usage.checkUsageLimit, { userId: authResult.userId });
+
+      if (!usage.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Usage limit exceeded',
+            message: `You have reached your limit of ${usage.limit} executions for the current period.`,
+            usage
+          },
+          { status: 429 }
+        );
+      }
+
+      await convex.mutation(api.usage.incrementUsage, { userId: authResult.userId });
+    }
+
+    // Validate workflow
+    const { validateWorkflow } = await import('@/lib/workflow/validation');
+    const validation = validateWorkflow(workflow as any, apiKeys);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Invalid workflow configuration',
+          details: validation.errors.filter(e => e.severity === 'error')
+        },
+        { status: 400 }
+      );
+    }
 
     // Create LangGraph executor
     const executor = new LangGraphExecutor(workflow, undefined, apiKeys || undefined);

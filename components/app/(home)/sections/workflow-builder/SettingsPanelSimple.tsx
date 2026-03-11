@@ -63,7 +63,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   // LLM Keys queries and mutations
   const userLLMKeys = useQuery(api.userLLMKeys.getUserLLMKeys,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
   const upsertLLMKey = useMutation(api.userLLMKeys.upsertLLMKey);
   const deleteLLMKey = useMutation(api.userLLMKeys.deleteLLMKey);
@@ -71,7 +71,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   // MCP Registry state
   const mcpServers = useQuery(api.mcpServers.listUserMCPs,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   ) as MCPServer[] | undefined;
 
   const addMCPServer = useMutation(api.mcpServers.addMCPServer);
@@ -178,7 +178,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                               <button
                                 onClick={async () => {
                                   if (user?.id) {
-                                    await deleteLLMKey({ id: providerKey._id, userId: user.id });
+                                     await deleteLLMKey({ id: providerKey._id });
                                     toast.success(`${provider} key removed`);
                                   }
                                 }}
@@ -233,11 +233,28 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                     Paste Config
                   </button>
                   <button
-                    onClick={() => setShowAddMCPModal(true)}
+                    onClick={async () => {
+                      if (user?.id) {
+                        const loadingToast = toast.loading("Adding Rube MCP...");
+                        try {
+                          await seedOfficialMCPs({});
+                          toast.success("Rube MCP added to your registry", { id: loadingToast });
+                        } catch (error) {
+                          toast.error("Failed to add Rube MCP", { id: loadingToast });
+                        }
+                      }
+                    }}
                     className="px-12 py-6 bg-heat-100 hover:bg-heat-200 text-white rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6"
                   >
                     <Plus className="w-14 h-14" />
-                    Add MCP Server
+                    Add Rube MCP
+                  </button>
+                  <button
+                    onClick={() => setShowAddMCPModal(true)}
+                    className="px-12 py-6 bg-black-alpha-4 hover:bg-black-alpha-8 text-accent-black rounded-8 text-body-small font-medium transition-all active:scale-[0.98] flex items-center gap-6 border border-border-faint"
+                  >
+                    <Plus className="w-14 h-14" />
+                    Add Custom Server
                   </button>
                 </div>
               </div>
@@ -394,7 +411,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 // If tools already discovered via Test Connection button, use those
                 if (data.tools && data.tools.length > 0) {
                   await addMCPServer({
-                    userId: user.id,
                     ...data,
                   });
                   toast.success(`${data.name} added with ${data.tools.length} tools`);
@@ -424,7 +440,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
                   // Save with discovered tools
                   await addMCPServer({
-                    userId: user.id,
                     ...data,
                     tools: testResult.tools || [],
                   });
@@ -456,7 +471,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           onSave={async (provider, apiKey, label) => {
             if (user?.id) {
               await upsertLLMKey({
-                userId: user.id,
                 provider,
                 apiKey,
                 label
@@ -500,8 +514,7 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   serverId = existingServer._id;
                 } else {
                   // Add new server
-                  const newServerId = await addMCPServer({
-                    userId: user.id,
+                   const newServerId = await addMCPServer({
                     ...serverData,
                   });
                   serverId = newServerId;

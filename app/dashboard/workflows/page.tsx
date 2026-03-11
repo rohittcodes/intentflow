@@ -6,58 +6,38 @@ import { useRouter } from "next/navigation";
 import { Plus, Search, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import WorkflowCard from "@/components/app/(home)/sections/WorkflowCard";
-import { api } from "@/lib/convex/client";
-import { useMutation } from "convex/react";
-
-interface Workflow {
-  id: string;
-  _id: string;
-  title: string;
-  description?: string;
-  createdAt: string;
-  isStarred?: boolean;
-  nodeCount?: number;
-  edgeCount?: number;
-}
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { AlertCircle } from "lucide-react";
 
 export default function WorkflowsPage() {
   const router = useRouter();
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activeWorkspaceId, activeProjectId } = useWorkspace();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Load workflows
-  const loadWorkflows = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/workflows");
-      const data = await response.json();
+  const workflowsData = useQuery(
+    api.workflows.list,
+    activeWorkspaceId ? { workspaceId: activeWorkspaceId, projectId: activeProjectId || undefined } : "skip"
+  );
 
-      if (data.workflows && Array.isArray(data.workflows)) {
-        setWorkflows(
-          data.workflows.map((w: any) => ({
-            id: w.id,
-            _id: w._id || w.id,
-            title: w.name,
-            description: w.description,
-            createdAt: new Date(w.updatedAt || w.createdAt).toLocaleDateString(),
-            isStarred: w.isStarred || false,
-            nodeCount: w.nodeCount,
-            edgeCount: w.edgeCount,
-          }))
-        );
-      }
-    } catch (error) {
-      console.error("Error loading workflows:", error);
-      toast.error("Failed to load workflows");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const workflows = useMemo(() => {
+    if (!workflowsData) return [];
+    return workflowsData.map((w: any) => ({
+      id: w._id,
+      _id: w._id,
+      title: w.name,
+      description: w.description,
+      createdAt: new Date(w.updatedAt || w.createdAt).toLocaleDateString(),
+      isStarred: w.isStarred || false,
+      nodeCount: w.nodes?.length || 0,
+      edgeCount: w.edges?.length || 0,
+    }));
+  }, [workflowsData]);
 
-  useEffect(() => {
-    loadWorkflows();
-  }, []);
+  const loading = workflowsData === undefined;
+
 
   // Separate starred and non-starred workflows
   const starredWorkflows = useMemo(
@@ -82,9 +62,15 @@ export default function WorkflowsPage() {
     );
   }, [allWorkflows, searchQuery]);
 
+  const toggleStar = useMutation(api.workflows.toggleStar);
+  const moveToTrash = useMutation(api.workflows.moveToTrash);
+  const updateMetadata = useMutation(api.workflows.updateMetadata);
+
   // Handlers
   const handleCreateWorkflow = () => {
-    router.push("/flow/new");
+    // If we have an active project, we should pass it to the new workflow page
+    const query = activeProjectId ? `?projectId=${activeProjectId}` : "";
+    router.push(`/flow/new${query}`);
   };
 
   const handleOpenWorkflow = (id: string) => {
@@ -97,26 +83,8 @@ export default function WorkflowsPage() {
 
   const handleStarWorkflow = async (id: string, convexId: string) => {
     try {
-      const response = await fetch("/api/workflows/star", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workflowId: convexId }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Update local state
-        setWorkflows((prev) =>
-          prev.map((w) =>
-            w._id === convexId ? { ...w, isStarred: data.isStarred } : w
-          )
-        );
-        toast.success(
-          data.isStarred ? "Workflow starred" : "Workflow unstarred"
-        );
-      } else {
-        toast.error("Failed to update workflow");
-      }
+      await toggleStar({ id: convexId as any });
+      toast.success("Workflow status updated");
     } catch (error) {
       console.error("Error starring workflow:", error);
       toast.error("Failed to update workflow");
@@ -129,18 +97,8 @@ export default function WorkflowsPage() {
     name: string
   ) => {
     try {
-      const response = await fetch(`/api/workflows?id=${convexId}`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(`"${name}" moved to trash`);
-        loadWorkflows(); // Reload workflows
-      } else {
-        toast.error(data.message || data.error || "Failed to delete workflow");
-      }
+      await moveToTrash({ id: convexId as any });
+      toast.success(`"${name}" moved to trash`);
     } catch (error) {
       console.error("Error deleting workflow:", error);
       toast.error("Failed to delete workflow");
@@ -153,24 +111,11 @@ export default function WorkflowsPage() {
     newTitle: string
   ) => {
     try {
-      const response = await fetch("/api/workflows", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: convexId,
-          name: newTitle,
-        }),
+      await updateMetadata({
+        id: convexId as any,
+        name: newTitle,
       });
-
-      if (response.ok) {
-        // Update local state
-        setWorkflows((prev) =>
-          prev.map((w) => (w._id === convexId ? { ...w, title: newTitle } : w))
-        );
-        toast.success("Title updated");
-      } else {
-        toast.error("Failed to update title");
-      }
+      toast.success("Title updated");
     } catch (error) {
       console.error("Error updating title:", error);
       toast.error("Failed to update title");
@@ -183,31 +128,17 @@ export default function WorkflowsPage() {
     newDescription: string
   ) => {
     try {
-      const response = await fetch("/api/workflows", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: convexId,
-          description: newDescription,
-        }),
+      await updateMetadata({
+        id: convexId as any,
+        description: newDescription,
       });
-
-      if (response.ok) {
-        // Update local state
-        setWorkflows((prev) =>
-          prev.map((w) =>
-            w._id === convexId ? { ...w, description: newDescription } : w
-          )
-        );
-        toast.success("Description updated");
-      } else {
-        toast.error("Failed to update description");
-      }
+      toast.success("Description updated");
     } catch (error) {
       console.error("Error updating description:", error);
       toast.error("Failed to update description");
     }
   };
+
 
   return (
     <motion.div
@@ -223,6 +154,15 @@ export default function WorkflowsPage() {
         </p>
       </div>
 
+      {!activeProjectId && (
+        <Alert variant="destructive" className="flex items-center bg-heat-4 border-heat-100/20 text-heat-100 gap-8 rounded-16 mb-32 [&>svg]:relative [&>svg]:left-0 [&>svg]:top-0 [&>svg~*]:pl-0">
+          <AlertCircle className="h-20 w-20 shrink-0" />
+          <AlertDescription className="text-label-medium">
+            You need to select or create a <strong>Project</strong> in the sidebar to manage your workflows.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {loading && (
         <div className="flex items-center justify-center py-64">
           <div className="w-32 h-32 border-4 border-heat-100 border-t-transparent rounded-full animate-spin" />
@@ -237,18 +177,22 @@ export default function WorkflowsPage() {
             </h2>
             <div className="grid gap-16 md:grid-cols-2 lg:grid-cols-3">
               <div
-                onClick={handleCreateWorkflow}
-                className="group relative flex flex-col items-center justify-center gap-12 rounded-12 border-2 border-dashed border-black-alpha-12 p-16 hover:bg-black-alpha-4 hover:border-heat-100 cursor-pointer transition-all h-full min-h-160"
+                onClick={activeProjectId ? handleCreateWorkflow : undefined}
+                className={`group relative flex flex-col items-center justify-center gap-12 rounded-12 border-2 border-dashed p-16 transition-all h-full min-h-160 ${activeProjectId
+                  ? "border-black-alpha-12 hover:bg-black-alpha-4 hover:border-heat-100 cursor-pointer"
+                  : "border-black-alpha-8 bg-black-alpha-4 cursor-not-allowed opacity-60"
+                  }`}
               >
-                <div className="flex h-48 w-48 items-center justify-center rounded-full bg-heat-8 group-hover:bg-heat-12 transition-colors">
-                  <Plus className="h-24 w-24 text-heat-100" />
+                <div className={`flex h-48 w-48 items-center justify-center rounded-full transition-colors ${activeProjectId ? "bg-heat-8 group-hover:bg-heat-12" : "bg-black-alpha-8"
+                  }`}>
+                  <Plus className={`h-24 w-24 ${activeProjectId ? "text-heat-100" : "text-black-alpha-32"}`} />
                 </div>
                 <div className="text-center">
                   <h3 className="text-label-large text-accent-black mb-4">
                     Create Workflow
                   </h3>
                   <p className="text-body-small text-black-alpha-56">
-                    Start building from scratch
+                    {activeProjectId ? "Start building from scratch" : "Select a project first"}
                   </p>
                 </div>
               </div>

@@ -4,7 +4,7 @@ import { Workflow } from '../../types';
  * Example 3: Scrape, Summarize, and Post to Google Docs (MCP + Arcade)
  *
  * This workflow demonstrates a practical multi-step workflow:
- * 1. Scrape content from a URL using Firecrawl MCP
+ * 1. Scrape content from a URL using Rube MCP
  * 2. Summarize the content with an AI agent
  * 3. Create a Google Doc with the summary using Arcade
  *
@@ -22,12 +22,12 @@ import { Workflow } from '../../types';
  * - MCP integration: Verified working with OpenAI, Groq, and Anthropic ✅
  * - Arcade integration: Requires user authorization flow
  */
-export const scrapeSummarizeDocs: Workflow = {
-  id: 'example-03-scrape-summarize-docs',
-  name: 'Example 3: Scrape, Summarize & Post to Docs',
-  description: 'Scrape a website, summarize content, and create a Google Doc',
+export const rubeScrapeSummarizeDocs: Workflow = {
+  id: 'example-03-rube-summarize-docs',
+  name: 'Example 3: Rube Scrape, Summarize & Post to Docs',
+  description: 'Scrape a website with Rube, summarize content, and create a Google Doc',
   category: 'examples',
-  tags: ['example', 'intermediate', 'firecrawl', 'arcade', 'google-docs'],
+  tags: ['example', 'intermediate', 'rube', 'arcade', 'google-docs'],
   estimatedTime: '3-5 minutes',
   difficulty: 'intermediate',
   createdAt: new Date().toISOString(),
@@ -74,9 +74,9 @@ export const scrapeSummarizeDocs: Workflow = {
         label: 'Scrape Website',
         nodeType: 'agent',
         nodeName: 'Scrape Website',
-        instructions: `Use Firecrawl MCP tools to scrape the content from this URL: {{input.url}}
+        instructions: `Use Rube MCP tools to scrape the content from this URL: {{input.url}}
 
-Use the firecrawl_scrape tool with markdown format.
+Use the scrape tool to get the markdown content.
 
 Extract the main content, focusing on:
 - Article titles
@@ -88,9 +88,8 @@ Return the scraped content in a clean, organized format.`,
         outputFormat: 'Text',
         mcpTools: [
           {
-            name: 'Firecrawl',
-            url: 'https://mcp.firecrawl.dev/{FIRECRAWL_API_KEY}/v2/mcp',
-            accessToken: '${FIRECRAWL_API_KEY}',
+            name: 'Rube MCP',
+            url: 'https://rube.app/mcp',
           },
         ],
       },

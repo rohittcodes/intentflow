@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { assertResourceLimit } from "./usage";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Workflow CRUD Operations
@@ -7,28 +9,48 @@ import { query, mutation } from "./_generated/server";
 
 // Get all workflows (filtered by user if authenticated, excluding trashed)
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    workspaceId: v.optional(v.id("workspaces")),
+    projectId: v.optional(v.id("projects")),
+  },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
 
-    // If authenticated, only show user's workflows (exclude templates, trashed, and undefined userId)
-    if (identity) {
-      const workflows = await ctx.db
-        .query("workflows")
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("userId"), identity.subject),
-            q.neq(q.field("isTemplate"), true),
-            q.eq(q.field("deletedAt"), undefined) // Exclude trashed workflows
-          )
-        )
-        .order("desc")
-        .collect();
-      return workflows;
+    // SECURITY: If workspaceId provided, verify ownership
+    if (args.workspaceId) {
+      const workspace = await ctx.db.get(args.workspaceId);
+      if (!workspace || workspace.userId !== identity.subject) {
+        throw new Error("Unauthorized: Workspace access denied");
+      }
     }
 
-    // If not authenticated, return empty array
-    return [];
+    // If authenticated, only show user's workflows (exclude templates, trashed, and undefined userId)
+    let q = ctx.db
+      .query("workflows")
+      .withIndex("by_userId", (q) => q.eq("userId", identity.subject));
+
+    // Filter by workspace if provided
+    if (args.workspaceId) {
+      q = q.filter((q) => q.eq(q.field("workspaceId"), args.workspaceId));
+    }
+
+    // Filter by project if provided
+    if (args.projectId) {
+      q = q.filter((q) => q.eq(q.field("projectId"), args.projectId));
+    }
+
+    const workflows = await q
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("isTemplate"), true),
+          q.eq(q.field("deletedAt"), undefined) // Exclude trashed workflows
+        )
+      )
+      .order("desc")
+      .collect();
+
+    return workflows;
   },
 });
 
@@ -38,8 +60,18 @@ export const listWorkflows = list;
 // Get workflow by Convex ID
 export const getWorkflow = query({
   args: { id: v.id("workflows") },
-  handler: async ({ db }, { id }) => {
-    const workflow = await db.get(id);
+  handler: async (ctx, { id }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db.get(id);
+
+    if (!workflow) return null;
+
+    // Allow access if it's a public template, publicly embeddable, OR if the requester is the owner
+    const isEmbeddable = (workflow.settings as any)?.isEmbeddable === true;
+    if (workflow.userId && identity?.subject !== workflow.userId && !workflow.isPublic && !isEmbeddable) {
+      return null;
+    }
+
     return workflow;
   },
 });
@@ -47,11 +79,21 @@ export const getWorkflow = query({
 // Get workflow by custom ID (like "workflow_123" or "amazon-product-research")
 export const getWorkflowByCustomId = query({
   args: { customId: v.string() },
-  handler: async ({ db }, { customId }) => {
-    const workflow = await db
+  handler: async (ctx, { customId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const workflow = await ctx.db
       .query("workflows")
       .withIndex("by_customId", (q) => q.eq("customId", customId))
       .first();
+
+    if (!workflow) return null;
+
+    // Allow access if it's a public template, publicly embeddable, OR if the requester is the owner
+    const isEmbeddable = (workflow.settings as any)?.isEmbeddable === true;
+    if (workflow.userId && identity?.subject !== workflow.userId && !workflow.isPublic && !isEmbeddable) {
+      return null;
+    }
+
     return workflow;
   },
 });
@@ -77,6 +119,8 @@ export const saveWorkflow = mutation({
       maxIterations: v.optional(v.number()),
       timeout: v.optional(v.number()),
     })),
+    workspaceId: v.optional(v.id("workspaces")),
+    projectId: v.optional(v.id("projects")),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -108,6 +152,11 @@ export const saveWorkflow = mutation({
 
         return existing._id;
       }
+    }
+
+    // Check resource limits and verify ownership for new workflows
+    if (args.workspaceId && identity) {
+      await assertResourceLimit(ctx, args.workspaceId, "workflows", identity.subject, args.projectId);
     }
 
     // Create new workflow with user ownership

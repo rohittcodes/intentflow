@@ -36,11 +36,11 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["templates"]));
 
   // Queries
-  const workflows = useQuery(api.workflows.list);
+  const workflows = useQuery(api.workflows.list, {});
   const templates = useQuery(api.templates.getUserTemplates, { userId: user?.id ?? undefined });
   const connectors = useQuery(api.knowledgeConnectors.listConnectors);
-  const namespaces = useQuery(api.knowledge.listNamespaces);
-  const mcpServers = useQuery(api.mcpServers.listUserMCPs, user?.id ? { userId: user.id } : "skip");
+  const namespaces = useQuery(api.knowledge.listNamespaces, {});
+  const mcpServers = useQuery(api.mcpServers.listUserMCPs, user?.id ? {} : "skip");
 
   const toggleSection = (section: string) => {
     const next = new Set(expandedSections);

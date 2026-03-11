@@ -81,16 +81,8 @@ export async function POST(
         } as any;
 
         // Get API keys - check user keys first, then fall back to environment
-        const { getLLMApiKey } = await import('@/lib/api/llm-keys');
-        const userId = authResult.userId;
-
-        const apiKeys = {
-          anthropic: (userId ? await getLLMApiKey('anthropic', userId) : undefined) || process.env.ANTHROPIC_API_KEY,
-          groq: (userId ? await getLLMApiKey('groq', userId) : undefined) || process.env.GROQ_API_KEY,
-          openai: (userId ? await getLLMApiKey('openai', userId) : undefined) || process.env.OPENAI_API_KEY,
-          firecrawl: process.env.FIRECRAWL_API_KEY,
-          arcade: process.env.ARCADE_API_KEY,
-        };
+        const { getAllCombinedApiKeys } = await import('@/lib/api/llm-keys');
+        const apiKeys = await getAllCombinedApiKeys(authResult.userId || undefined);
 
         const nodeResults: Record<string, any> = {};
 

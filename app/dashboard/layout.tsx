@@ -9,9 +9,15 @@ import {
   Link as LinkIcon,
   LogOut,
   Trash2,
+  Activity,
+  Settings,
+  CreditCard,
 } from "lucide-react";
 
 import DashboardSidebar from "@/components/ui/DashboardSidebar";
+import WorkspaceSwitcher from "@/components/ui/WorkspaceSwitcher";
+import ProjectSwitcher from "@/components/ui/ProjectSwitcher";
+import { WorkspaceProvider } from "@/components/providers/WorkspaceProvider";
 
 export default function DashboardLayout({
   children,
@@ -37,9 +43,24 @@ export default function DashboardLayout({
       icon: <Database className="w-20 h-20" />,
     },
     {
+      label: "Analytics",
+      href: "/dashboard/analytics",
+      icon: <Activity className="w-20 h-20" />,
+    },
+    {
       label: "Connections",
       href: "/dashboard/connections",
       icon: <LinkIcon className="w-20 h-20" />,
+    },
+    {
+      label: "Settings",
+      href: "/dashboard/settings",
+      icon: <Settings className="w-20 h-20" />,
+    },
+    {
+      label: "Billing",
+      href: "/dashboard/settings/billing",
+      icon: <CreditCard className="w-20 h-20" />,
     },
     {
       label: "Trash",
@@ -49,30 +70,23 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      <DashboardSidebar
-        items={navigationItems}
-        header={
-          <div className="flex items-center gap-12">
-            <div className="flex items-center justify-center w-32 h-32 rounded-8 bg-heat-100 text-accent-white">
-              <LayoutGrid className="w-16 h-16" />
+    <WorkspaceProvider>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <DashboardSidebar
+          items={navigationItems}
+          header={
+            <div className="flex flex-col gap-4">
+              <WorkspaceSwitcher />
+              <ProjectSwitcher />
             </div>
-            <div className="flex flex-col">
-              <span className="text-label-medium text-accent-black">
-                Intentflow
-              </span>
-              <span className="text-body-small text-black-alpha-56">
-                Dashboard
-              </span>
-            </div>
+          }
+        />
+        <main className="flex-1 overflow-auto">
+          <div className="container p-24 md:p-32 max-w-7xl mx-auto">
+            {children}
           </div>
-        }
-      />
-      <main className="flex-1 overflow-auto">
-        <div className="container p-24 md:p-32 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </WorkspaceProvider>
   );
 }

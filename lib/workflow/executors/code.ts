@@ -1,4 +1,4 @@
-import { WorkflowNode, WorkflowState } from '../types';
+import { WorkflowNode, WorkflowState, ApiKeys } from '../types';
 import CodeInterpreter from '@e2b/code-interpreter';
 
 /**
@@ -10,7 +10,7 @@ import CodeInterpreter from '@e2b/code-interpreter';
 export async function executeCodeNode(
   node: WorkflowNode,
   state: WorkflowState,
-  apiKeys?: Record<string, string>
+  apiKeys?: ApiKeys
 ): Promise<any> {
   const { data } = node;
   const language = data.language || 'javascript';

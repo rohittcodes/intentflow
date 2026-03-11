@@ -19,10 +19,38 @@ export default defineSchema({
     .index("by_clerkId", ["clerkId"])
     .index("by_email", ["email"]),
 
+  // Workspaces - Team/Project organization
+  workspaces: defineTable({
+    name: v.string(),
+    userId: v.string(), // Owner Clerk ID
+    type: v.union(v.literal("personal"), v.literal("shared")),
+    description: v.optional(v.string()),
+    members: v.optional(v.array(v.string())), // Collaborative access
+    icon: v.optional(v.string()),
+    pricingTier: v.optional(v.union(v.literal("free"), v.literal("pro"), v.literal("enterprise"))),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_userId", ["userId"]),
+
+  // Projects - Scoping resources within a workspace
+  projects: defineTable({
+    name: v.string(),
+    workspaceId: v.id("workspaces"),
+    userId: v.string(),
+    description: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_userId", ["userId"]),
+
   // Workflows table - stores complete workflow definitions
   workflows: defineTable({
     // User ownership
     userId: v.optional(v.string()), // Clerk user ID - optional for backward compat
+    workspaceId: v.optional(v.id("workspaces")), // Link to project/workspace
+    projectId: v.optional(v.id("projects")), // Link to specific project
 
     // Workflow identification
     customId: v.optional(v.string()), // Original workflow ID (like "workflow_123" or "amazon-product-research")
@@ -59,6 +87,16 @@ export default defineSchema({
       edgeStyle: v.optional(v.string()), // "default", "straight", "step", "smoothstep"
       maxIterations: v.optional(v.number()),
       timeout: v.optional(v.number()),
+      // Financial Guardrails
+      maxTokens: v.optional(v.number()),         // Max total tokens across entire execution
+      maxRuntimeSeconds: v.optional(v.number()), // Max wall-clock seconds for the execution
+
+      // Webhooks Out
+      webhookOnSuccessUrl: v.optional(v.string()),
+      webhookOnFailureUrl: v.optional(v.string()),
+
+      // Embeddable UI
+      isEmbeddable: v.optional(v.boolean()),
     })),
   })
     .index("by_userId", ["userId"])
@@ -68,11 +106,26 @@ export default defineSchema({
     .index("by_template", ["isTemplate"])
     .index("by_deleted", ["deletedAt"]) // Index for filtering trashed workflows
     .index("by_starred", ["userId", "isStarred"]) // Index for filtering starred workflows
-    .index("by_deployed", ["isDeployed"]),
+    .index("by_deployed", ["isDeployed"])
+    .index("by_published", ["isPublic"]),
+
+  // Schedules for workflows
+  schedules: defineTable({
+    workflowId: v.id("workflows"),
+    cronExpression: v.string(), // e.g. "0 * * * *"
+    timezone: v.optional(v.string()), // e.g. "UTC"
+    lastRunAt: v.optional(v.string()), // ISO string
+    nextRunAt: v.optional(v.string()), // ISO string
+    isEnabled: v.boolean(),
+    createdAt: v.string(),
+  })
+    .index("by_workflow", ["workflowId"])
+    .index("by_enabled", ["isEnabled"]),
 
   // Workflow executions - track execution state
   executions: defineTable({
     workflowId: v.id("workflows"),
+    userId: v.optional(v.string()), // Added for data isolation
     status: v.string(), // "running" | "completed" | "failed"
 
     // Execution state
@@ -100,8 +153,18 @@ export default defineSchema({
 
     // Execution metadata
     threadId: v.optional(v.string()),
+
+    // Guardrails
+    maxTokens: v.optional(v.number()),
+    maxRuntimeSeconds: v.optional(v.number()),
+    cumulativeUsage: v.optional(v.object({
+      input_tokens: v.number(),
+      output_tokens: v.number(),
+      total_tokens: v.number(),
+    })),
   })
     .index("by_workflow", ["workflowId"])
+    .index("by_userId", ["userId"])
     .index("by_status", ["status"])
     .index("by_started", ["startedAt"])
     .index("by_suspended", ["isSuspended"]),
@@ -158,6 +221,32 @@ export default defineSchema({
     .index("by_enabled", ["enabled"])
     .index("by_category", ["category"])
     .index("by_official", ["isOfficial"]),
+
+  // Granular MCP Tools - Individual tool metadata for discovery
+  mcpTools: defineTable({
+    serverId: v.id("mcpServers"),
+    userId: v.string(), // For quick filtering
+    name: v.string(), // Tool name
+    description: v.string(),
+    schema: v.any(), // Full JSON schema
+
+    // Discovery optimization
+    isSearchable: v.boolean(),
+    embedding: v.optional(v.array(v.float64())), // for semantic search
+    usageCount: v.optional(v.number()), // For "Hot Context" prioritization caching
+
+    // Metadata
+    category: v.optional(v.string()),
+    lastSynced: v.string(),
+  })
+    .index("by_serverId", ["serverId"])
+    .index("by_userId", ["userId"])
+    .index("by_name", ["name"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536, // Standard OpenAI/DeepSeek/Voyage dims
+      filterFields: ["userId", "isSearchable"],
+    }),
 
   // Arcade auth records
   arcadeAuth: defineTable({
@@ -271,6 +360,8 @@ export default defineSchema({
     name: v.string(), // "Legal", "Marketing", "HR"
     description: v.optional(v.string()),
     userId: v.string(),
+    workspaceId: v.optional(v.id("workspaces")),
+    projectId: v.optional(v.id("projects")),
     icon: v.optional(v.string()),
     color: v.optional(v.string()),
     documentCount: v.number(),
@@ -295,16 +386,7 @@ export default defineSchema({
     .index("by_webhookId", ["webhookId"])
     .index("by_workflow", ["workflowId"]),
 
-  // Scheduled Triggers (Cron)
-  schedules: defineTable({
-    workflowId: v.id("workflows"),
-    cronExpression: v.string(), // e.g. "0 9 * * 1" (Every Monday at 9am)
-    lastRunAt: v.optional(v.string()),
-    nextRunAt: v.optional(v.string()), // Calculated next run time
-    isEnabled: v.boolean(),
-  })
-    .index("by_workflow", ["workflowId"])
-    .index("by_enabled", ["isEnabled"]),
+
 
   // Threads - Conversation history metadata
   threads: defineTable({
@@ -356,4 +438,125 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_namespace", ["namespaceId"])
     .index("by_type", ["type"]),
+
+  // User Usage - Track execution counts and cost-related metrics
+  userUsage: defineTable({
+    userId: v.string(), // Clerk user ID
+    executionsCount: v.number(), // Current period execution count
+    totalExecutions: v.number(), // All-time execution count
+    totalRuntimeSeconds: v.number(), // Total runtime in seconds
+    lastExecutionAt: v.optional(v.string()),
+    tier: v.string(), // "free", "pro", "enterprise"
+    periodStart: v.string(), // ISO timestamp for the start of the current usage period
+  })
+    .index("by_userId", ["userId"])
+    .index("by_tier", ["tier"]),
+
+  // Memories — Mem0-style intelligent memory layer
+  // Each row is a single atomic fact extracted from workflow outputs.
+  memories: defineTable({
+    // Data isolation
+    userId: v.string(), // Clerk user ID — always required for RLS
+
+    // Content
+    content: v.string(), // Atomic memory text, e.g. "User prefers Python over JS"
+    embedding: v.array(v.float64()), // 1536-dim OpenAI embedding for semantic search
+
+    // Scoping (multi-tenant memory namespacing)
+    scope: v.string(),   // "thread" | "workflow" | "user"
+    scopeId: v.string(), // The ID for the scope: threadId / workflowId / userId
+
+    // Attribution
+    agentId: v.optional(v.string()), // nodeId or nodeName that created this memory
+    sourceNodeId: v.optional(v.string()), // specific node ID in the workflow
+
+    // Metadata
+    metadata: v.optional(v.any()), // Flexible: { confidence, tags, rawSource }
+
+    // Timestamps
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_scope", ["userId", "scope", "scopeId"])
+    .index("by_agent", ["userId", "agentId"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["userId", "scope"],
+    }),
+
+  // Agent Swarm / Multi-Agent Framework
+  agents: defineTable({
+    workspaceId: v.id("workspaces"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    systemPrompt: v.optional(v.string()),
+    model: v.string(),
+    createdAt: v.string(),
+  })
+    .index("by_workspace", ["workspaceId"]),
+
+  skills: defineTable({
+    agentId: v.id("agents"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    fileContent: v.optional(v.string()),
+  })
+    .index("by_agent", ["agentId"]),
+
+  agentTasks: defineTable({
+    creatorAgentId: v.id("agents"),
+    assignedAgentId: v.id("agents"),
+    instruction: v.string(),
+    status: v.string(), // pending, in_progress, completed, failed
+    result: v.optional(v.any()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_creator", ["creatorAgentId"])
+    .index("by_assignee", ["assignedAgentId"])
+    .index("by_status", ["status"]),
+
+  // AI Evaluation & Testing
+  feedback: defineTable({
+    executionId: v.id("executions"),
+    userId: v.optional(v.string()),
+    score: v.optional(v.number()),
+    comment: v.optional(v.string()),
+    source: v.string(), // human, ai
+    createdAt: v.string(),
+  })
+    .index("by_execution", ["executionId"]),
+
+  evaluations: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    criteria: v.any(),
+    createdAt: v.string(),
+  }),
+
+  evaluationResults: defineTable({
+    evaluationId: v.id("evaluations"),
+    executionId: v.id("executions"),
+    passed: v.boolean(),
+    details: v.optional(v.any()),
+    createdAt: v.string(),
+  })
+    .index("by_evaluation", ["evaluationId"])
+    .index("by_execution", ["executionId"]),
+
+  // Audit Logs - Tracking user activity and changes
+  auditLogs: defineTable({
+    workspaceId: v.optional(v.id("workspaces")), // Which workspace this applies to
+    userId: v.optional(v.string()), // The Clerk ID of the actor
+    action: v.string(), // e.g. "workflow.created", "settings.updated", "key.deleted"
+    resourceType: v.string(), // "workflow", "mcpServer", "workspace"
+    resourceId: v.string(), // The ID of the affected resource
+    metadata: v.optional(v.any()), // Previous state vs New state payload
+    createdAt: v.string(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_resource", ["resourceType", "resourceId"])
+    .index("by_action", ["action"]),
 });

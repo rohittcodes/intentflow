@@ -31,7 +31,7 @@ export default function MCPPanel({
 
   // Fetch enabled MCP servers from central registry
   const mcpServers = useQuery(api.mcpServers.getEnabledMCPs,
-    user?.id ? { userId: user.id } : "skip"
+    user?.id ? {} : "skip"
   );
 
   // Store only the selected server ID

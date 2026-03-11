@@ -8,6 +8,7 @@
 
 import { ConvexClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { ApiKeys } from "../workflow/types";
 
 // Initialize Convex client for server-side use
 const getConvexClient = () => {
@@ -27,7 +28,7 @@ const getConvexClient = () => {
  * @returns The API key or null if not found
  */
 export async function getLLMApiKey(
-  provider: 'anthropic' | 'openai' | 'groq',
+  provider: 'anthropic' | 'openai' | 'groq' | 'google',
   userId?: string
 ): Promise<string | null> {
   // First, try to get user-specific key if userId is provided
@@ -54,11 +55,11 @@ export async function getLLMApiKey(
     }
   }
 
-  // Fall back to environment variables
   const envKeyMap = {
     anthropic: 'ANTHROPIC_API_KEY',
     openai: 'OPENAI_API_KEY',
     groq: 'GROQ_API_KEY',
+    google: 'GOOGLE_GENERATIVE_AI_API_KEY',
   };
 
   const envKey = envKeyMap[provider];
@@ -75,7 +76,7 @@ export async function getLLMApiKey(
  * Check if a provider has an API key configured (either user or env)
  */
 export async function isProviderConfigured(
-  provider: 'anthropic' | 'openai' | 'groq',
+  provider: 'anthropic' | 'openai' | 'groq' | 'google',
   userId?: string
 ): Promise<boolean> {
   const apiKey = await getLLMApiKey(provider, userId);
@@ -86,7 +87,7 @@ export async function isProviderConfigured(
  * Get all configured providers for a user
  */
 export async function getConfiguredProviders(userId?: string): Promise<string[]> {
-  const providers: ('anthropic' | 'openai' | 'groq')[] = ['anthropic', 'openai', 'groq'];
+  const providers: ('anthropic' | 'openai' | 'groq' | 'google')[] = ['anthropic', 'openai', 'groq', 'google'];
   const configured: string[] = [];
 
   for (const provider of providers) {
@@ -103,17 +104,17 @@ export async function getConfiguredProviders(userId?: string): Promise<string[]>
  * This is a helper function that can be used by the execute routes
  */
 export async function initializeLLMClient(
-  provider: 'anthropic' | 'openai' | 'groq',
+  provider: 'anthropic' | 'openai' | 'groq' | 'google',
   userId?: string
 ): Promise<{ apiKey: string; provider: string }> {
   const apiKey = await getLLMApiKey(provider, userId);
 
   if (!apiKey) {
     throw new Error(
-      `No API key found for ${provider}. Please configure your API key in Settings or set the ${
-        provider === 'anthropic' ? 'ANTHROPIC_API_KEY' :
+      `No API key found for ${provider}. Please configure your API key in Settings or set the ${provider === 'anthropic' ? 'ANTHROPIC_API_KEY' :
         provider === 'openai' ? 'OPENAI_API_KEY' :
-        'GROQ_API_KEY'
+        provider === 'google' ? 'GOOGLE_GENERATIVE_AI_API_KEY' :
+          'GROQ_API_KEY'
       } environment variable.`
     );
   }
@@ -129,10 +130,11 @@ export async function getProvidersStatus(userId?: string): Promise<{
   anthropic: { configured: boolean; source: 'user' | 'env' | null };
   openai: { configured: boolean; source: 'user' | 'env' | null };
   groq: { configured: boolean; source: 'user' | 'env' | null };
+  google: { configured: boolean; source: 'user' | 'env' | null };
 }> {
   const status: any = {};
 
-  for (const provider of ['anthropic', 'openai', 'groq'] as const) {
+  for (const provider of ['anthropic', 'openai', 'groq', 'google'] as const) {
     // Check user key first
     if (userId) {
       try {
@@ -151,11 +153,11 @@ export async function getProvidersStatus(userId?: string): Promise<{
       }
     }
 
-    // Check environment variable
     const envKeyMap = {
       anthropic: 'ANTHROPIC_API_KEY',
       openai: 'OPENAI_API_KEY',
       groq: 'GROQ_API_KEY',
+      google: 'GOOGLE_GENERATIVE_AI_API_KEY',
     };
 
     const envKey = envKeyMap[provider];
@@ -167,4 +169,24 @@ export async function getProvidersStatus(userId?: string): Promise<{
   }
 
   return status;
+}
+
+/**
+ * Get all available API keys for a user, combining database and env
+ */
+export async function getAllCombinedApiKeys(userId?: string): Promise<ApiKeys> {
+  const providers: ('anthropic' | 'openai' | 'groq' | 'google')[] = ['anthropic', 'openai', 'groq', 'google'];
+  const keys: ApiKeys = {};
+
+  for (const provider of providers) {
+    const key = await getLLMApiKey(provider, userId);
+    if (key) keys[provider] = key;
+  }
+
+  // Add environment-only keys
+  if (process.env.FIRECRAWL_API_KEY) keys.firecrawl = process.env.FIRECRAWL_API_KEY;
+  if (process.env.ARCADE_API_KEY) keys.arcade = process.env.ARCADE_API_KEY;
+  if (process.env.E2B_API_KEY) keys.e2b = process.env.E2B_API_KEY;
+
+  return keys;
 }

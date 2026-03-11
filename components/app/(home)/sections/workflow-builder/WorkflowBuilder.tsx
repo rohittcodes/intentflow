@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { useCallback, useRef, DragEvent, useState, useEffect } from "react";
+import { useCallback, useRef, DragEvent, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import {
@@ -55,6 +55,7 @@ import {
   Wand2,
   Undo,
   Redo,
+  XCircle,
 } from "lucide-react";
 import NodePanel from "./NodePanel";
 import MCPPanel from "./MCPPanel";
@@ -92,6 +93,11 @@ import { detectDuplicateCredentials } from "@/lib/workflow/duplicate-detection";
 import { cleanupInvalidEdges } from "@/lib/workflow/edge-cleanup";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
+import { validateWorkflow, ValidationResult } from "@/lib/workflow/validation";
+import { ApiKeys } from "@/lib/workflow/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/shadcn/tooltip";
+import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 interface WorkflowBuilderProps {
   onBack: () => void;
@@ -243,9 +249,45 @@ const CanvasWindow = ({
 };
 
 function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: WorkflowBuilderProps) {
+  const { user } = useUser();
   const router = useRouter();
   const [initialized, setInitialized] = useState(false);
   const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(initialTemplateId ?? null);
+  const [serverAPIConfig, setServerAPIConfig] = useState<any>(null);
+
+  // Fetch server config for environment keys
+  useEffect(() => {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => setServerAPIConfig(data))
+      .catch(err => console.error("Failed to fetch server config", err));
+  }, []);
+
+  // Fetch user LLM keys
+  const userLLMKeys = useQuery(api.userLLMKeys.getUserLLMKeys, user?.id ? {} : "skip");
+
+  const availableApiKeys = useMemo<ApiKeys>(() => {
+    const keys: ApiKeys = {};
+    if (userLLMKeys) {
+      userLLMKeys.forEach((k: any) => {
+        if (k.isActive) {
+          // @ts-ignore
+          keys[k.provider as keyof ApiKeys] = 'configured';
+        }
+      });
+    }
+
+    // Merge server config
+    if (serverAPIConfig) {
+      if (serverAPIConfig.anthropicConfigured) keys.anthropic = keys.anthropic || 'env';
+      if (serverAPIConfig.openaiConfigured) keys.openai = keys.openai || 'env';
+      if (serverAPIConfig.groqConfigured) keys.groq = keys.groq || 'env';
+      if (serverAPIConfig.firecrawlConfigured) keys.firecrawl = keys.firecrawl || 'env';
+      if (serverAPIConfig.arcadeConfigured) keys.arcade = keys.arcade || 'env';
+    }
+
+    return keys;
+  }, [userLLMKeys, serverAPIConfig]);
 
   const template = useQuery(api.workflows.getTemplateByCustomId,
     currentTemplateId ? { customId: currentTemplateId } : "skip"
@@ -285,6 +327,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const [edgeStyle, setEdgeStyle] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
   const [maxIterations, setMaxIterations] = useState(50);
   const [timeout, setTimeoutSec] = useState(30);
+  const [maxTokens, setMaxTokens] = useState(0);
+  const [maxRuntimeSeconds, setMaxRuntimeSeconds] = useState(0);
   const [inspectorOpen, setInspectorOpen] = useState(false);
 
   // Multi-canvas state
@@ -303,16 +347,23 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
     redo: () => void;
     getState: () => { nodes: any[], edges: any[] };
   }>>({});
+
   const nodeIdRef = useRef(2);
   const getId = useCallback(() => `node_${nodeIdRef.current++}`, []);
 
   const activeWorkflowId = (canvasStack.find(c => c.instanceId === activeCanvasId)?.workflowId || initialWorkflowId) as string | undefined;
 
   const { workflow, convexId, updateNodes, updateEdges, saveWorkflow, saveWorkflowImmediate, updateNodeData, isSaving, createNewWorkflow } = useWorkflow(activeWorkflowId);
+
+  const validationResult = useMemo<ValidationResult>(() => {
+    if (!workflow) return { isValid: true, errors: [] };
+    return validateWorkflow(workflow as any, availableApiKeys);
+  }, [workflow, availableApiKeys]);
   const deleteWorkflow = useMutation(api.workflows.deleteWorkflow);
   const createConnector = useMutation(api.knowledgeConnectors.createConnector);
   const deployWorkflow = useMutation(api.workflows.deployWorkflow);
-  const { runWorkflow, stopWorkflow, isRunning, nodeResults, execution, currentNodeId, pendingAuth, resumeWorkflow } = useWorkflowExecution();
+  const { runWorkflow, stopWorkflow, isRunning, nodeResults, execution, currentNodeId, pendingAuth, resumeWorkflow, retryExecution } = useWorkflowExecution();
+
 
   // Initialize canvas stack with the main workflow
   useEffect(() => {
@@ -367,6 +418,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         if (workflow.settings.edgeStyle) setEdgeStyle(workflow.settings.edgeStyle as any);
         if (workflow.settings.maxIterations) setMaxIterations(workflow.settings.maxIterations);
         if (workflow.settings.timeout) setTimeoutSec(workflow.settings.timeout);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const extendedSettings = workflow.settings as any;
+        if (extendedSettings.maxTokens) setMaxTokens(extendedSettings.maxTokens);
+        if (extendedSettings.maxRuntimeSeconds) setMaxRuntimeSeconds(extendedSettings.maxRuntimeSeconds);
       }
       setInitialized(true);
     }
@@ -401,7 +456,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       ...workflow,
       nodes: canvasNodes as any,
       edges: canvasEdges as any,
-      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds }
     };
     await saveWorkflowImmediate(updatedWorkflow);
 
@@ -413,7 +468,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
     toast.success('Saved to Cloud');
     setShowWorkflowMenu(false);
-  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate, initialWorkflowId, router]);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds, saveWorkflowImmediate, initialWorkflowId, router]);
 
   const handleDeploy = useCallback(async () => {
     const bridge = updateHandlersRef.current[activeCanvasId];
@@ -425,12 +480,13 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       edges: canvasEdges as any,
       isDeployed: true,
       deployedAt: new Date().toISOString(),
-      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds }
     };
     await saveWorkflowImmediate(updatedWorkflow);
     toast.success('Workflow deployed');
     setShowWorkflowMenu(false);
-  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate]);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds, saveWorkflowImmediate]);
+
 
   const handleUnpublish = useCallback(async () => {
     const bridge = updateHandlersRef.current[activeCanvasId];
@@ -441,12 +497,12 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
       nodes: canvasNodes as any,
       edges: canvasEdges as any,
       isDeployed: false,
-      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout }
+      settings: { snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds }
     };
     await saveWorkflowImmediate(updatedWorkflow);
     toast.success('Workflow unpublished (Draft mode)');
     setShowWorkflowMenu(false);
-  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, saveWorkflowImmediate]);
+  }, [workflow, activeCanvasId, snapToGrid, gridStyle, edgeStyle, maxIterations, timeout, maxTokens, maxRuntimeSeconds, saveWorkflowImmediate]);
 
   const handleAutoLayout = useCallback(() => {
     updateHandlersRef.current[activeCanvasId]?.autoLayout();
@@ -542,11 +598,16 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   }, [activeCanvasId, handleSelectNode]);
 
   const handlePreview = useCallback(() => {
+    if (validationResult.errors.some(e => e.severity === 'error')) {
+      toast.error(`Cannot run workflow: ${validationResult.errors.filter(e => e.severity === 'error').length} critical errors detected.`);
+      // We still allow opening the panel so they can see what's wrong if they want,
+      // but the "Run" in Execution panel should also be disabled or warned.
+    }
     setShowSettings(false);
     setShowTestEndpoint(false);
     setShowExecution(true);
     setInspectorOpen(true);
-  }, []);
+  }, [validationResult]);
 
   const handleOpenNestedWorkflow = useCallback((nestedId: string) => {
     setCanvasStack(prev => {
@@ -587,12 +648,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
   const handleRunWithInput = useCallback(async (input: string) => {
     if (!workflow) return;
-    // We'll need a way to get nodes/edges from the active canvas for running
-    // For now, we'll use the updateHandlersRef or similar to request the current state
-    // Or simpler: each WorkflowCanvas handles its own 'Run' if we move it there.
-    // But Execution is global. 
-    // Let's keep run here but it needs to 'fetch' nodes from the active canvas.
-  }, [workflow]);
+    await runWorkflow(workflow as any, input);
+  }, [workflow, runWorkflow]);
 
   return (
     <div className="h-screen w-full flex flex-col bg-background-base text-accent-black overflow-hidden font-sans selection:bg-heat-100/30">
@@ -676,6 +733,62 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           <button onClick={handleShowSettings} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
             <Settings2 className="w-16 h-16" /> Config
           </button>
+
+          {/* Validation Indicator */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={`flex items-center gap-6 px-12 py-8 rounded-10 border transition-all cursor-help ${validationResult.isValid ? 'bg-green-500/5 border-green-500/20 text-green-600' :
+                  validationResult.errors.some(e => e.severity === 'error') ? 'bg-red-500/5 border-red-500/20 text-red-600' :
+                    'bg-amber-500/5 border-amber-500/20 text-amber-600'
+                  }`}>
+                  {validationResult.isValid ? (
+                    <CheckCircle2 className="w-14 h-14" />
+                  ) : validationResult.errors.some(e => e.severity === 'error') ? (
+                    <AlertTriangle className="w-14 h-14" />
+                  ) : (
+                    <Info className="w-14 h-14" />
+                  )}
+                  <span className="text-[11px] font-bold uppercase tracking-wider">
+                    {validationResult.isValid ? 'Valid' :
+                      validationResult.errors.some(e => e.severity === 'error') ?
+                        `${validationResult.errors.filter(e => e.severity === 'error').length} Errors` :
+                        `${validationResult.errors.length} Warnings`
+                    }
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="w-280 p-0 bg-accent-white border border-black-alpha-12 shadow-2xl">
+                <div className="p-12 border-b border-black-alpha-8 bg-black-alpha-4">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-black-alpha-56">Workflow Validation</h4>
+                </div>
+                <div className="max-h-300 overflow-y-auto p-4">
+                  {validationResult.errors.length === 0 ? (
+                    <div className="p-12 text-xs text-black-alpha-44 text-center">No issues detected</div>
+                  ) : (
+                    validationResult.errors.map((error, i) => (
+                      <div key={i} className="p-10 flex gap-10 hover:bg-black-alpha-4 rounded-8 transition-colors">
+                        {error.severity === 'error' ? (
+                          <XCircle className="w-14 h-14 text-red-500 mt-2 shrink-0" />
+                        ) : error.severity === 'warning' ? (
+                          <AlertTriangle className="w-14 h-14 text-amber-500 mt-2 shrink-0" />
+                        ) : (
+                          <Info className="w-14 h-14 text-blue-500 mt-2 shrink-0" />
+                        )}
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold text-accent-black leading-tight">{error.message}</p>
+                          {error.nodeId && (
+                            <p className="text-[10px] text-black-alpha-44 font-medium uppercase tracking-tighter">Node: {error.nodeId}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <button onClick={handleShowTestAPI} className="flex items-center gap-8 px-14 py-8 rounded-10 bg-accent-white hover:bg-black-alpha-4 border border-black-alpha-8 text-accent-black text-sm font-medium transition-all">
             <Activity className="w-16 h-16" /> API
           </button>
@@ -755,6 +868,10 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                     setMaxIterations={setMaxIterations}
                     timeout={timeout}
                     setTimeout={setTimeoutSec}
+                    maxTokens={maxTokens}
+                    setMaxTokens={setMaxTokens}
+                    maxRuntimeSeconds={maxRuntimeSeconds}
+                    setMaxRuntimeSeconds={setMaxRuntimeSeconds}
                   />
                 )}
               </div>
@@ -840,7 +957,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               ) : showTestEndpoint && workflow ? (
                 <TestEndpointPanel key={workflow.id} workflowId={workflow.id} workflow={{ ...workflow }} environment={environment} onClose={() => setShowTestEndpoint(false)} />
               ) : showExecution ? (
-                <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
+                <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onRetry={retryExecution} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
               ) : (activeNode?.data as any)?.nodeType === 'mcp' ? (
                 <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
               ) : (activeNode?.data as any)?.nodeType === 'router' ? (

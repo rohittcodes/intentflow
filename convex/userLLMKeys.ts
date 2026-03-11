@@ -7,27 +7,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-// Simple obfuscation for API keys (you should use a proper encryption library in production)
-// Since Convex doesn't have Buffer or btoa/atob, we'll use a simple reversible obfuscation
-const encrypt = (text: string): string => {
-  // In production, use proper encryption with a secret key
-  // Simple character code shifting for obfuscation
-  return text.split('').map(char =>
-    String.fromCharCode(char.charCodeAt(0) + 7)
-  ).join('');
-};
-
-const decrypt = (encrypted: string): string => {
-  // In production, use proper decryption
-  // Reverse the character code shifting
-  try {
-    return encrypted.split('').map(char =>
-      String.fromCharCode(char.charCodeAt(0) - 7)
-    ).join('');
-  } catch {
-    return encrypted; // Return as-is if decryption fails
-  }
-};
+import { encrypt, decrypt } from "./utils/crypto";
 
 const maskKey = (key: string): string => {
   if (key.length < 8) return '••••••••';
@@ -35,16 +15,18 @@ const maskKey = (key: string): string => {
 };
 
 /**
- * Get all LLM keys for a user
+ * Get all LLM keys for the authenticated user
  */
 export const getUserLLMKeys = query({
-  args: {
-    userId: v.string(),
-  },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const userId = identity.subject;
+
     const keys = await ctx.db
       .query("userLLMKeys")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
 
     // Don't return the actual encrypted keys, just metadata
@@ -63,29 +45,46 @@ export const getUserLLMKeys = query({
 });
 
 /**
- * Get active key for a specific provider
+ * Get active key for a specific provider for the authenticated user
  */
 export const getActiveKey = query({
   args: {
-    userId: v.string(),
     provider: v.string(),
+    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    let userId = args.userId;
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) return null;
+      userId = identity.subject;
+    }
+
     const key = await ctx.db
       .query("userLLMKeys")
       .withIndex("by_userProvider", (q) =>
-        q.eq("userId", args.userId).eq("provider", args.provider)
+        q.eq("userId", userId).eq("provider", args.provider)
       )
       .filter((q) => q.eq(q.field("isActive"), true))
       .first();
 
     if (!key) return null;
 
+    // Decrypt key with per-user salt
+    let decryptedKey: string;
+    try {
+      decryptedKey = await decrypt(key.encryptedKey, userId);
+    } catch (error) {
+      console.error(`Failed to decrypt key for provider ${args.provider}:`, error);
+      // If decryption fails, the key might be in an old format or used a different salt
+      return null;
+    }
+
     // Return decrypted key for use
     return {
       _id: key._id,
       provider: key.provider,
-      apiKey: decrypt(key.encryptedKey),
+      apiKey: decryptedKey,
       label: key.label,
     };
   },
@@ -96,23 +95,27 @@ export const getActiveKey = query({
  */
 export const upsertLLMKey = mutation({
   args: {
-    userId: v.string(),
     provider: v.string(),
     apiKey: v.string(),
     label: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const userId = identity.subject;
+
+    // Encrypt the key with user-specific salt
+    const encryptedKey = await encrypt(args.apiKey, userId);
+    const keyPrefix = maskKey(args.apiKey);
+    const now = new Date().toISOString();
+
     // Check if user already has a key for this provider
     const existingKey = await ctx.db
       .query("userLLMKeys")
       .withIndex("by_userProvider", (q) =>
-        q.eq("userId", args.userId).eq("provider", args.provider)
+        q.eq("userId", userId).eq("provider", args.provider)
       )
       .first();
-
-    const now = new Date().toISOString();
-    const encryptedKey = encrypt(args.apiKey);
-    const keyPrefix = maskKey(args.apiKey);
 
     if (existingKey) {
       // Update existing key
@@ -128,21 +131,30 @@ export const upsertLLMKey = mutation({
       const otherKeys = await ctx.db
         .query("userLLMKeys")
         .withIndex("by_userProvider", (q) =>
-          q.eq("userId", args.userId).eq("provider", args.provider)
+          q.eq("userId", userId!).eq("provider", args.provider)
         )
         .collect();
 
-      for (const key of otherKeys) {
-        if (key._id !== existingKey._id) {
-          await ctx.db.patch(key._id, { isActive: false });
+      for (const k of otherKeys) {
+        if (k._id !== existingKey._id && k.isActive) {
+          await ctx.db.patch(k._id, { isActive: false });
         }
       }
+
+      await ctx.db.insert("auditLogs", {
+        userId: userId!,
+        action: "key.updated",
+        resourceType: "userLLMKey",
+        resourceId: existingKey._id,
+        metadata: { provider: args.provider },
+        createdAt: now,
+      });
 
       return existingKey._id;
     } else {
       // Create new key
       const id = await ctx.db.insert("userLLMKeys", {
-        userId: args.userId,
+        userId: userId!,
         provider: args.provider,
         encryptedKey,
         keyPrefix,
@@ -153,44 +165,61 @@ export const upsertLLMKey = mutation({
         usageCount: 0,
       });
 
+      await ctx.db.insert("auditLogs", {
+        userId: userId!,
+        action: "key.created",
+        resourceType: "userLLMKey",
+        resourceId: id,
+        metadata: { provider: args.provider },
+        createdAt: now,
+      });
+
       return id;
     }
   },
 });
 
-/**
- * Delete a user's LLM API key
- */
 export const deleteLLMKey = mutation({
   args: {
     id: v.id("userLLMKeys"),
-    userId: v.string(), // For authorization
   },
   handler: async (ctx, args) => {
-    const key = await ctx.db.get(args.id);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const userId = identity.subject;
 
-    if (!key || key.userId !== args.userId) {
-      throw new Error("Key not found or unauthorized");
+    const key = await ctx.db.get(args.id);
+    if (!key || key.userId !== userId) {
+      throw new Error("Unauthorized");
     }
 
     await ctx.db.delete(args.id);
+
+    await ctx.db.insert("auditLogs", {
+      userId,
+      action: "key.deleted",
+      resourceType: "userLLMKey",
+      resourceId: args.id,
+      metadata: { provider: key.provider },
+      createdAt: new Date().toISOString(),
+    });
   },
 });
 
 /**
- * Toggle active state of a key
+ * Toggle active state of a key with ownership check
  */
 export const toggleKeyActive = mutation({
   args: {
     id: v.id("userLLMKeys"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const key = await ctx.db.get(args.id);
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+    const userId = identity.subject;
 
-    if (!key || key.userId !== args.userId) {
-      throw new Error("Key not found or unauthorized");
-    }
+    const key = await ctx.db.get(args.id);
+    if (!key || key.userId !== userId) throw new Error("Unauthorized");
 
     const now = new Date().toISOString();
 
@@ -199,7 +228,7 @@ export const toggleKeyActive = mutation({
       const otherKeys = await ctx.db
         .query("userLLMKeys")
         .withIndex("by_userProvider", (q) =>
-          q.eq("userId", args.userId).eq("provider", key.provider)
+          q.eq("userId", userId).eq("provider", key.provider)
         )
         .collect();
 
@@ -220,19 +249,23 @@ export const toggleKeyActive = mutation({
   },
 });
 
-/**
- * Update usage stats for a key
- */
 export const updateKeyUsage = mutation({
   args: {
-    userId: v.string(),
     provider: v.string(),
+    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    let userId = args.userId;
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) return;
+      userId = identity.subject;
+    }
+
     const key = await ctx.db
       .query("userLLMKeys")
       .withIndex("by_userProvider", (q) =>
-        q.eq("userId", args.userId).eq("provider", args.provider)
+        q.eq("userId", userId).eq("provider", args.provider)
       )
       .filter((q) => q.eq(q.field("isActive"), true))
       .first();

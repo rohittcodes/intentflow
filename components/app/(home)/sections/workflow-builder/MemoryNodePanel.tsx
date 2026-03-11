@@ -2,7 +2,19 @@
 
 import { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
-import { Brain, Save, Download, Plus, Trash2, Shield, Info } from "lucide-react";
+import {
+  Brain,
+  Search,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Zap,
+  BookOpen,
+  Globe,
+  GitBranch,
+  Layers,
+  Info,
+} from "lucide-react";
 import VariableReferencePicker from "./VariableReferencePicker";
 
 interface MemoryNodePanelProps {
@@ -13,6 +25,39 @@ interface MemoryNodePanelProps {
   onUpdate: (nodeId: string, data: any) => void;
 }
 
+const MODES = [
+  {
+    id: "smart",
+    label: "Smart Write",
+    icon: Brain,
+    color: "text-purple-600",
+    bg: "bg-purple-50 border-purple-200",
+    desc: "LLM extracts facts from upstream output and intelligently ADD / UPDATE / DELETE memories",
+  },
+  {
+    id: "retrieve",
+    label: "Retrieve",
+    icon: Search,
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+    desc: "Semantic search — injects the most relevant memories into the next agent's context",
+  },
+  {
+    id: "clear",
+    label: "Clear",
+    icon: Trash2,
+    color: "text-red-500",
+    bg: "bg-red-50 border-red-200",
+    desc: "Delete all memories for the selected scope",
+  },
+];
+
+const SCOPES = [
+  { id: "user", label: "User", icon: Globe, desc: "Persists across all workflows for this user" },
+  { id: "workflow", label: "Workflow", icon: GitBranch, desc: "Persists across all runs of this workflow" },
+  { id: "thread", label: "Thread", icon: Layers, desc: "Only for this single workflow run" },
+];
+
 export default function MemoryNodePanel({
   node,
   nodes,
@@ -22,163 +67,241 @@ export default function MemoryNodePanel({
 }: MemoryNodePanelProps) {
   const nodeData = node?.data as any;
 
-  const [operation, setOperation] = useState(nodeData?.memoryOperation || "store");
-  const [key, setKey] = useState(nodeData?.memoryKey || "");
-  const [value, setValue] = useState(nodeData?.memoryValue || "");
-  const [scope, setScope] = useState(nodeData?.memoryScope || "thread");
+  const [mode, setMode] = useState<string>(nodeData?.memoryMode ?? "smart");
+  const [scope, setScope] = useState<string>(nodeData?.memoryScope ?? "user");
+  const [query, setQuery] = useState<string>(nodeData?.memoryQuery ?? "");
+  const [topK, setTopK] = useState<number>(nodeData?.memoryTopK ?? 5);
+  const [agentId, setAgentId] = useState<string>(nodeData?.memoryAgentId ?? "");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Auto-save changes
+  // Auto-save with debounce
   useEffect(() => {
     if (!node?.id) return;
-
-    const timeoutId = setTimeout(() => {
-      const hasChanged =
-        operation !== nodeData?.memoryOperation ||
-        key !== nodeData?.memoryKey ||
-        value !== nodeData?.memoryValue ||
-        scope !== nodeData?.memoryScope;
-
-      if (hasChanged) {
-        onUpdate(node.id, {
-          memoryOperation: operation,
-          memoryKey: key,
-          memoryValue: value,
-          memoryScope: scope,
-        });
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [operation, key, value, scope, node?.id, onUpdate, nodeData]);
+    const id = setTimeout(() => {
+      onUpdate(node.id, {
+        memoryMode: mode,
+        memoryScope: scope,
+        memoryQuery: query,
+        memoryTopK: topK,
+        memoryAgentId: agentId || undefined,
+      });
+    }, 400);
+    return () => clearTimeout(id);
+  }, [mode, scope, query, topK, agentId, node?.id, onUpdate]);
 
   if (!node) return null;
 
+  const selectedMode = MODES.find((m) => m.id === mode)!;
+  const selectedScope = SCOPES.find((s) => s.id === scope)!;
+
   return (
     <div className="flex-1 overflow-y-auto p-20 space-y-20">
+      {/* Header */}
       <div>
-        <h3 className="text-sm font-medium text-accent-black mb-12 flex items-center gap-8">
+        <h3 className="text-sm font-medium text-accent-black mb-4 flex items-center gap-8">
           <Brain className="w-16 h-16 text-purple-500" />
-          Memory Management
+          Memory Node
+          <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-purple-500 bg-purple-50 px-6 py-2 rounded-4">
+            Mem0
+          </span>
         </h3>
-        <p className="text-[13px] text-black-alpha-48 mb-20">
-          explicitly manage persistent context across workflow execution steps.
+        <p className="text-[12px] text-black-alpha-48">
+          Intelligent memory — extracts atomic facts, compares against existing memories, and
+          auto-manages ADD / UPDATE / DELETE via a manager LLM.
         </p>
+      </div>
 
-        <div className="space-y-16">
-          {/* Operation Selection */}
-          <div>
-            <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-8">
-              Operation
-            </label>
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { id: 'store', label: 'Store', icon: Save, desc: 'Save value to memory' },
-                { id: 'retrieve', label: 'Retrieve', icon: Download, desc: 'Get value from memory' },
-                { id: 'append', label: 'Append', icon: Plus, desc: 'Add to existing list/string' },
-                { id: 'clear', label: 'Clear', icon: Trash2, desc: 'Remove from memory' },
-              ].map((op) => (
-                <button
-                  key={op.id}
-                  onClick={() => setOperation(op.id)}
-                  className={`p-10 rounded-10 border text-left transition-all ${operation === op.id
-                    ? 'bg-purple-50 border-purple-200 text-purple-700'
-                    : 'bg-accent-white border-border-faint text-accent-black hover:border-purple-200'
-                    }`}
-                >
-                  <div className="flex items-center gap-6 mb-2">
-                    <op.icon className={`w-14 h-14 ${operation === op.id ? 'text-purple-600' : 'text-black-alpha-40'}`} />
-                    <span className="text-xs font-bold uppercase tracking-tight">{op.label}</span>
-                  </div>
-                  <p className="text-[10px] opacity-70 leading-tight">{op.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Mode Selection */}
+      <div>
+        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-10">
+          Mode
+        </label>
+        <div className="space-y-8">
+          {MODES.map((m) => {
+            const Icon = m.icon;
+            const active = mode === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                className={`w-full p-12 rounded-10 border text-left transition-all ${active ? m.bg : "bg-accent-white border-border-faint hover:border-black-alpha-16"
+                  }`}
+              >
+                <div className="flex items-center gap-8 mb-4">
+                  <Icon className={`w-14 h-14 ${active ? m.color : "text-black-alpha-40"}`} />
+                  <span className={`text-xs font-bold  ${active ? m.color : "text-accent-black"}`}>
+                    {m.label}
+                  </span>
+                  {active && (
+                    <span className="ml-auto w-6 h-6 rounded-full bg-current opacity-80" />
+                  )}
+                </div>
+                <p className="text-[11px] text-black-alpha-48 leading-relaxed">{m.desc}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          {/* Key Input */}
+      {/* Memory Scope */}
+      <div className="pt-16 border-t border-border-faint">
+        <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-10">
+          Memory Scope
+        </label>
+        <div className="grid grid-cols-3 gap-6">
+          {SCOPES.map((s) => {
+            const Icon = s.icon;
+            const active = scope === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setScope(s.id)}
+                title={s.desc}
+                className={`p-10 rounded-10 border text-center transition-all ${active
+                    ? "bg-purple-50 border-purple-200 text-purple-700"
+                    : "bg-accent-white border-border-faint text-black-alpha-56 hover:border-purple-100"
+                  }`}
+              >
+                <Icon className={`w-14 h-14 mx-auto mb-4 ${active ? "text-purple-600" : "text-black-alpha-32"}`} />
+                <span className="text-[10px] font-bold uppercase tracking-tight block">{s.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-6 text-[11px] text-black-alpha-40 leading-snug">{selectedScope.desc}</p>
+      </div>
+
+      {/* Retrieve Mode Options */}
+      {mode === "retrieve" && (
+        <div className="pt-16 border-t border-border-faint space-y-16">
+          {/* Query */}
           <div>
             <div className="flex items-center justify-between mb-8">
               <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
-                Memory Key
+                Search Query
               </label>
-              <span className="cursor-help" title="The unique identifier for this data">
-                <Info className="w-12 h-12 text-black-alpha-24" />
-              </span>
+              <VariableReferencePicker
+                nodes={nodes}
+                currentNodeId={node.id}
+                onSelect={(ref) => setQuery((prev) => prev + `{{${ref}}}`)}
+              />
             </div>
-            <input
-              type="text"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder="e.g. userPreferences"
-              className="w-full px-12 py-10 bg-black-alpha-4 border border-border-faint rounded-10 text-sm font-mono focus:outline-none focus:border-purple-500 transition-all"
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              rows={3}
+              placeholder="What to search for... (leave empty to use lastOutput)"
+              className="w-full px-12 py-10 bg-black-alpha-4 border border-border-faint rounded-10 text-sm focus:outline-none focus:border-purple-400 transition-all resize-none"
             />
-            <p className="mt-4 text-[10px] text-black-alpha-40 font-mono">
-              Access as {`{{state.${key || 'key'}}} `} in other nodes
+            <p className="mt-4 text-[10px] text-black-alpha-36">
+              Supports <code className="font-mono">{"{{variable}}"}</code> references. If empty,
+              uses the upstream lastOutput.
             </p>
           </div>
 
-          {/* Value Input (only for Store/Append) */}
-          {(operation === 'store' || operation === 'append') && (
-            <div>
-              <div className="flex items-center justify-between mb-8">
-                <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
-                  Value to {operation === 'store' ? 'Save' : 'Append'}
-                </label>
-                <VariableReferencePicker
-                  nodes={nodes}
-                  currentNodeId={node.id}
-                  onSelect={(ref) => setValue(prev => prev + `{{${ref}}}`)}
-                />
-              </div>
-              <textarea
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                rows={4}
-                placeholder="Data or {{variable}} to store..."
-                className="w-full px-12 py-10 bg-black-alpha-4 border border-border-faint rounded-12 text-sm focus:outline-none focus:border-purple-500 transition-all resize-none"
-              />
-            </div>
-          )}
-
-          {/* Scope selection (Advanced) */}
-          <div className="pt-16 border-t border-border-faint space-y-12">
-            {/* Scope selection */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <Shield className="w-14 h-14 text-black-alpha-40" />
-                <span className="text-xs font-bold text-black-alpha-40 uppercase tracking-widest">Memory Scope</span>
-              </div>
-              <select
-                value={scope}
-                onChange={(e) => setScope(e.target.value)}
-                className="bg-transparent text-xs font-medium text-black-alpha-56 border-none focus:outline-none cursor-pointer"
-              >
-                <option value="thread">This Thread</option>
-                <option value="user">User Session (Global)</option>
-              </select>
-            </div>
-
-            {/* Inject into AI Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <Brain className="w-14 h-14 text-black-alpha-40" />
-                <span className="text-xs font-bold text-black-alpha-40 uppercase tracking-widest">Inject into AI Context</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={nodeData?.injectIntoAI || false}
-                  onChange={(e) => onUpdate(node.id, { injectIntoAI: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-36 h-20 bg-black-alpha-4 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-16 after:w-16 after:transition-all peer-checked:bg-purple-500"></div>
+          {/* Top-K Slider */}
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
+                Inject Top
               </label>
+              <span className="text-sm font-semibold text-purple-600">{topK} memories</span>
             </div>
-            <p className="text-[11px] text-black-alpha-32 leading-relaxed">
-              When enabled, the value of this memory key will be automatically added to the instructions of all AI agents in this workflow.
+            <input
+              type="range"
+              min={1}
+              max={20}
+              value={topK}
+              onChange={(e) => setTopK(Number(e.target.value))}
+              className="w-full accent-purple-500"
+            />
+            <p className="mt-4 text-[10px] text-black-alpha-36">
+              Top-{topK} most semantically relevant memories will be injected into the next
+              agent's system prompt.
             </p>
           </div>
         </div>
+      )}
+
+      {/* Clear Mode Warning */}
+      {mode === "clear" && (
+        <div className="pt-16 border-t border-border-faint">
+          <div className="p-12 bg-red-50 border border-red-100 rounded-10">
+            <div className="flex items-start gap-8">
+              <Trash2 className="w-14 h-14 text-red-500 mt-1 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-red-700 mb-2">Destructive operation</p>
+                <p className="text-[11px] text-red-600 leading-relaxed">
+                  All memories in the <strong>{selectedScope.label}</strong> scope will be permanently deleted when this node executes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced */}
+      <div className="pt-16 border-t border-border-faint">
+        <button
+          onClick={() => setShowAdvanced((v) => !v)}
+          className="flex items-center gap-6 text-xs font-bold text-black-alpha-40 uppercase tracking-widest hover:text-accent-black transition-colors"
+        >
+          {showAdvanced ? <ChevronDown className="w-12 h-12" /> : <ChevronRight className="w-12 h-12" />}
+          Advanced
+        </button>
+
+        {showAdvanced && (
+          <div className="mt-14 space-y-14">
+            {/* Agent ID / Attribution Label */}
+            <div>
+              <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-8">
+                Agent Attribution Label
+              </label>
+              <input
+                type="text"
+                value={agentId}
+                onChange={(e) => setAgentId(e.target.value)}
+                placeholder="e.g. customer-support-agent"
+                className="w-full px-12 py-10 bg-black-alpha-4 border border-border-faint rounded-10 text-sm font-mono focus:outline-none focus:border-purple-400 transition-all"
+              />
+              <p className="mt-4 text-[10px] text-black-alpha-36">
+                Tags memories with this label so you can filter by agent in the future.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* How It Works callout */}
+      <div className="p-12 bg-black-alpha-4 rounded-10 space-y-6">
+        <div className="flex items-center gap-6">
+          <Info className="w-12 h-12 text-black-alpha-32" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-black-alpha-32">
+            How it works
+          </span>
+        </div>
+        {mode === "smart" && (
+          <p className="text-[11px] text-black-alpha-48 leading-relaxed">
+            <strong>Phase 1</strong> — An extraction LLM distills atomic facts from the upstream
+            output.<br />
+            <strong>Phase 2</strong> — Each fact is embedded and vector-searched against existing memories.<br />
+            <strong>Phase 3</strong> — A manager LLM decides ADD / UPDATE / DELETE / NOOP per fact.
+          </p>
+        )}
+        {mode === "retrieve" && (
+          <p className="text-[11px] text-black-alpha-48 leading-relaxed">
+            The query is embedded, then Convex vector search returns the top-{topK} semantically
+            similar memories. They are injected into the <code className="font-mono">state.memory</code> map,
+            which the next Agent node automatically prepends to its system prompt.
+          </p>
+        )}
+        {mode === "clear" && (
+          <p className="text-[11px] text-black-alpha-48 leading-relaxed">
+            Deletes all memories scoped to the current{" "}
+            <strong>{selectedScope.label.toLowerCase()}</strong>. Useful for resetting between
+            sessions or after a workflow completes.
+          </p>
+        )}
       </div>
     </div>
   );

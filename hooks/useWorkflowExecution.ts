@@ -65,7 +65,7 @@ export function useWorkflowExecution() {
     };
   }, [isRunning]);
 
-  const runWorkflow = useCallback(async (workflow: Workflow, input?: string) => {
+  const runWorkflow = useCallback(async (workflow: Workflow, input?: string, customHeaders?: Record<string, string>) => {
     if (!workflow) {
       console.error('No workflow to execute');
       return;
@@ -99,9 +99,14 @@ export function useWorkflowExecution() {
         parsedInput = { input };
       }
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (customHeaders) {
+        Object.assign(headers, customHeaders);
+      }
+
       const response = await fetch(`/api/workflows/${workflow.id}/execute-stream`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(parsedInput),
         signal: abortControllerRef.current.signal,
       });
@@ -405,6 +410,165 @@ export function useWorkflowExecution() {
     }
   }, [currentWorkflow, pendingAuth]);
 
+  const retryExecution = useCallback(async (threadId: string, executionId?: string) => {
+    if (!currentWorkflow) {
+      console.error('❌ No workflow to retry');
+      return;
+    }
+
+    if (!threadId) {
+      console.error('❌ No threadId provided for retry');
+      return;
+    }
+
+    console.log('⏳ Retrying workflow from checkpoint...');
+    setIsRunning(true);
+    setCurrentNodeId(null);
+    setPendingAuth(null);
+
+    // Clear the error state of the execution but keep existing node results
+    setExecution(prev => prev ? {
+      ...prev,
+      status: 'running',
+      error: undefined,
+    } : null);
+
+    try {
+      // Call execute-stream with resume flag
+      const response = await fetch(`/api/workflows/${currentWorkflow.id}/execute-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeFromCheckpoint: true,
+          threadId,
+          executionId
+        }),
+        signal: abortControllerRef.current?.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Retry failed: ${response.statusText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body from execute-stream endpoint');
+      }
+
+      // Process SSE stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let currentEvent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        let buffer = '';
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          if (line.trim() === '') {
+            currentEvent = '';
+            continue;
+          }
+
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7).trim();
+            continue;
+          }
+
+          if (line.startsWith('data: ')) {
+            try {
+              // Extract the data string. 
+              let dataStr = line.slice(6);
+              // Handle potential concatenated JSON objects if stream chunks broke poorly
+              // Find the first valid JSON block
+              let parsedLen = 0;
+              let dataObj = null;
+
+              // Simple JSON parsing logic
+              try {
+                dataObj = JSON.parse(dataStr);
+              } catch (e) {
+                console.error("Failed to parse JSON", dataStr);
+                continue;
+              }
+
+              const data = (dataObj || {}) as any;
+
+              if (currentEvent === 'error' && data.error) {
+                console.error('❌ Workflow error:', data.error);
+                toast.error('Workflow Error', { description: data.error, duration: 10000 });
+                setExecution(prev => prev ? {
+                  ...prev,
+                  status: 'failed',
+                  error: data.error,
+                  completedAt: data.timestamp || new Date().toISOString(),
+                } : null);
+                setIsRunning(false);
+                setCurrentNodeId(null);
+                break;
+              }
+
+              if (currentEvent === 'node_started' && data.nodeId) {
+                setCurrentNodeId(data.nodeId);
+              }
+
+              if (data.nodeResults) {
+                setNodeResults(prev => ({ ...prev, ...data.nodeResults }));
+              }
+
+              if (data.currentNodeId) {
+                setCurrentNodeId(data.currentNodeId);
+              }
+
+              if (data.pendingAuth) {
+                setPendingAuth(data.pendingAuth);
+                setExecution(prev => prev ? {
+                  ...prev,
+                  status: 'waiting-auth',
+                  nodeResults: data.nodeResults || prev.nodeResults,
+                } : null);
+                break;
+              }
+
+              if (currentEvent === 'workflow_completed' || data.status === 'completed' || data.status === 'waiting-auth') {
+                setExecution(prev => prev ? {
+                  ...prev,
+                  status: data.status || 'completed',
+                  nodeResults: data.results || data.nodeResults || prev.nodeResults,
+                  completedAt: data.timestamp || new Date().toISOString(),
+                } : null);
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', e, 'Line:', line);
+            }
+          }
+        }
+      }
+
+      console.log('✅ Workflow retry complete');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('⏹️ Workflow stopped by user');
+        return;
+      }
+      console.error('❌ Workflow retry failed:', error);
+      setExecution(prev => prev ? {
+        ...prev,
+        status: 'failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date().toISOString(),
+      } : null);
+    } finally {
+      setIsRunning(false);
+      setCurrentNodeId(null);
+    }
+  }, [currentWorkflow]);
+
   const clearExecution = useCallback(() => {
     setExecution(null);
     setNodeResults({});
@@ -423,6 +587,7 @@ export function useWorkflowExecution() {
     runWorkflow,
     stopWorkflow,
     resumeWorkflow,
+    retryExecution,
     clearExecution,
   };
 }

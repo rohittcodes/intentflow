@@ -2,7 +2,7 @@
  * Model validation and configuration for LLM providers
  */
 
-export type Provider = 'openai' | 'anthropic' | 'groq';
+export type Provider = 'openai' | 'anthropic' | 'groq' | 'google';
 
 export interface ModelConfig {
   provider: Provider;
@@ -30,9 +30,19 @@ export const SUPPORTED_MODELS = {
     'claude-haiku-4-5', // Latest Haiku 4.5
   ],
   groq: [
-    // Only Groq models that support Responses API (per Groq docs)
+    // Groq models that support function calling / responses API
     'gpt-oss-120b',
+    'gpt-oss-20b',
+    'qwen-3-32b',
+    'llama-4-scout',
+    'kimi-k2',
+    'llama-3.3-70b',
   ],
+  google: [
+    // Gemini models
+    'gemini-2.5-pro',
+    'gemini-2.5-flash',
+  ]
 } as const;
 
 /**
@@ -42,6 +52,7 @@ export const DEFAULT_MODELS = {
   openai: 'gpt-4o',
   anthropic: 'claude-sonnet-4-5-20250929', // Claude 4.5 Sonnet
   groq: 'gpt-oss-120b', // Using Responses API model for better MCP support
+  google: 'gemini-2.5-pro',
 } as const;
 
 /**
@@ -59,7 +70,7 @@ export function parseModelString(modelString?: string): { provider: Provider; mo
     const [provider, modelName] = modelString.split('/', 2) as [string, string];
 
     // Validate provider
-    if (provider !== 'openai' && provider !== 'anthropic' && provider !== 'groq') {
+    if (provider !== 'openai' && provider !== 'anthropic' && provider !== 'groq' && provider !== 'google') {
       // Default to openai if provider is unknown
       return { provider: 'openai', modelName: DEFAULT_MODELS.openai };
     }
@@ -108,7 +119,7 @@ export function getDefaultModel(provider: Provider): string {
  * Check if a provider is supported
  */
 export function isSupportedProvider(provider: string): provider is Provider {
-  return provider === 'openai' || provider === 'anthropic' || provider === 'groq';
+  return provider === 'openai' || provider === 'anthropic' || provider === 'groq' || provider === 'google';
 }
 
 /**

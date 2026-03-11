@@ -7,7 +7,7 @@ import { Workflow } from '../../types';
  * - Start node with multiple inputs
  * - Data transformation (parse company list)
  * - Loop (for each company)
- * - Agent with MCP tools (research each company using Firecrawl)
+ * - Agent with MCP tools (research each company using Rube MCP)
  * - If-else conditional (check data quality)
  * - Structured JSON extraction
  * - Human approval (review before posting)
@@ -18,7 +18,7 @@ import { Workflow } from '../../types';
  * Use case: Competitive intelligence, market research, automated reporting
  *
  * REQUIREMENTS:
- * - FIRECRAWL_API_KEY environment variable (for web research)
+ * - Rube MCP server added to registry
  * - ARCADE_API_KEY environment variable (for Google Docs)
  * - User authorization for Google Docs access
  * - Workflow executor must support:
@@ -44,7 +44,7 @@ export const advancedWorkflow: Workflow = {
   name: 'Example 4: Advanced Competitive Analysis',
   description: 'Complete workflow using all node types: loops, conditions, approvals, and tools',
   category: 'examples',
-  tags: ['example', 'advanced', 'loop', 'condition', 'approval', 'firecrawl', 'arcade'],
+  tags: ['example', 'advanced', 'loop', 'condition', 'approval', 'rube', 'arcade'],
   estimatedTime: '10-15 minutes',
   difficulty: 'advanced',
   createdAt: new Date().toISOString(),

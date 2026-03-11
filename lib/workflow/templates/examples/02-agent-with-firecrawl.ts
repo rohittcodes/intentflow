@@ -1,7 +1,7 @@
 import { Workflow } from '../../types';
 
 /**
- * Example 2: Agent with Firecrawl Tool (MCP Integration)
+ * Example 2: Agent with Rube Tool (MCP Integration)
  *
  * This workflow demonstrates how to give an agent access to Firecrawl MCP tools
  * for web scraping and searching.
@@ -21,12 +21,12 @@ import { Workflow } from '../../types';
  *
  * All three providers support MCP tools! Choose based on speed, cost, and model preference.
  */
-export const agentWithFirecrawl: Workflow = {
-  id: 'example-02-agent-with-firecrawl',
-  name: 'Example 2: Agent with Firecrawl',
-  description: 'An agent that can search and scrape the web using Firecrawl',
+export const agentWithRube: Workflow = {
+  id: 'example-02-agent-with-rube',
+  name: 'Example 2: Agent with Rube MCP',
+  description: 'An agent that can search and scrape the web using Rube MCP',
   category: 'examples',
-  tags: ['example', 'beginner', 'firecrawl', 'tools'],
+  tags: ['example', 'beginner', 'rube', 'tools'],
   estimatedTime: '2-3 minutes',
   difficulty: 'beginner',
   createdAt: new Date().toISOString(),
@@ -59,11 +59,11 @@ export const agentWithFirecrawl: Workflow = {
         label: 'Web Research Agent',
         nodeType: 'agent',
         nodeName: 'Web Research Agent',
-        instructions: `You are a web research assistant with access to Firecrawl MCP tools. Your task:
+        instructions: `You are a web research assistant with access to Rube MCP tools. Your task:
 
-1. Use the firecrawl_search tool to search for: {{input.search_query}}
+1. Use the search tool to search for: {{input.search_query}}
 2. Review the search results and identify the most relevant sources
-3. If needed, use firecrawl_scrape to get detailed content from specific URLs
+3. If needed, use scrape to get detailed content from specific URLs
 4. Synthesize the information into a clear, well-organized summary
 
 Provide a comprehensive summary with key findings, organized by topic or source.`,
@@ -71,9 +71,8 @@ Provide a comprehensive summary with key findings, organized by topic or source.
         outputFormat: 'Text',
         mcpTools: [
           {
-            name: 'Firecrawl',
-            url: 'https://mcp.firecrawl.dev/{FIRECRAWL_API_KEY}/v2/mcp',
-            accessToken: '${FIRECRAWL_API_KEY}',
+            name: 'Rube MCP',
+            url: 'https://rube.app/mcp',
           },
         ],
       },
