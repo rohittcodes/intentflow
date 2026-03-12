@@ -63,9 +63,11 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const { activeWorkspaceId } = useWorkspace();
-
-  const workflows = useQuery(api.workflows.listWorkflows, {});
+  const { activeWorkspaceId, activeProjectId } = useWorkspace();
+  const workflows = useQuery(
+    api.workflows.listWorkflows,
+    activeWorkspaceId ? { workspaceId: activeWorkspaceId, projectId: activeProjectId || undefined } : "skip"
+  );
   const recentExecutions = useQuery(
     api.executions.listForWorkspace,
     activeWorkspaceId ? { workspaceId: activeWorkspaceId } : "skip"

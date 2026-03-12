@@ -382,7 +382,7 @@ function Section({
 function CodeBlock({ code, compact = false }: { code: string; compact?: boolean }) {
   return (
     <div className={`bg-[#1E1E1E] rounded-xl overflow-hidden ${compact ? 'max-h-200' : 'max-h-400'} overflow-y-auto`}>
-      <pre className="p-3 text-[11px] leading-relaxed font-mono text-[#D4D4D4]">
+      <pre className="p-3 text-xs leading-relaxed font-mono text-[#D4D4D4] whitespace-pre overflow-x-auto">
         {code}
       </pre>
     </div>

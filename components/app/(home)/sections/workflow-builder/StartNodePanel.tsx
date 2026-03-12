@@ -1,8 +1,23 @@
 "use client";
 
+import { Trash2, Plus, Info, Settings2, ShieldCheck, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import type { Node } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface InputVariable {
   name: string;
@@ -74,131 +89,145 @@ export default function StartNodePanel({ node, onClose, onUpdate }: StartNodePan
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-4 w-[260px]">
+    <div className="flex-1 overflow-y-auto p-2 space-y-6 w-full pb-10">
       {/* Input Variables List */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-foreground">
+      <div className="space-y-4 px-1 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between pb-2 border-b border-border/50">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Input variables
-          </h3>
-          <button
+          </Label>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={addVariable}
-            className="px-3 py-1.5 bg-background hover:bg-secondary border border-border rounded-md text-xs text-foreground transition-colors flex items-center gap-1.5"
+            className="h-7 px-2.5 font-bold uppercase tracking-wider text-[10px] gap-1.5 border-primary/20 text-primary hover:bg-primary/10 transition-all rounded-md"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Variable
-          </button>
+            <Plus className="w-3 h-3" />
+            Add
+          </Button>
         </div>
-        <div className="space-y-3">
+
+        <div className="space-y-4 pt-2">
           {inputVariables.length === 0 ? (
-            <div className="p-4 bg-accent-white border border-border border-dashed rounded-xl text-center">
-              <svg className="w-8 h-8 mx-auto mb-2 text-black-alpha-32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-sm text-muted-foreground mb-3">No input variables defined</p>
-              <button
+            <div className="p-8 bg-muted/20 border border-dashed border-border rounded-lg text-center space-y-4">
+              <div className="flex flex-col items-center gap-2">
+                <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
+                <p className="text-xs text-muted-foreground italic">No input variables defined</p>
+              </div>
+              <Button
+                size="sm"
                 onClick={addVariable}
-                className="px-16 py-8 bg-accent-black hover:bg-secondary/808 text-white rounded-md text-sm font-medium transition-colors"
+                className="w-full font-bold uppercase tracking-wider text-[10px]"
               >
-                Add First Variable
-              </button>
+                Add Your First Variable
+              </Button>
             </div>
           ) : (
-            inputVariables.map((variable, index) => (
-              <div key={index} className="p-4 bg-background rounded-xl border border-border">
-                <div className="space-y-3">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-6">Variable Name</label>
-                    <input
-                      type="text"
-                      value={variable.name}
-                      onChange={(e) => updateVariable(index, { name: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary"
-                      placeholder="variable_name"
-                    />
-                  </div>
+            <div className="space-y-4">
+              {inputVariables.map((variable, index) => (
+                <Card key={index} className="bg-muted/10 border-border/50 shadow-none rounded-lg overflow-hidden group hover:border-primary/20 transition-all">
+                  <CardContent className="p-3 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">Variable Name</Label>
+                        <Input
+                          type="text"
+                          value={variable.name}
+                          onChange={(e) => updateVariable(index, { name: e.target.value })}
+                          className="h-8 bg-background/50 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 rounded-md"
+                          placeholder="variable_name"
+                        />
+                      </div>
+                      <div className="w-[100px] space-y-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">Type</Label>
+                        <Select
+                          value={variable.type}
+                          onValueChange={(val) => updateVariable(index, { type: val as any })}
+                        >
+                          <SelectTrigger className="h-8 bg-background/50 border-border/50 text-[10px] transition-all rounded-md">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="string" className="text-[10px]">String</SelectItem>
+                            <SelectItem value="number" className="text-[10px]">Number</SelectItem>
+                            <SelectItem value="boolean" className="text-[10px]">Boolean</SelectItem>
+                            <SelectItem value="url" className="text-[10px]">URL</SelectItem>
+                            <SelectItem value="object" className="text-[10px]">Object</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                  {/* Type */}
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-6">Type</label>
-                    <select
-                      value={variable.type}
-                      onChange={(e) => updateVariable(index, { type: e.target.value as any })}
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
-                    >
-                      <option value="string">String</option>
-                      <option value="number">Number</option>
-                      <option value="boolean">Boolean</option>
-                      <option value="url">URL</option>
-                      <option value="object">Object</option>
-                    </select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">Description</Label>
+                        <Input
+                          type="text"
+                          value={variable.description || ''}
+                          onChange={(e) => updateVariable(index, { description: e.target.value })}
+                          className="h-8 bg-background/50 border-border/50 text-[11px] italic focus-visible:ring-primary/20 rounded-md"
+                          placeholder="What is this input for?"
+                        />
+                    </div>
 
-                  {/* Description */}
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-6">Description</label>
-                    <input
-                      type="text"
-                      value={variable.description || ''}
-                      onChange={(e) => updateVariable(index, { description: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
-                      placeholder="Describe this input..."
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">Default Value</Label>
+                        <Input
+                          type="text"
+                          value={variable.defaultValue || ''}
+                          onChange={(e) => updateVariable(index, { defaultValue: e.target.value })}
+                          className="h-8 bg-background/50 border-border/50 text-[11px] font-mono focus-visible:ring-primary/20 rounded-md"
+                          placeholder="Optional default..."
+                        />
+                    </div>
 
-                  {/* Default Value */}
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-6">Default Value</label>
-                    <input
-                      type="text"
-                      value={variable.defaultValue || ''}
-                      onChange={(e) => updateVariable(index, { defaultValue: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary"
-                      placeholder="Default value..."
-                    />
-                  </div>
-
-                  {/* Required Toggle & Delete */}
-                  <div className="flex items-center justify-between pt-8">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={variable.required}
-                        onChange={(e) => updateVariable(index, { required: e.target.checked })}
-                        className="w-4 h-4 rounded-4 border border-border text-primary focus:ring-heat-100"
-                      />
-                      <span className="text-xs text-foreground">Required</span>
-                    </label>
-                    <button
-                      onClick={() => removeVariable(index)}
-                      className="px-12 py-6 text-xs text-foreground hover:bg-secondary rounded-6 transition-colors flex items-center gap-6"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
+                    <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          id={`required-${index}`}
+                          checked={variable.required}
+                          onCheckedChange={(checked) => updateVariable(index, { required: !!checked })}
+                          className="border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                        <Label 
+                          htmlFor={`required-${index}`}
+                          className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground cursor-pointer select-none"
+                        >
+                          Required
+                        </Label>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeVariable(index)}
+                        className="h-7 px-2 text-destructive hover:bg-destructive/10 text-[9px] font-bold uppercase tracking-widest gap-1 transition-all rounded-md"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                        Remove
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Help Text */}
-      <div className="p-4 bg-secondary border border-primary rounded-xl">
-        <h4 className="text-sm font-medium text-foreground mb-8">Input Variables</h4>
-        <p className="text-xs text-primary leading-relaxed">
-          Input variables define the data your workflow accepts when it starts.
-          These will be shown as form fields when running the workflow.
-        </p>
-        <p className="text-xs text-primary leading-relaxed mt-8">
-          Use <code className="px-4 py-2 bg-secondary/80 rounded text-foreground">{`{{variable_name}}`}</code> in any node to reference these values.
-        </p>
+      <div className="px-1 pt-2 max-w-[320px] mx-auto">
+        <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg flex gap-2.5">
+          <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+          <div className="space-y-2">
+            <p className="text-[10px] text-primary/70 leading-relaxed italic font-medium">
+              Input variables are presented as form fields when starting the workflow.
+            </p>
+            <div className="flex items-center gap-2 pt-0.5">
+              <Badge variant="outline" className="h-5 bg-primary/10 border-primary/20 text-[9px] font-mono text-primary px-1.5 rounded-sm">
+                {`{{variable_name}}`}
+              </Badge>
+              <span className="text-[9px] text-primary/60 font-bold uppercase tracking-widest">Reference values.</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

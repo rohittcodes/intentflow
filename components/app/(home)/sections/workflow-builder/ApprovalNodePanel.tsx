@@ -1,8 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  CheckCircle2, 
+  Clock, 
+  XCircle, 
+  AlertTriangle, 
+  MessageSquare, 
+  Timer, 
+  Ban, 
+  SkipForward,
+  Eye,
+  Info,
+  Check
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface ApprovalNodePanelProps {
   node: any;
@@ -47,121 +66,103 @@ export default function ApprovalNodePanel({ node, updateNodeData }: ApprovalNode
   }, [instructions, timeoutMinutes, actionOnDeny, node?.id, node?.data, updateNodeData]);
 
   return (
-    <div className="p-2 space-y-2 w-[260px]">
-      {/* Header info banner */}
-      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 flex gap-3 items-start">
-        <CheckCircle className="w-4 h-4 text-amber-600 mt-2 shrink-0" />
-        <p className="text-xs text-amber-700 leading-relaxed">
-          Execution pauses here and waits for a human to approve before continuing. The approver
-          sees the message below in the preview panel.
-        </p>
-      </div>
+    <div className="flex-1 overflow-y-auto p-2 space-y-6 w-full pb-10">
+      {/* Header info banner omitted */}
 
       {/* Approval Message */}
-      <div className="space-y-8">
-        <label className="block text-sm font-medium text-foreground">
-          Approval Message
-        </label>
-        <p className="text-xs text-muted-foreground">
-          This message is shown to the person who must approve this step.
-        </p>
-        <textarea
+      <div className="space-y-3 px-1 max-w-[320px] mx-auto">
+        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Approval Message</Label>
+        <Textarea
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
           rows={4}
           placeholder="Describe what the approver should review…"
-          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+          className="min-h-[100px] bg-muted/20 border-border/50 text-sm focus-visible:ring-primary/20 transition-all leading-relaxed rounded-md p-4"
         />
       </div>
 
       {/* Timeout */}
-      <div className="space-y-8">
-        <label className="block text-sm font-medium text-foreground flex items-center gap-2">
-          <Clock className="w-3.5 h-3.5" />
-          Timeout (minutes)
-        </label>
-        <p className="text-xs text-muted-foreground">
-          Auto-deny if not approved within this time. Set to 0 for no timeout.
-        </p>
-        <input
+      <div className="space-y-3 px-1 border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Timeout (Min)</Label>
+          <code className="text-[10px] font-mono text-primary">min</code>
+        </div>
+        <Input
           type="number"
           value={timeoutMinutes}
           onChange={(e) => setTimeoutMinutes(Number(e.target.value))}
           min={0}
           step={5}
-          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-amber-400 transition-colors"
+          className="h-8 bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all rounded-md"
         />
       </div>
 
       {/* Action on Deny */}
-      <div className="space-y-8">
-        <label className="block text-sm font-medium text-foreground">
-          Action on Deny / Timeout
-        </label>
+      <div className="space-y-3 px-1 border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">On Deny</Label>
         <div className="grid grid-cols-2 gap-2">
-          <button
+          <Button
+            variant={actionOnDeny === "stop" ? "default" : "outline"}
             onClick={() => setActionOnDeny("stop")}
-            className={`p-3 rounded-lg border text-left transition-all ${actionOnDeny === "stop"
-              ? "border-amber-400 bg-amber-50"
-              : "border-border hover:border-black-alpha-20"
-              }`}
+            className={cn(
+              "h-auto flex-col items-start gap-1 p-2.5 transition-all rounded-md",
+              actionOnDeny === "stop" ? "bg-primary text-primary-foreground" : "bg-muted/10 border-border/50 hover:bg-muted/20"
+            )}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <XCircle
-                className={`w-4 h-4 ${actionOnDeny === "stop" ? "text-amber-600" : "text-muted-foreground"}`}
-              />
-              <span
-                className={`text-sm font-medium ${actionOnDeny === "stop" ? "text-amber-700" : "text-foreground"}`}
-              >
-                Stop
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">Halt the workflow and mark as failed.</p>
-          </button>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Stop</span>
+            <span className="text-[9px] opacity-70 italic font-medium leading-tight text-left">Halt workflow</span>
+          </Button>
 
-          <button
+          <Button
+            variant={actionOnDeny === "skip" ? "default" : "outline"}
             onClick={() => setActionOnDeny("skip")}
-            className={`p-3 rounded-lg border text-left transition-all ${actionOnDeny === "skip"
-              ? "border-amber-400 bg-amber-50"
-              : "border-border hover:border-black-alpha-20"
-              }`}
+            className={cn(
+              "h-auto flex-col items-start gap-1 p-2.5 transition-all rounded-md",
+              actionOnDeny === "skip" ? "bg-primary text-primary-foreground" : "bg-muted/10 border-border/50 hover:bg-muted/20"
+            )}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle
-                className={`w-4 h-4 ${actionOnDeny === "skip" ? "text-amber-600" : "text-muted-foreground"}`}
-              />
-              <span
-                className={`text-sm font-medium ${actionOnDeny === "skip" ? "text-amber-700" : "text-foreground"}`}
-              >
-                Skip
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground">Continue workflow with denied status.</p>
-          </button>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Skip</span>
+            <span className="text-[9px] opacity-70 italic font-medium leading-tight text-left">Continue runs</span>
+          </Button>
         </div>
       </div>
 
       {/* Live preview */}
-      <div className="pt-4 border-t border-border space-y-8">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Preview</p>
+      <div className="space-y-4 px-1 border-t border-border/50 pt-6 max-w-[320px] mx-auto">
+        <div className="flex items-center gap-2 pb-1">
+          <Eye className="h-3.5 w-3.5 text-primary/60" />
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Preview</Label>
+        </div>
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-4 rounded-xl border-2 border-amber-300 bg-amber-50"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-sm font-semibold text-amber-800">Waiting for Approval</span>
-          </div>
-          <p className="text-sm text-amber-700 leading-relaxed">
-            {instructions || "No message set."}
-          </p>
-          {timeoutMinutes > 0 && (
-            <p className="text-xs text-amber-600 mt-8 flex items-center gap-4">
-              <Clock className="w-6 h-6" />
-              Auto-{actionOnDeny === "stop" ? "denied" : "skipped"} after {timeoutMinutes}m
-            </p>
-          )}
+          <Card className="border-2 border-amber-500/40 bg-amber-500/5 shadow-xl shadow-amber-500/5 rounded-lg overflow-hidden">
+            <CardContent className="p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center animate-pulse">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-amber-900 tracking-tight">Manual Review Req.</h4>
+                  <p className="text-[10px] text-amber-700/70 font-bold uppercase tracking-widest">Human in the loop</p>
+                </div>
+              </div>
+              <div className="p-3 bg-white/40 border border-amber-500/20 rounded-md">
+                <p className="text-xs text-amber-800 leading-relaxed font-medium italic">
+                  {instructions || "No message set."}
+                </p>
+              </div>
+              {timeoutMinutes > 0 && (
+                <div className="flex items-center gap-2 pt-1">
+                  <Badge variant="outline" className="bg-amber-100/50 border-amber-500/20 text-amber-700 text-[10px] font-bold uppercase h-6 px-2 gap-2">
+                    <Timer className="h-3 w-3" />
+                    Auto-{actionOnDeny === "stop" ? "Stop" : "Skip"} in {timeoutMinutes}m
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </div>

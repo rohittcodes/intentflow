@@ -88,10 +88,6 @@ function StyleGuidePageContent() {
               </div>
 
               <div className="flex items-center gap-4">
-                <Link href="/dashboard" className="hidden sm:inline-block">
-                  <Button variant="ghost">View Workflows</Button>
-                </Link>
-
                 <SignedOut>
                   <SignInButton mode="modal">
                     <Button>Sign In</Button>
@@ -117,7 +113,7 @@ function StyleGuidePageContent() {
                     <DropdownMenuContent className="w-56 rounded-xl border-border/50" align="end" sideOffset={8}>
                       <DropdownMenuLabel className="font-normal p-2">
                         <div className="flex items-center gap-3">
-                           <Avatar className="h-8 w-8 rounded-lg border border-border/50 shadow-sm">
+                          <Avatar className="h-8 w-8 rounded-lg border border-border/50 shadow-sm">
                             <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User Avatar"} />
                             <AvatarFallback className="rounded-lg bg-primary/10 text-primary">{user?.firstName?.charAt(0) || "U"}</AvatarFallback>
                           </Avatar>
@@ -143,8 +139,8 @@ function StyleGuidePageContent() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => signOut({ redirectUrl: '/' })} 
+                      <DropdownMenuItem
+                        onClick={() => signOut({ redirectUrl: '/' })}
                         className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-100/50 dark:focus:bg-red-950/50 rounded-lg m-1 font-medium"
                       >
                         <LogOut className="mr-2 h-4 w-4" />

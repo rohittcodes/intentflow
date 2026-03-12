@@ -1,9 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Switch } from "@/components/ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, ChevronDown, Check, AlertTriangle, XCircle } from "lucide-react";
+import { 
+  Shield, 
+  ChevronDown, 
+  Check, 
+  AlertTriangle, 
+  XCircle, 
+  ShieldAlert, 
+  Siren, 
+  Lock, 
+  Eraser, 
+  Sparkles, 
+  Settings2, 
+  Plus, 
+  Trash2, 
+  Info,
+  Ban,
+  Undo2,
+  ShieldCheck,
+  Eye,
+  Terminal
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface GuardrailsNodePanelProps {
   node: any;
@@ -50,11 +78,10 @@ export default function GuardrailsNodePanel({
     });
   }, [node?.id]);
 
-  // Sync changes to parent - stop infinite loop by checking for actual changes
+  // Sync changes to parent
   useEffect(() => {
     if (!node?.id) return;
 
-    // Deep compare config with current node data to prevent recursion
     const currentData = {
       checks: {
         pii: node.data?.checks?.pii ?? false,
@@ -68,14 +95,12 @@ export default function GuardrailsNodePanel({
       fallbackResponse: node.data?.fallbackResponse || "I cannot fulfill this request due to safety checks.",
     };
 
-    const configStr = JSON.stringify(config);
-    const dataStr = JSON.stringify(currentData);
-
-    if (configStr !== dataStr) {
+    if (JSON.stringify(config) !== JSON.stringify(currentData)) {
       updateNodeData(node.id, {
         ...node.data,
         ...config,
         label: "Guardrails",
+        nodeType: 'guardrails'
       });
     }
   }, [config, node?.id, node?.data, updateNodeData]);
@@ -104,169 +129,182 @@ export default function GuardrailsNodePanel({
   };
 
   return (
-    <div className="p-2 space-y-2">
-      {/* Header Description */}
-      <div className="p-3 bg-secondary rounded-lg border border-heat-12 flex gap-3 items-start">
-        <Shield className="w-4 h-4 text-primary mt-1 shrink-0" />
-        <p className="text-xs text-primary leading-relaxed">
-          Guardrails inspect content for safety violations before passing it to the next node.
-        </p>
-      </div>
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 w-full pb-10">
+      {/* Header banner omitted */}
 
-      {/* Tabs */}
-      <div className="flex border-b border-border">
-        <button
-          onClick={() => setActiveTab("checks")}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === "checks" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          Safety Checks
-          {activeTab === "checks" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab("actions")}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${activeTab === "actions" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          Actions
-          {activeTab === "actions" && (
-            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-          )}
-        </button>
-      </div>
+      <Tabs defaultValue="checks" className="w-full">
+        <div className="max-w-[320px] mx-auto space-y-4">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/20 border border-border/50 h-9 rounded-md">
+            <TabsTrigger value="checks" className="text-[10px] font-bold uppercase tracking-widest rounded-sm">Safety Ops</TabsTrigger>
+            <TabsTrigger value="actions" className="text-[10px] font-bold uppercase tracking-widest rounded-sm">Violation Logic</TabsTrigger>
+          </TabsList>
+        </div>
 
-      <AnimatePresence mode="wait">
-        {activeTab === "checks" ? (
-          <motion.div
-            key="checks"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
-            className="space-y-2"
-          >
-            {/* Main Toggles */}
-            <div className="space-y-3">
+        <TabsContent value="checks" className="space-y-4 pt-3 outline-none max-w-[320px] mx-auto">
+          {/* Main Toggles */}
+          <div className="space-y-4">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Scrutiny</Label>
+            <div className="grid grid-cols-2 gap-2">
               {[
-                { id: 'moderation', label: 'Moderation', desc: 'Hate speech, violence, harassment' },
-                { id: 'jailbreak', label: 'Jailbreak Detection', desc: 'Attempts to bypass AI safety' },
-                { id: 'pii', label: 'PII Detection', desc: 'Email, phone, addresses, SSN' },
-                { id: 'hallucination', label: 'Hallucination Check', desc: 'Verify against retrieved context' },
-              ].map((item) => (
-                <div key={item.id} className="flex items-start justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-foreground block">{item.label}</label>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
-                  </div>
-                  <Switch
-                    checked={config.checks[item.id as keyof typeof config.checks]}
-                    onCheckedChange={() => toggleCheck(item.id as keyof typeof config.checks)}
-                    className="scale-75 origin-right"
-                  />
+                { id: 'moderation', label: 'Moderation', desc: 'Hate speech, violence, harassment', icon: ShieldAlert },
+                { id: 'jailbreak', label: 'Jailbreak', desc: 'Attempts to bypass AI safety', icon: Lock },
+                { id: 'pii', label: 'PII Detection', desc: 'Email, phone, addresses, SSN', icon: Eraser },
+                { id: 'hallucination', label: 'Accuracy', desc: 'Verify against retrieved context', icon: Sparkles },
+              ].map((item) => {
+                const Icon = item.icon;
+                const active = config.checks[item.id as keyof typeof config.checks];
+                return (
+                  <Card key={item.id} className={cn("bg-muted/10 border-border/50 shadow-none transition-all rounded-md hover:bg-muted/20", active && "border-primary/20 bg-primary/5")}>
+                    <CardContent className="p-1.5 flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-2">
+                        <Icon className={cn("h-3.5 w-3.5", active ? "text-primary" : "text-muted-foreground/40")} />
+                        <span className="text-[10px] font-bold text-foreground">{item.label}</span>
+                      </div>
+                      <Switch
+                        checked={active}
+                        onCheckedChange={() => toggleCheck(item.id as keyof typeof config.checks)}
+                        className="scale-75"
+                      />
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Custom Rules */}
+          <div className="space-y-2.5 border-t border-border/50 pt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4 text-primary/60" />
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Heuristic Rules</Label>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-mono bg-background border-border/50 text-muted-foreground lowercase">
+                {config.customRules.length} rules
+              </Badge>
+            </div>
+            
+            <div className="flex gap-2">
+              <Input
+                value={newRule}
+                onChange={(e) => setNewRule(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addRule()}
+                placeholder="New rule..."
+                className="h-8 bg-muted/10 border-border/50 text-[10px] focus-visible:ring-primary/20 shadow-inner rounded-md"
+              />
+              <Button onClick={addRule} size="sm" className="h-8 font-bold uppercase tracking-widest text-[10px] px-3 rounded-md">
+                Add
+              </Button>
+            </div>
+
+            <AnimatePresence mode="popLayout">
+              {config.customRules.length > 0 ? (
+                <div className="space-y-2">
+                  {config.customRules.map((rule, idx) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      key={idx}
+                    >
+                      <Card className="bg-muted/5 border-border/50 shadow-none rounded-lg group hover:border-primary/20 transition-all">
+                        <CardContent className="p-3 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Terminal className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                            <span className="text-[11px] font-medium text-foreground truncate">{rule}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeRule(idx)} 
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="p-6 bg-muted/5 border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center text-center opacity-40">
+                  <p className="text-[10px] font-bold uppercase tracking-widest">No custom heuristics</p>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+        </TabsContent>
 
-            {/* Custom Rules */}
-            <div className="pt-4 border-t border-border">
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
-                Custom Rules
-              </label>
-              <div className="flex gap-2 mb-8">
-                <input
-                  value={newRule}
-                  onChange={(e) => setNewRule(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addRule()}
-                  placeholder="e.g. No mention of competitors"
-                  className="flex-1 px-3 py-1.5 bg-background border border-border rounded-md text-sm focus:outline-none focus:border-primary"
-                />
-                <button
-                  onClick={addRule}
-                  className="px-3 py-1.5 bg-secondary text-primary rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-              <div className="space-y-4">
-                {config.customRules.map((rule, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-8 bg-background rounded-md group">
-                    <span className="text-sm text-foreground">{rule}</span>
-                    <button onClick={() => removeRule(idx)} className="text-black-alpha-32 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                      <XCircle className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                {config.customRules.length === 0 && (
-                  <p className="text-xs text-black-alpha-32 italic">No custom rules added.</p>
+        <TabsContent value="actions" className="space-y-5 pt-4 outline-none max-w-[320px] mx-auto">
+          {/* Action on Violation */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-red-500/60" />
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Breach Protocol</Label>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant={config.actionOnViolation === "block" ? "default" : "outline"}
+                onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'block' }))}
+                className={cn(
+                  "h-auto flex-col items-start gap-1 p-2.5 rounded-md transition-all",
+                  config.actionOnViolation === "block" ? "bg-primary text-primary-foreground" : "bg-muted/10 border-border/50 hover:bg-muted/20"
                 )}
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="actions"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="space-y-6"
-          >
-            {/* Action on Violation */}
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
-                Action on Violation
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'block' }))}
-                  className={`p-2 rounded-lg border text-left transition-all ${config.actionOnViolation === 'block'
-                    ? 'border-primary bg-secondary'
-                    : 'border-border hover:border-black-alpha-20'
-                    }`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <XCircle className={`w-4 h-4 ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${config.actionOnViolation === 'block' ? 'text-primary' : 'text-foreground'}`}>Block</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Stop execution and throw error.</p>
-                </button>
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest block">Block</span>
+                <p className="text-[9px] opacity-70 italic font-medium leading-tight">Abort execution</p>
+              </Button>
 
-                <button
-                  onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'fallback' }))}
-                  className={`p-3 rounded-lg border text-left transition-all ${config.actionOnViolation === 'fallback'
-                    ? 'border-primary bg-secondary'
-                    : 'border-border hover:border-black-alpha-20'
-                    }`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <AlertTriangle className={`w-4 h-4 ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${config.actionOnViolation === 'fallback' ? 'text-primary' : 'text-foreground'}`}>Fallback</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Return static response.</p>
-                </button>
-              </div>
+              <Button
+                variant={config.actionOnViolation === "fallback" ? "default" : "outline"}
+                onClick={() => setConfig(prev => ({ ...prev, actionOnViolation: 'fallback' }))}
+                className={cn(
+                  "h-auto flex-col items-start gap-1 p-2.5 rounded-md transition-all",
+                  config.actionOnViolation === "fallback" ? "bg-primary text-primary-foreground" : "bg-muted/10 border-border/50 hover:bg-muted/20"
+                )}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest block">Fallback</span>
+                <p className="text-[9px] opacity-70 italic font-medium leading-tight">Static response</p>
+              </Button>
             </div>
+          </div>
 
-            {/* Fallback Response */}
+          {/* Fallback Response */}
+          <AnimatePresence>
             {config.actionOnViolation === 'fallback' && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="overflow-hidden"
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 border-t border-border/50 pt-5 overflow-hidden"
               >
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Fallback Response
-                </label>
-                <textarea
+                <div className="flex items-center gap-2">
+                  <Undo2 className="h-4 w-4 text-primary/60" />
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fallback Script</Label>
+                </div>
+                <Textarea
                   value={config.fallbackResponse}
                   onChange={(e) => setConfig(prev => ({ ...prev, fallbackResponse: e.target.value }))}
-                  className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-sm h-20 focus:outline-none focus:border-primary resize-none"
+                  className="min-h-[80px] bg-muted/20 border-border/50 text-sm focus-visible:ring-primary/20 shadow-inner leading-relaxed rounded-md"
+                  placeholder="The default message when blocked..."
                 />
               </motion.div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </TabsContent>
+      </Tabs>
+
+      {/* Info Box */}
+      <Card className="bg-secondary/40 border-border/30 shadow-none rounded-lg max-w-[320px] mx-auto">
+        <CardContent className="p-4 flex gap-3">
+          <Info className="h-4 w-4 text-primary shrink-0 opacity-60" />
+          <p className="text-[11px] text-muted-foreground leading-relaxed italic font-medium">
+            <strong className="text-foreground font-bold">Safety Engine:</strong> Guardrails utilize LLM-based classifiers to detect toxic sentiment or sensitive data leaks. Fallback mode is recommended for user-facing bots.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

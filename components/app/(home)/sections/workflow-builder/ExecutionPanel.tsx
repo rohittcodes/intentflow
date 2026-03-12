@@ -325,12 +325,12 @@ export default function ExecutionPanel({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-accent-white w-[260px] overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-accent-white w-full max-w-[340px] overflow-x-hidden shadow-xl border-l border-border">
       {/* Header */}
-      <div className="p-6 border-b border-border flex-shrink-0">
+      <div className="p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col gap-4">
-            <h2 className="text-sm font-medium text-foreground">Preview Workflow</h2>
+            <h2 className="text-[11px] font-bold text-foreground uppercase tracking-wider">Preview Workflow</h2>
             <span className="text-xs text-muted-foreground">
               Environment: {environment === 'production' ? 'Production' : 'Draft'}
             </span>
@@ -415,7 +415,7 @@ export default function ExecutionPanel({
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                   }}
-                  className="px-12 py-6 bg-accent-black hover:bg-secondary/800 text-white rounded-6 text-xs font-medium transition-colors flex items-center gap-6"
+                  className="px-3 py-1.5 bg-accent-black hover:bg-secondary/800 text-white rounded-6 text-[10px] font-medium transition-colors flex items-center gap-1.5"
                   title="Download workflow results as JSON"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,14 +425,7 @@ export default function ExecutionPanel({
                 </button>
               </>
             )}
-            <button
-              onClick={onClose}
-              className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
-            >
-              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+
           </div>
         </div>
         {execution?.status === 'waiting-auth' && pendingAuth && pendingAuth.toolName === 'user-approval' && (
@@ -593,7 +586,7 @@ export default function ExecutionPanel({
           const NodeIcon = getNodeIcon(nodeType);
 
           return (
-            <div className="inline-flex items-center gap-2 px-12 py-6 rounded-md text-xs bg-secondary border border-border">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs bg-secondary border border-border">
               <svg className="w-3.5 h-3.5 text-muted-foreground animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -710,12 +703,12 @@ export default function ExecutionPanel({
                   {Object.entries(inputValues).map(([key, value]) => (
                     <div key={key} className="font-mono">
                       <span className="text-muted-foreground">{key}:</span>{' '}
-                      <span className="text-foreground">{JSON.stringify(value)}</span>
+                      <span className="text-foreground whitespace-pre overflow-x-auto block">{JSON.stringify(value, null, 2)}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-foreground">{inputValues.input}</p>
+                <p className="text-sm text-foreground whitespace-pre overflow-x-auto">{inputValues.input}</p>
               )}
             </div>
 

@@ -128,9 +128,9 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
       <button
         ref={buttonRef}
         onClick={handleOpen}
-        className="px-12 py-6 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-primary transition-colors flex items-center gap-6"
+        className="h-7 px-3 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider text-primary transition-all flex items-center gap-2 shadow-sm"
       >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
         </svg>
         Insert Variable
@@ -148,7 +148,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed w-400 max-w-[calc(100vw-40px)] bg-accent-white border border-border rounded-xl shadow-2xl z-[9999] overflow-hidden"
+              className="fixed w-[320px] max-w-[calc(100vw-40px)] bg-background border border-border shadow-2xl z-[9999] overflow-hidden rounded-lg"
               style={{
                 top: `${buttonPosition.top}px`,
                 right: `${buttonPosition.right}px`,
@@ -156,15 +156,15 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-3 border-b border-border">
-                <h4 className="text-label-small text-foreground">Available Variables</h4>
+              <div className="p-3 border-b border-border bg-muted/20">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Available Variables</h4>
               </div>
 
-              <div className="max-h-320 overflow-y-auto">
+              <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
                 {variables.map((group, groupIndex) => (
                   <div key={groupIndex}>
-                    <div className="px-3 py-1.5 bg-background">
-                      <p className="text-xs text-muted-foreground font-medium">
+                    <div className="px-3 py-1.5 bg-muted/10 border-b border-border/50">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
                         {group.category}
                       </p>
                     </div>
@@ -176,7 +176,7 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                           onSelect(item.path);
                           setIsOpen(false);
                         }}
-                        className={`w-full px-3 py-2 text-left hover:bg-secondary transition-colors border-b border-border last:border-0 ${item.isField ? 'pl-24 bg-background' : ''
+                        className={`w-full px-3 py-2 text-left hover:bg-primary/5 transition-all border-b border-border last:border-0 ${item.isField ? 'pl-8 bg-muted/5' : ''
                           }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -187,31 +187,31 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                             {item.isField && !item.isNested && (
                               <span className="text-xs text-primary mr-6">↳</span>
                             )}
-                            <p className={`text-xs font-medium break-all ${item.isField || item.isInputVariable || item.isNested ? 'text-primary' : 'text-foreground'
-                              }`}>
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2 font-mono text-[10px]">
-                              {`{{${item.path}}}`}
-                            </p>
-                            {item.description && (
-                              <p className="text-xs text-muted-foreground mt-4 truncate">
-                                {item.description}
-                              </p>
-                            )}
+                             <p className={`text-[11px] font-bold break-all ${item.isField || item.isInputVariable || item.isNested ? 'text-primary' : 'text-foreground'
+                               }`}>
+                               {item.name}
+                             </p>
+                             <p className="text-[10px] text-muted-foreground/60 mt-0.5 font-mono">
+                               {`{{${item.path}}}`}
+                             </p>
+                             {item.description && (
+                               <p className="text-[10px] text-muted-foreground mt-1 truncate italic opacity-70 border-l-2 border-muted/50 pl-2">
+                                 {item.description}
+                               </p>
+                             )}
                           </div>
-                          <div className="flex flex-col gap-4 items-end">
-                            {item.propertyType && (
-                              <span className="px-6 py-2 bg-secondary text-foreground/64 rounded-4 text-[10px] font-medium flex-shrink-0">
-                                {item.propertyType}
-                              </span>
-                            )}
-                            {(item.nodeType || item.type) && (
-                              <span className="px-6 py-2 bg-secondary text-primary rounded-4 text-xs font-medium flex-shrink-0">
-                                {item.nodeType || item.type}
-                              </span>
-                            )}
-                          </div>
+                           <div className="flex flex-col gap-1 items-end">
+                             {item.propertyType && (
+                               <span className="px-1.5 py-0.5 bg-primary/5 text-primary border border-primary/10 rounded-sm text-[9px] font-bold uppercase tracking-tighter">
+                                 {item.propertyType}
+                               </span>
+                             )}
+                             {(item.nodeType || item.type) && (
+                               <span className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded-sm text-[9px] font-bold uppercase tracking-tighter">
+                                 {item.nodeType || item.type}
+                               </span>
+                             )}
+                           </div>
                         </div>
                       </button>
                     ))}
@@ -219,8 +219,8 @@ export default function VariableReferencePicker({ nodes, currentNodeId, onSelect
                 ))}
               </div>
 
-              <div className="p-3 bg-background border-t border-border">
-                <p className="text-xs text-muted-foreground">
+              <div className="p-2.5 bg-muted/30 border-t border-border">
+                <p className="text-[10px] text-muted-foreground italic font-medium">
                   Click a variable to insert its reference
                 </p>
               </div>

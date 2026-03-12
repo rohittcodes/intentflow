@@ -1,10 +1,29 @@
-
 "use client";
-
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { 
+  Zap, 
+  Variable, 
+  RefreshCw, 
+  UserCheck, 
+  ChevronDown, 
+  Play, 
+  HelpCircle,
+  AlertCircle,
+  Code2,
+  ListRestart,
+  ShieldAlert,
+  Hash
+} from "lucide-react";
 import type { Node } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface LogicNodePanelProps {
   node: Node | null;
@@ -132,7 +151,7 @@ export default function LogicNodePanel({ node, nodes, onClose, onDelete, onUpdat
     approvalMessage,
     timeoutMinutes,
     node?.id,
-    node?.data, // Include node.data in dependencies for comparison
+    node?.data,
     onUpdate
   ]);
 
@@ -141,456 +160,283 @@ export default function LogicNodePanel({ node, nodes, onClose, onDelete, onUpdat
   const availableVars = getAvailableVariables();
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-2 w-[260px]">
+    <div className="flex-1 overflow-y-auto p-2 space-y-6 w-full pb-10">
       {/* If/Else Configuration */}
       {nodeType.includes('if') && (
-        <>
-          <div>
-            <label className="block text-label-small text-muted-foreground mb-1">
-              Condition
-            </label>
-            <textarea
+        <div className="space-y-6 px-1 max-w-[320px] mx-auto">
+          <div className="space-y-3 px-1">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Condition
+              </Label>
+              <Badge variant="outline" className="text-[9px] font-mono bg-background border-border/50 text-muted-foreground">
+                JavaScript
+              </Badge>
+            </div>
+            <Textarea
               ref={conditionTextareaRef}
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
-              rows={2}
+              rows={3}
               placeholder="e.g., input.score > 70"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
+              className="min-h-[80px] bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all rounded-md p-4"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              JavaScript expression that returns true/false
-            </p>
           </div>
 
           {/* Quick Variable Selector */}
-          <div className="p-3 bg-secondary rounded-xl border border-primary">
-            <h3 className="text-label-small text-foreground mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-              Insert Variable
-            </h3>
-
-            {/* Input Variables */}
-            {availableVars.inputVars.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Input Variables:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.inputVars.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable(v.path, 'ifElse')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
-                    >
-                      {v.path}
-                    </button>
-                  ))}
-                </div>
+          <Card className="bg-muted/20 border-border/50 shadow-none rounded-lg overflow-hidden group hover:border-primary/20 transition-all">
+            <CardContent className="p-3 space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                <Variable className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Variables
+                </Label>
               </div>
-            )}
 
-            {/* Previous Node Outputs */}
-            {availableVars.nodeOutputs.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Previous Nodes:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.nodeOutputs.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable(v.path, 'ifElse')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
-                    >
-                      {v.path}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                {/* Input Variables */}
+                {availableVars.inputVars.length > 0 && (
+                  <div className="space-y-1.5 focus:outline-none">
+                    {availableVars.inputVars.map((v: any, idx: number) => (
+                      <Button
+                        key={idx}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => insertVariable(v.path, 'ifElse')}
+                        className="h-6 px-1.5 w-full justify-start hover:bg-primary/10 text-[10px] font-mono transition-all text-muted-foreground hover:text-primary"
+                        title={v.description}
+                      >
+                        {v.path}
+                      </Button>
+                    ))}
+                  </div>
+                )}
 
-            {/* Special Variables */}
-            <div>
-              <p className="text-xs text-primary font-medium mb-1">Special:</p>
-              <div className="flex flex-wrap gap-2">
-                {availableVars.special.filter(v => v.name !== 'iteration').map((v: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => insertVariable(v.path, 'ifElse')}
-                    className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                    title={v.description}
-                  >
-                    {v.path}
-                  </button>
-                ))}
+                {/* Previous Node Outputs */}
+                {availableVars.nodeOutputs.length > 0 && (
+                  <div className="space-y-1.5 pt-1 border-t border-border/30">
+                    {availableVars.nodeOutputs.map((v: any, idx: number) => (
+                      <Button
+                        key={idx}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => insertVariable(v.path, 'ifElse')}
+                        className="h-6 px-1.5 w-full justify-start hover:bg-primary/10 text-[10px] font-mono transition-all text-muted-foreground hover:text-primary"
+                        title={v.description}
+                      >
+                        {v.path}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Common Condition Examples */}
-          <div className="p-3 bg-background rounded-xl border border-border">
-            <h3 className="text-label-small text-foreground mb-3">Common Patterns:</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <Code2 className="h-3.5 w-3.5 text-muted-foreground/60" />
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Common Patterns</h3>
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setCondition('input.score > 70')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">input.score &gt; 70</p>
-                <p className="text-xs text-muted-foreground mt-2">Number check</p>
-              </button>
-              <button
-                onClick={() => setCondition('input.status === "approved"')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">input.status === "approved"</p>
-                <p className="text-xs text-muted-foreground mt-2">String equals</p>
-              </button>
-              <button
-                onClick={() => setCondition('lastOutput && lastOutput.length > 0')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">lastOutput.length &gt; 0</p>
-                <p className="text-xs text-muted-foreground mt-2">Array not empty</p>
-              </button>
-              <button
-                onClick={() => setCondition('lastOutput.data && lastOutput.data.price')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">lastOutput.data.price</p>
-                <p className="text-xs text-muted-foreground mt-2">JSON nested</p>
-              </button>
-              <button
-                onClick={() => setCondition('input.age >= 18 && input.age <= 65')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">age &gt;= 18 && age &lt;= 65</p>
-                <p className="text-xs text-muted-foreground mt-2">Range check</p>
-              </button>
-              <button
-                onClick={() => setCondition('lastOutput.tags && lastOutput.tags.includes("urgent")')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">tags.includes("urgent")</p>
-                <p className="text-xs text-muted-foreground mt-2">Array contains</p>
-              </button>
+              {[
+                { cond: 'input.score > 70', label: 'Score Check' },
+                { cond: 'input.status === "approved"', label: 'Status Equals' },
+                { cond: 'lastOutput.length > 0', label: 'Array Exists' },
+                { cond: 'input.age >= 18', label: 'Age Limit' },
+              ].map((pattern) => (
+                <Button
+                  key={pattern.cond}
+                  variant="outline"
+                  onClick={() => setCondition(pattern.cond)}
+                  className="h-auto flex-col items-start gap-1 p-3 bg-muted/10 border-border/50 hover:bg-primary/5 hover:border-primary/20 group transition-all"
+                >
+                  <code className="text-[9px] font-mono text-primary truncate w-full">{pattern.cond}</code>
+                  <span className="text-[10px] text-muted-foreground italic">{pattern.label}</span>
+                </Button>
+              ))}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* While Configuration */}
       {nodeType.includes('while') && (
-        <>
-          <div>
-            <label className="block text-label-small text-muted-foreground mb-1">
+        <div className="space-y-6 px-1 max-w-[320px] mx-auto">
+          <div className="space-y-3 px-1">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Loop Condition
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               ref={whileConditionTextareaRef}
               value={whileCondition}
               onChange={(e) => setWhileCondition(e.target.value)}
               rows={2}
               placeholder="e.g., iteration < 10"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
+              className="h-20 bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all rounded-md p-4"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Condition for repeating
-            </p>
           </div>
 
-          {/* Quick Variable Selector */}
-          <div className="p-3 bg-secondary rounded-xl border border-primary">
-            <h3 className="text-label-small text-foreground mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-              Click to Insert Variable
-            </h3>
+          {/* Quick Variable Selector for While */}
+          <Card className="bg-muted/20 border-border/50 shadow-none rounded-lg overflow-hidden group hover:border-primary/20 transition-all">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                <Variable className="h-3.5 w-3.5 text-primary" />
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">
+                  Variables
+                </h3>
+              </div>
 
-            {/* Input Variables */}
-            {availableVars.inputVars.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Input Variables:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.inputVars.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable(v.path, 'while')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
+              <div className="space-y-4 max-h-[250px] overflow-y-auto pr-1">
+                {/* Input Variables */}
+                {availableVars.inputVars.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Inputs</p>
+                    <div className="flex flex-wrap gap-1.5 focus:outline-none">
+                      {availableVars.inputVars.map((v: any, idx: number) => (
+                        <Button
+                          key={idx}
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => insertVariable(v.path, 'while')}
+                          className="h-7 px-2 bg-background border-border/50 hover:bg-primary/5 hover:text-primary hover:border-primary/20 text-[10px] font-mono transition-all"
+                        >
+                          {v.path}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Special Loop Variable (Iteration) */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary/80">Loop Control</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => insertVariable('iteration', 'while')}
+                      className="h-7 px-2 bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 text-[10px] font-mono font-bold"
                     >
-                      {v.path}
-                    </button>
-                  ))}
+                      iteration
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
 
-            {/* Previous Node Outputs */}
-            {availableVars.nodeOutputs.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Previous Nodes:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.nodeOutputs.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable(v.path, 'while')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
-                    >
-                      {v.path}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Special Variables */}
-            <div>
-              <p className="text-xs text-primary font-medium mb-1">Special:</p>
-              <div className="flex flex-wrap gap-2">
-                {availableVars.special.map((v: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => insertVariable(v.path, 'while')}
-                    className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                    title={v.description}
-                  >
-                    {v.path}
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <div className="space-y-2 px-1">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Max Iterations
+              </Label>
+              <Input
+                type="number"
+                value={maxIterations}
+                onChange={(e) => setMaxIterations(e.target.value)}
+                className="h-8 bg-muted/20 border-border/50 font-mono focus-visible:ring-primary/20 rounded-md text-[11px]"
+              />
             </div>
-          </div>
 
-          {/* Common Loop Examples */}
-          <div className="p-3 bg-background rounded-xl border border-border">
-            <h3 className="text-label-small text-foreground mb-3">Common Patterns:</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setWhileCondition('iteration < 10')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">iteration &lt; 10</p>
-                <p className="text-xs text-muted-foreground mt-2">Fixed iterations</p>
-              </button>
-              <button
-                onClick={() => setWhileCondition('iteration < lastOutput.totalCount')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">iteration &lt; totalCount</p>
-                <p className="text-xs text-muted-foreground mt-2">Array processing</p>
-              </button>
-              <button
-                onClick={() => setWhileCondition('lastOutput.hasMore === true')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">lastOutput.hasMore</p>
-                <p className="text-xs text-muted-foreground mt-2">Has more pages</p>
-              </button>
-              <button
-                onClick={() => setWhileCondition('lastOutput.score < 90 && iteration < 5')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">score &lt; 90 (max 5)</p>
-                <p className="text-xs text-muted-foreground mt-2">Retry until good</p>
-              </button>
-              <button
-                onClick={() => setWhileCondition('lastOutput.queue && lastOutput.queue.length > 0')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">queue.length &gt; 0</p>
-                <p className="text-xs text-muted-foreground mt-2">Process queue</p>
-              </button>
-              <button
-                onClick={() => setWhileCondition('lastOutput.data.items[iteration]')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">data.items[iteration]</p>
-                <p className="text-xs text-muted-foreground mt-2">JSON array access</p>
-              </button>
-            </div>
+            <Card className="bg-primary/5 border-primary/15 shadow-none rounded-lg">
+              <CardContent className="p-4 flex gap-3">
+                <ListRestart className="h-4 w-4 text-primary shrink-0" />
+                <p className="text-[11px] text-primary/70 leading-relaxed italic">
+                  <strong>Loop Pattern:</strong> Connect the nodes you want to repeat to the loop output, then use "continue" to return to the start.
+                </p>
+              </CardContent>
+            </Card>
           </div>
-
-          <div>
-            <label className="block text-label-small text-muted-foreground mb-1">
-              Max Iterations
-            </label>
-            <input
-              type="number"
-              value={maxIterations}
-              onChange={(e) => setMaxIterations(e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Safety limit to prevent infinite loops
-            </p>
-          </div>
-
-          <div className="p-3 bg-secondary rounded-xl border border-primary">
-            <p className="text-xs text-foreground">
-              <strong>Loop Setup:</strong> Connect loop body nodes using "continue". The workflow repeats until condition is false or max iterations hit.
-            </p>
-          </div>
-        </>
+        </div>
       )}
 
       {/* User Approval Configuration */}
       {nodeType.includes('approval') && (
-        <>
-          <div>
-            <label className="block text-label-small text-muted-foreground mb-1">
-              Approval Message
-            </label>
-            <textarea
+        <div className="space-y-6 px-1 max-w-[320px] mx-auto">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Approval Prompt
+              </Label>
+              <UserCheck className="h-4 w-4 text-primary/40" />
+            </div>
+            <Textarea
               ref={approvalMessageTextareaRef}
               value={approvalMessage}
               onChange={(e) => setApprovalMessage(e.target.value)}
-              rows={3}
+              rows={4}
               placeholder="e.g., Please review: ${lastOutput.summary}"
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+              className="min-h-[100px] bg-muted/20 border-border/50 text-[11px] focus-visible:ring-primary/20 transition-all leading-relaxed rounded-md p-4"
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Use ${'{variable}'} for dynamic values
-            </p>
+            <div className="flex items-center gap-2 px-1">
+              <code className="text-[9px] font-mono text-muted-foreground bg-muted/30 px-1 rounded-sm">{"${variable}"}</code>
+              <p className="text-[10px] text-muted-foreground italic">
+                Dynamic value injection
+              </p>
+            </div>
           </div>
 
-          {/* Quick Variable Selector for Approval Message */}
-          <div className="p-3 bg-secondary rounded-xl border border-primary">
-            <h3 className="text-label-small text-foreground mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-              Click to Insert Variable
-            </h3>
-
-            {/* Input Variables */}
-            {availableVars.inputVars.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Input Variables:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.inputVars.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable('${' + v.path + '}', 'approval')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
-                    >
-                      ${'{' + v.path + '}'}
-                    </button>
-                  ))}
-                </div>
+          {/* Quick Variable Selector for Approval */}
+          <Card className="bg-muted/20 border-border/50 shadow-none rounded-lg overflow-hidden group hover:border-primary/20 transition-all">
+            <CardContent className="p-3 space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                <Variable className="h-3.5 w-3.5 text-primary" />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+                  Variables
+                </Label>
               </div>
-            )}
-
-            {/* Previous Node Outputs */}
-            {availableVars.nodeOutputs.length > 0 && (
-              <div className="mb-3">
-                <p className="text-xs text-primary font-medium mb-1">Previous Nodes:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableVars.nodeOutputs.map((v: any, idx: number) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertVariable('${' + v.path + '}', 'approval')}
-                      className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                      title={v.description}
-                    >
-                      ${'{' + v.path + '}'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Special Variables */}
-            <div>
-              <p className="text-xs text-primary font-medium mb-1">Special:</p>
-              <div className="flex flex-wrap gap-2">
-                {availableVars.special.filter(v => v.name !== 'iteration').map((v: any, idx: number) => (
-                  <button
+              <div className="flex flex-wrap gap-1.5 focus:outline-none max-h-[150px] overflow-y-auto pr-1">
+                {availableVars.inputVars.map((v: any, idx: number) => (
+                  <Button
                     key={idx}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => insertVariable('${' + v.path + '}', 'approval')}
-                    className="px-2 py-1 bg-secondary/80 hover:bg-heat-12 text-foreground rounded-6 text-xs font-mono transition-colors"
-                    title={v.description}
+                    className="h-6 px-1.5 hover:bg-primary/10 text-[10px] font-mono transition-all text-muted-foreground hover:text-primary"
                   >
-                    ${'{' + v.path + '}'}
-                  </button>
+                    {`\${${v.name}}`}
+                  </Button>
                 ))}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Common Message Patterns */}
-          <div className="p-3 bg-background rounded-xl border border-border">
-            <h3 className="text-label-small text-foreground mb-2">Common Message Patterns:</h3>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                onClick={() => setApprovalMessage('Please review and approve: ${lastOutput}')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">Please review and approve: ${'{lastOutput}'}</p>
-                <p className="text-xs text-muted-foreground mt-2">Simple approval with data</p>
-              </button>
-              <button
-                onClick={() => setApprovalMessage('Transaction for ${input.amount} requires approval')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">Transaction for ${'{input.amount}'} requires approval</p>
-                <p className="text-xs text-muted-foreground mt-2">Financial approval</p>
-              </button>
-              <button
-                onClick={() => setApprovalMessage('Review ${input.user}\'s request: ${lastOutput.summary}')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">Review ${'{input.user}'}'s request: ${'{lastOutput.summary}'}</p>
-                <p className="text-xs text-muted-foreground mt-2">User action approval</p>
-              </button>
-              <button
-                onClick={() => setApprovalMessage('Approve deployment to ${input.environment}?\n\nChanges:\n${lastOutput.changes}')}
-                className="text-left px-3 py-1.5 bg-accent-white hover:bg-secondary border border-border rounded-6 transition-colors"
-              >
-                <p className="text-xs font-mono text-primary">Multi-line deployment approval</p>
-                <p className="text-xs text-muted-foreground mt-2">Detailed approval with formatting</p>
-              </button>
+          <div className="space-y-4">
+            <div className="space-y-2 px-1">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Timeout (Minutes)
+              </Label>
+              <Input
+                type="number"
+                value={timeoutMinutes}
+                onChange={(e) => setTimeoutMinutes(e.target.value)}
+                className="h-8 bg-muted/20 border-border/50 font-mono focus-visible:ring-primary/20 rounded-md text-[11px]"
+              />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-label-small text-muted-foreground mb-1">
-              Timeout (minutes)
-            </label>
-            <input
-              type="number"
-              value={timeoutMinutes}
-              onChange={(e) => setTimeoutMinutes(e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              How long to wait for approval before timing out
-            </p>
+            <Card className="bg-secondary/40 border-border/30 shadow-none rounded-lg">
+              <CardContent className="p-3 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2 p-1.5 rounded-md bg-green-500/5 border border-green-500/10 justify-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight text-green-700">Approve</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-1.5 rounded-md bg-red-500/5 border border-red-500/10 justify-center">
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight text-red-700">Reject</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="p-3 bg-secondary rounded-xl border border-primary">
-            <h3 className="text-label-small text-foreground mb-1">How it works</h3>
-            <p className="text-xs text-primary mb-3">
-              Workflow pauses for user. Execution continues via "Approve" (green) or "Reject" (red).
-            </p>
-            <div className="flex gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                <span className="text-foreground/64">Approve branch</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                <span className="text-foreground/64">Reject branch</span>
-              </div>
-            </div>
-          </div>
-        </>
+        </div>
       )}
 
-      {/* Universal Output Selector */}
-      <div className="pt-4 border-t border-border">
+      {/* Universal Output Selector placeholder */}
+      <div className="px-1 opacity-0 pointer-events-none">
+        <div className="h-px bg-border/50" />
       </div>
     </div>
   );

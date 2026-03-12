@@ -30,14 +30,24 @@ export const list = query({
       .query("workflows")
       .withIndex("by_userId", (q) => q.eq("userId", identity.subject));
 
-    // Filter by workspace if provided
+    // Filter by workspace if provided (include unassigned workflows so they don't disappear)
     if (args.workspaceId) {
-      q = q.filter((q) => q.eq(q.field("workspaceId"), args.workspaceId));
+      q = q.filter((q) =>
+        q.or(
+          q.eq(q.field("workspaceId"), args.workspaceId),
+          q.eq(q.field("workspaceId"), undefined)
+        )
+      );
     }
-
-    // Filter by project if provided
+    
+    // Filter by project if provided (include unassigned workflows so they don't disappear)
     if (args.projectId) {
-      q = q.filter((q) => q.eq(q.field("projectId"), args.projectId));
+      q = q.filter((q) =>
+        q.or(
+          q.eq(q.field("projectId"), args.projectId),
+          q.eq(q.field("projectId"), undefined)
+        )
+      );
     }
 
     const workflows = await q

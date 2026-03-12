@@ -56,6 +56,11 @@ import {
   Undo,
   Redo,
   XCircle,
+  HelpCircle,
+  Globe,
+  User,
+  Package,
+  Sparkles,
 } from "lucide-react";
 import NodePanel from "./NodePanel";
 import MCPPanel from "./MCPPanel";
@@ -79,6 +84,8 @@ import ShareWorkflowModal from "./ShareWorkflowModal";
 import SaveAsTemplateModal from "./SaveAsTemplateModal";
 import LibraryPanel from "./LibraryPanel";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
+import AddMCPModal from "./AddMCPModal";
+
 import { toast } from "sonner";
 import { useIsMutating } from "@tanstack/react-query";
 import { useWorkflow } from "@/hooks/useWorkflow";
@@ -337,7 +344,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const [renameTrigger, setRenameTrigger] = useState(0);
   const [environment, setEnvironment] = useState<'draft' | 'production'>('draft');
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'nodes' | 'library' | 'settings'>('nodes');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'nodes' | 'library' | 'settings' | 'connectors' | 'hub' | 'help'>('nodes');
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [gridStyle, setGridStyle] = useState<'dots' | 'lines' | 'none'>('dots');
   const [edgeStyle, setEdgeStyle] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
@@ -346,6 +353,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const [maxTokens, setMaxTokens] = useState(0);
   const [maxRuntimeSeconds, setMaxRuntimeSeconds] = useState(0);
   const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [showAddMCPModal, setShowAddMCPModal] = useState(false);
+
 
   // Multi-canvas state
   const [canvasStack, setCanvasStack] = useState<{ workflowId: string; instanceId: string }[]>([]);
@@ -380,6 +389,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const createConnector = useMutation(api.knowledgeConnectors.createConnector);
   const deployWorkflow = useMutation(api.workflows.deployWorkflow);
   const { runWorkflow, stopWorkflow, isRunning, nodeResults, execution, currentNodeId, pendingAuth, resumeWorkflow, retryExecution } = useWorkflowExecution();
+  const addMCPServer = useMutation(api.mcpServers.addMCPServer);
+
 
 
   // Initialize canvas stack with the main workflow
@@ -898,28 +909,56 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Nav */}
-        <nav className="w-14 border-r bg-background flex flex-col items-center py-4 gap-4 z-40 shrink-0">
-          {[
-            { id: 'nodes', icon: LayoutGrid, tooltip: 'Nodes' },
-            { id: 'library', icon: Layers, tooltip: 'Library' },
-            { id: 'settings', icon: Settings2, tooltip: 'Settings' }
-          ].map((tab) => (
-            <TooltipProvider key={tab.id}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeSidebarTab === tab.id ? "default" : "ghost"}
-                    size="icon"
-                    onClick={() => { setActiveSidebarTab(tab.id as any); setSidebarExpanded(true); }}
-                    className={`h-10 w-10 transition-all ${activeSidebarTab === tab.id ? 'shadow-md shadow-primary/20' : ''}`}
-                  >
-                    <tab.icon className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">{tab.tooltip}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
+        <nav className="w-14 border-r bg-background flex flex-col items-center py-4 gap-4 z-40 shrink-0 h-full">
+          {/* Top Group */}
+          <div className="flex flex-col items-center gap-4">
+            {[
+              { id: 'nodes', icon: LayoutGrid, tooltip: 'Nodes' },
+              { id: 'library', icon: Layers, tooltip: 'Library' },
+              { id: 'settings', icon: Settings2, tooltip: 'Settings' }
+            ].map((tab) => (
+              <TooltipProvider key={tab.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={activeSidebarTab === tab.id ? "default" : "ghost"}
+                      size="icon"
+                      onClick={() => { setActiveSidebarTab(tab.id as any); setSidebarExpanded(true); }}
+                      className={`h-10 w-10 transition-all ${activeSidebarTab === tab.id ? 'shadow-md shadow-primary/20' : ''}`}
+                    >
+                      <tab.icon className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{tab.tooltip}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Bottom Group */}
+          <div className="flex flex-col items-center gap-4 pb-2">
+            {[
+              { id: 'hub', icon: Globe, tooltip: 'Hub' }
+            ].map((tab) => (
+              <TooltipProvider key={tab.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={activeSidebarTab === tab.id ? "default" : "ghost"}
+                      size="icon"
+                      onClick={() => { setActiveSidebarTab(tab.id as any); setSidebarExpanded(true); }}
+                      className={`h-10 w-10 transition-all ${activeSidebarTab === tab.id ? 'shadow-md shadow-primary/20' : ''}`}
+                    >
+                      <tab.icon className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{tab.tooltip}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
         </nav>
 
         {/* Sidebar Content */}
@@ -932,7 +971,9 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               className="relative border-r bg-background flex flex-col overflow-hidden shadow-sm h-full"
             >
               <div className="flex items-center justify-between p-4 border-b bg-muted/30">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{activeSidebarTab}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {activeSidebarTab === 'hub' ? 'Library Hub' : activeSidebarTab}
+                </h3>
                 <Button variant="ghost" size="icon" onClick={() => setSidebarExpanded(false)} className="h-7 w-7">
                   <ChevronLeft className="h-4 w-4 text-muted-foreground" />
                 </Button>
@@ -969,9 +1010,43 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                   )}
                   {activeSidebarTab === 'library' && (
                     <LibraryPanel
+                      filter="local"
                       onAddSource={() => setShowSourceSelector(true)}
-                      onAddMCPServer={() => setShowSettings(true)}
+                      onAddMCPServer={() => setShowAddMCPModal(true)}
                     />
+
+                  )}
+                  {activeSidebarTab === 'hub' && (
+                    <div className="flex flex-col h-full">
+                      <div className="flex-1 overflow-y-auto">
+                        <LibraryPanel
+                          filter="external"
+                          onAddSource={() => setShowSourceSelector(true)}
+                          onAddMCPServer={() => setShowAddMCPModal(true)}
+                        />
+
+                        
+                        <div className="p-4 border-t border-border bg-muted/20">
+                          <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1 mb-3">Resources & Support</h4>
+                          <div className="grid grid-cols-1 gap-2">
+                            {[
+                              { label: 'Documentation', desc: 'Node reference & guides', icon: HelpCircle },
+                              { label: 'Discord', desc: 'Join our community', icon: Shield },
+                            ].map((item, i) => (
+                              <button key={i} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all text-left group">
+                                <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                  <item.icon className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[11px] font-bold text-foreground">{item.label}</div>
+                                  <div className="text-[10px] text-muted-foreground truncate">{item.desc}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                   {activeSidebarTab === 'settings' && (
                     <WorkflowSettingsPanel
@@ -1002,7 +1077,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
         {/* Main Workspace */}
         <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 relative flex overflow-hidden">
-          <div className={`flex-1 grid gap-1 h-full w-full ${canvasStack.length === 1 ? 'grid-cols-1' :
+          <div className={`flex-1 grid h-full w-full ${canvasStack.length === 1 ? 'grid-cols-1' :
             canvasStack.length === 2 ? 'grid-cols-2' :
               'grid-cols-[1fr_1fr]'
             }`}>
@@ -1032,7 +1107,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
 
             {/* Column 2 (Secondary/Stack) */}
             {canvasStack.length > 1 && (
-              <div className={`grid gap-1 ${canvasStack.length === 2 ? 'grid-rows-1' : 'grid-rows-2'}`}>
+              <div className={`grid ${canvasStack.length === 2 ? 'grid-rows-1' : 'grid-rows-2'}`}>
                 {canvasStack.slice(1).map((c) => (
                   <CanvasWindow
                     key={c.instanceId}
@@ -1062,11 +1137,11 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
           {inspectorOpen && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: "auto", opacity: 1 }}
+              animate={{ width: 340, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="relative border-l bg-background flex flex-col overflow-hidden h-full max-h-[calc(100vh-120px)] border max-w-[260px]"
+              className="relative border-l bg-background flex flex-col overflow-x-hidden h-full border w-[340px]"
             >
-              <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+              <div className="flex items-center justify-between p-4 border-b bg-muted/30">
                 <div className="flex items-center gap-2">
                   <div
                     className="h-6 w-6 rounded-md flex items-center justify-center shadow-sm"
@@ -1088,8 +1163,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                 </Button>
               </div>
 
-              <ScrollArea className="flex-1">
-                <div className="">
+              <ScrollArea className="flex-1 w-full">
+                <div className="w-full max-w-full overflow-x-hidden">
                   {showSettings ? (
                     <SettingsPanel isOpen={true} onClose={() => { setShowSettings(false); setInspectorOpen(false); }} />
                   ) : showTestEndpoint && workflow ? (
@@ -1097,7 +1172,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                   ) : showExecution ? (
                     <ExecutionPanel workflow={workflow ? { ...workflow } : null} execution={execution} nodeResults={nodeResults} isRunning={isRunning} currentNodeId={currentNodeId} onRun={handleRunWithInput} onResumePendingAuth={resumeWorkflow} onRetry={retryExecution} onClose={() => setShowExecution(false)} environment={environment} pendingAuth={pendingAuth} />
                   ) : (activeNode?.data as any)?.nodeType === 'mcp' ? (
-                    <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
+                    <MCPPanel node={activeNode as any} mode="configure" onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} onOpenSettings={handleShowSettings} />
                   ) : (activeNode?.data as any)?.nodeType === 'router' ? (
                     <RouterNodePanel node={activeNode as any} updateNodeData={handleUpdateNodeData} />
                   ) : (activeNode?.data as any)?.nodeType?.includes('if') || (activeNode?.data as any)?.nodeType?.includes('while') || (activeNode?.data as any)?.nodeType?.includes('appr') ? (
@@ -1116,7 +1191,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                     <StartNodePanel node={activeNode as any} onClose={() => { setInspectorOpen(false); setSelectedNodeByCanvas(p => ({ ...p, [activeCanvasId]: null })); }} onUpdate={handleUpdateNodeData} />
                   ) : (activeNode?.data as any)?.nodeType === 'workflow' ? (
                     <div className="space-y-4">
-                      <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 space-y-2">
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                             <Layers className="h-4 w-4 text-white" />
@@ -1166,7 +1241,21 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
         }}
       />
 
-      {/* Context Menu and Dialogs moved to WorkflowCanvas */}
+      <AddMCPModal
+        isOpen={showAddMCPModal}
+        onClose={() => setShowAddMCPModal(false)}
+        onSave={async (data) => {
+          try {
+            if (user?.id) {
+              await addMCPServer(data);
+              toast.success(`${data.name} added to registry`);
+              setShowAddMCPModal(false);
+            }
+          } catch (error) {
+            toast.error("Failed to add MCP server");
+          }
+        }}
+      />
 
       <style jsx global>{`
         .react-flow__pane {

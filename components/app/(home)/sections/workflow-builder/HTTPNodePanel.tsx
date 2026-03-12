@@ -7,7 +7,43 @@ import VariableReferencePicker from "./VariableReferencePicker";
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Globe, Shield, Zap } from "lucide-react";
+import { 
+  Globe, 
+  Shield, 
+  Zap, 
+  Code2, 
+  Key, 
+  Eye, 
+  EyeOff, 
+  Plus, 
+  Trash2, 
+  Send,
+  Link2,
+  Lock,
+  Info,
+  ChevronDown,
+  Layout
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 interface HTTPNodePanelProps {
   node: Node | null;
@@ -65,7 +101,7 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [url, method, headers, body, authType, authToken, node?.id, node?.data, onUpdate]);
+  }, [url, method, headers, body, authType, authToken, selectedConnectorId, node?.id, node?.data, onUpdate]);
 
   const addHeader = () => {
     setHeaders([...headers, { key: "", value: "" }]);
@@ -91,263 +127,273 @@ export default function HTTPNodePanel({ node, nodes, onClose, onDelete, onUpdate
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-3 w-[260px]">
-      {/* Method */}
-      <div>
-        <label className="block text-label-small text-muted-foreground mb-1">
-          HTTP Method
-        </label>
-        <select
-          value={method}
-          onChange={(e) => setMethod(e.target.value)}
-          className="w-fit px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground font-medium focus:outline-none focus:border-primary transition-colors"
-        >
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-          <option value="PUT">PUT</option>
-          <option value="PATCH">PATCH</option>
-          <option value="DELETE">DELETE</option>
-        </select>
-      </div>
-
-      {/* Connector / Data Source Selection */}
-      <div className="p-2 bg-accent-blue-alpha-4 border border-accent-blue-alpha-12 rounded-lg">
-        <div className="flex items-center gap-2 mb-1">
-          <Zap className="w-3.5 h-3.5 text-accent-blue" />
-          <label className="block text-label-small font-bold text-accent-blue uppercase tracking-widest">
-            Connector (Optional)
-          </label>
-        </div>
-        <p className="text-body-tiny text-muted-foreground mb-3">
-          Link to a saved connector to automatically include base URL and authentication.
-        </p>
-        <select
-          value={selectedConnectorId}
-          onChange={(e) => setSelectedConnectorId(e.target.value)}
-          className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground focus:outline-none focus:border-accent-blue transition-colors cursor-pointer"
-        >
-          <option value="">No Connector (Direct Request)</option>
-          {connectors?.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name} ({c.type})
-            </option>
-          ))}
-        </select>
-        {selectedConnectorId && connectors && (
-          <div className="mt-4 flex items-center gap-2 text-body-tiny text-accent-green font-medium">
-            <Shield className="w-4 h-4" />
-            Connector settings will be resolved at runtime
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 w-full pb-20">
+      {/* Request URL & Method */}
+      <div className="space-y-4 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between gap-3">
+          <div className="w-[85px] space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Method</Label>
+            <Select value={method} onValueChange={setMethod}>
+              <SelectTrigger className="h-8 bg-muted/20 border-border/50 font-bold focus:ring-primary/20 rounded-md">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GET" className="text-[10px] font-bold text-green-600">GET</SelectItem>
+                <SelectItem value="POST" className="text-[10px] font-bold text-blue-600">POST</SelectItem>
+                <SelectItem value="PUT" className="text-[10px] font-bold text-orange-600">PUT</SelectItem>
+                <SelectItem value="PATCH" className="text-[10px] font-bold text-purple-600">PATCH</SelectItem>
+                <SelectItem value="DELETE" className="text-[10px] font-bold text-red-600">DELETE</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        )}
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Endpoint</Label>
+              {nodes && (
+                <VariableReferencePicker
+                  nodes={nodes}
+                  currentNodeId={node.id}
+                  onSelect={(ref) => setUrl(url + `{{${ref}}}`)}
+                />
+              )}
+            </div>
+            <div className="relative group">
+              <Input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://api.example.com/endpoint"
+                className="h-8 bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all rounded-md px-3"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* URL Input - Full Width */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-label-small text-muted-foreground">
-            Request URL
-          </label>
-          {nodes && (
-            <VariableReferencePicker
-              nodes={nodes}
-              currentNodeId={node.id}
-              onSelect={(ref) => setUrl(url + `{{${ref}}}`)}
-            />
-          )}
-        </div>
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://api.example.com/endpoint"
-          className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
-        />
+      {/* Connector (Simplified) */}
+      <div className="border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <Select value={selectedConnectorId} onValueChange={setSelectedConnectorId}>
+          <SelectTrigger className="h-8 bg-muted/10 border-border/50 text-[10px] font-medium focus:ring-primary/20 rounded-md">
+            <SelectValue placeholder="Select Connector (Optional)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="direct" className="text-[10px] font-medium">Direct Request</SelectItem>
+            {connectors?.map((c) => (
+              <SelectItem key={c._id} value={c._id} className="text-[10px]">
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Authentication */}
-      <div>
-        <label className="block text-label-small text-muted-foreground mb-1">
-          Authentication
-        </label>
-        <select
-          value={authType}
-          onChange={(e) => setAuthType(e.target.value)}
-          className="w-full px-3 py-1.5 bg-background border border-border rounded-md text-xs text-foreground focus:outline-none focus:border-primary transition-colors mb-3"
-        >
-          <option value="none">None</option>
-          <option value="bearer">Bearer Token</option>
-          <option value="basic">Basic Auth</option>
-          <option value="api-key">API Key (Header)</option>
-        </select>
-
-        {authType !== 'none' && (
-          <div className="relative">
-            <input
-              type={showAuthToken ? "text" : "password"}
-              value={authToken}
-              onChange={(e) => setAuthToken(e.target.value)}
-              placeholder={authType === 'bearer' ? 'Bearer token...' : 'API key or credentials...'}
-              className="w-full px-3 py-1.5 pr-40 bg-background border border-border rounded-md text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
-            />
-            <button
-              onClick={() => setShowAuthToken(!showAuthToken)}
-              className="absolute right-12 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showAuthToken ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+      <div className="space-y-3 border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Authentication</Label>
+        <div className="grid grid-cols-4 gap-2">
+          {['none', 'bearer', 'basic', 'api-key'].map((type) => (
+            <Button
+              key={type}
+              variant={authType === type ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setAuthType(type)}
+              className={cn(
+                "h-7 text-[9px] font-bold uppercase tracking-wider transition-all rounded-md px-1",
+                authType === type ? "bg-primary text-primary-foreground" : "bg-muted/10 border-border/50"
               )}
-            </button>
-          </div>
-        )}
+            >
+              {type === 'api-key' ? 'Key' : type}
+            </Button>
+          ))}
+        </div>
+
+        <AnimatePresence>
+          {authType !== 'none' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+             <div className="relative group">
+              <Input
+                type={showAuthToken ? "text" : "password"}
+                value={authToken}
+                onChange={(e) => setAuthToken(e.target.value)}
+                placeholder={authType === 'bearer' ? 'Bearer token...' : 'API key...'}
+                className="h-8 pr-10 bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 rounded-md"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAuthToken(!showAuthToken)}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+              >
+                {showAuthToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              </Button>
+            </div></motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Headers */}
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-label-small text-muted-foreground">
-            Headers
-          </label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => insertQuickHeader('Content-Type', 'application/json')}
-              className="px-3 py-1.5 bg-background hover:bg-secondary border border-border rounded-md text-xs text-foreground transition-colors"
-            >
-              + JSON
-            </button>
-            <button
-              onClick={addHeader}
-              className="px-3 py-1.5 bg-background hover:bg-secondary border border-border rounded-md text-xs text-foreground transition-colors"
-            >
-              + Header
-            </button>
-          </div>
+      <div className="space-y-3 border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Headers</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={addHeader}
+            className="h-7 px-2.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 transition-all gap-1.5 rounded-md"
+          >
+            <Plus className="h-3 w-3" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Add</span>
+          </Button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 flex flex-col gap-2 custom-scrollbar">
           {headers.map((header, index) => (
-            <div key={index} className="flex gap-2">
-              <input
+            <div key={index} className="flex gap-2 group animate-in fade-in slide-in-from-top-2 duration-300">
+              <Input
                 type="text"
                 value={header.key}
                 onChange={(e) => updateHeader(index, 'key', e.target.value)}
-                placeholder="Header-Name"
-                className="flex-1 px-3 py-1.5 bg-background border border-border rounded-6 text-xs text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+                placeholder="Header"
+                className="h-8 flex-1 bg-muted/10 border-border/50 font-mono text-[10px] focus-visible:ring-primary/20 font-medium rounded-md"
               />
-              <input
+              <Input
                 type="text"
                 value={header.value}
                 onChange={(e) => updateHeader(index, 'value', e.target.value)}
-                placeholder="value"
-                className="flex-1 px-3 py-1.5 bg-background border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+                placeholder="Value"
+                className="h-8 flex-1 bg-muted/10 border-border/50 text-[11px] font-medium focus-visible:ring-primary/20 rounded-md"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => removeHeader(index)}
-                className="w-8 h-8 rounded-md hover:bg-secondary transition-colors flex items-center justify-center group"
+                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all rounded-md"
               >
-                <svg className="w-4 h-4 text-muted-foreground group-hover:text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           ))}
         </div>
       </div>
 
       {/* Body (for POST/PUT/PATCH) */}
-      {(method === 'POST' || method === 'PUT' || method === 'PATCH') && (
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="block text-label-small text-muted-foreground">
-              Request Body
-            </label>
-            {nodes && (
-              <VariableReferencePicker
-                nodes={nodes}
-                currentNodeId={node.id}
-                onSelect={(ref) => setBody(body + `{{${ref}}}`)}
-              />
-            )}
-          </div>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={5}
-            placeholder='{"key": "value"}'
-            className="w-full px-3 py-2 bg-gray-900 text-primary border border-border rounded-md text-xs font-mono focus:outline-none focus:border-primary transition-colors resize-none"
-          />
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => setBody('{{state.variables.lastOutput}}')}
-              className="px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-foreground transition-colors"
-            >
-              Use Previous Output
-            </button>
-            <button
-              onClick={() => setBody(JSON.stringify({ data: "{{state.variables.lastOutput}}" }, null, 2))}
-              className="px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-primary rounded-6 text-xs text-foreground transition-colors"
-            >
-              Wrap in JSON
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {(method === 'POST' || method === 'PUT' || method === 'PATCH') && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-4 border-t border-border/50 pt-6 overflow-hidden max-w-[320px] mx-auto"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Code2 className="h-3.5 w-3.5 text-muted-foreground/60" />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Request Body</Label>
+              </div>
+              {nodes && (
+                <VariableReferencePicker
+                  nodes={nodes}
+                  currentNodeId={node.id}
+                  onSelect={(ref) => setBody(body + `{{${ref}}}`)}
+                />
+              )}
+            </div>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder='{"key": "value"}'
+              className="min-h-[120px] bg-slate-950 text-sky-400 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all resize-none leading-relaxed shadow-inner rounded-md p-4"
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBody('{{state.variables.lastOutput}}')}
+                className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-background border-border/50 hover:bg-primary/5 hover:text-primary transition-all rounded-md"
+              >
+                Use Prev Output
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setBody(JSON.stringify({ data: "{{state.variables.lastOutput}}" }, null, 2))}
+                className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest bg-background border-border/50 hover:bg-primary/5 hover:text-primary transition-all rounded-md"
+              >
+                Wrap JSON
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Examples */}
-      <details className="group">
-        <summary className="cursor-pointer text-xs text-primary hover:text-heat-200 transition-colors">
-          Show API examples
-        </summary>
-        <div className="mt-2 space-y-4">
-          <button
-            onClick={() => {
-              setUrl('https://api.slack.com/api/chat.postMessage');
-              setMethod('POST');
-              insertQuickHeader('Authorization', 'Bearer xoxb-your-token');
-              setBody('{\n  "channel": "C123456",\n  "text": "{{state.variables.lastOutput}}"\n}');
-            }}
-            className="w-full p-3 bg-secondary hover:bg-secondary/80 rounded-lg text-left border border-primary transition-colors"
-          >
-            <p className="text-xs text-foreground font-medium">Slack Message</p>
-            <p className="text-xs text-primary mt-4">Post to Slack channel</p>
-          </button>
-
-          <button
-            onClick={() => {
-              setUrl('https://api.notion.com/v1/pages');
-              setMethod('POST');
-              insertQuickHeader('Authorization', 'Bearer secret_...');
-              insertQuickHeader('Notion-Version', '2022-06-28');
-              setBody('{\n  "parent": { "database_id": "..." },\n  "properties": {}\n}');
-            }}
-            className="w-full p-3 bg-secondary hover:bg-secondary/80 rounded-lg text-left border border-primary transition-colors"
-          >
-            <p className="text-xs text-foreground font-medium">Notion Page</p>
-            <p className="text-xs text-primary mt-4">Create Notion page</p>
-          </button>
-
-          <button
-            onClick={() => {
-              setUrl('https://hooks.zapier.com/hooks/catch/...');
-              setMethod('POST');
-              setBody('{{state.variables.lastOutput}}');
-            }}
-            className="w-full p-3 bg-secondary hover:bg-secondary/80 rounded-lg text-left border border-primary transition-colors"
-          >
-            <p className="text-xs text-foreground font-medium">Zapier Webhook</p>
-            <p className="text-xs text-primary mt-4">Trigger Zapier automation</p>
-          </button>
-        </div>
-      </details>
-
-      {/* Universal Output Selector */}
-      <div className="pt-4 border-t border-border">
+      <div className="pt-4 border-t border-border/50 max-w-[320px] mx-auto">
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="examples" className="border-none">
+            <AccordionTrigger className="py-2 hover:no-underline group">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-primary transition-colors group-hover:text-primary/70">
+                <Send className="h-3.5 w-3.5" />
+                API Templates
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 space-y-3">
+              {[
+                {
+                  label: "Slack Message",
+                  subtitle: "Post to chat channel",
+                  icon: <Info className="h-3 w-3 text-purple-500" />,
+                  action: () => {
+                    setUrl('https://api.slack.com/api/chat.postMessage');
+                    setMethod('POST');
+                    insertQuickHeader('Authorization', 'Bearer xoxb-your-token');
+                    setBody('{\n  "channel": "C123456",\n  "text": "{{state.variables.lastOutput}}"\n}');
+                  }
+                },
+                {
+                  label: "Notion Page",
+                  subtitle: "Create new database entry",
+                  icon: <Link2 className="h-3 w-3 text-black" />,
+                  action: () => {
+                    setUrl('https://api.notion.com/v1/pages');
+                    setMethod('POST');
+                    insertQuickHeader('Authorization', 'Bearer secret_...');
+                    insertQuickHeader('Notion-Version', '2022-06-28');
+                    setBody('{\n  "parent": { "database_id": "..." },\n  "properties": {}\n}');
+                  }
+                },
+                {
+                  label: "Zapier Hook",
+                  subtitle: "Trigger automation",
+                  icon: <Zap className="h-3 w-3 text-orange-400" />,
+                  action: () => {
+                    setUrl('https://hooks.zapier.com/hooks/catch/...');
+                    setMethod('POST');
+                    setBody('{{state.variables.lastOutput}}');
+                  }
+                }
+              ].map((tmpl, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  onClick={tmpl.action}
+                  className="w-full h-auto p-3 flex-col items-start gap-1.5 bg-muted/10 border-border/50 hover:bg-primary/5 hover:border-primary/20 transition-all rounded-lg"
+                >
+                  <div className="flex items-center gap-2">
+                    {tmpl.icon}
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{tmpl.label}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground italic font-medium leading-none">{tmpl.subtitle}</span>
+                </Button>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );

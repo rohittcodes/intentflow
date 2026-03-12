@@ -34,17 +34,14 @@ import { Input } from "@/components/ui/input";
 
 interface LibraryPanelProps {
   onAddSource?: () => void;
-}
-
-interface LibraryPanelProps {
-  onAddSource?: () => void;
   onAddMCPServer?: () => void;
+  filter?: 'all' | 'templates' | 'connectors' | 'nodes' | 'local' | 'external';
 }
 
-export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPanelProps) {
+export default function LibraryPanel({ onAddSource, onAddMCPServer, filter = 'all' }: LibraryPanelProps) {
   const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["templates"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["templates", "workflows", "connectors", "mcp"]));
 
   // Queries
   const workflows = useQuery(api.workflows.list, {});
@@ -106,217 +103,167 @@ export default function LibraryPanel({ onAddSource, onAddMCPServer }: LibraryPan
             placeholder="Search library..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-32 pr-10 py-1.5 bg-background border border-border rounded-md text-[11px] text-foreground outline-none focus:border-primary transition-colors"
+            className="w-full px-2 py-1.5 bg-background border border-border rounded-md text-[11px] text-foreground outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {/* Common Tools Section */}
-        {(() => {
-          const allTools = [
-            // Triggers & Essentials
-            { label: "Trigger Node", description: "Standard workflow entry point", icon: <Activity className="w-3.5 h-3.5 text-white" />, type: "start", nodeLabel: "Start", color: "bg-gray-600" },
-            { label: "Agent Node", description: "AI Agent with specific instructions", icon: <MousePointer2 className="w-3.5 h-3.5 text-white" />, type: "agent", nodeLabel: "Agent", color: "bg-blue-500" },
-            { label: "Note Node", description: "Contextual documentation on canvas", icon: <FileText className="w-3.5 h-3.5 text-white" />, type: "note", nodeLabel: "Note", color: "bg-[#EAB308]" },
-            
-            // Logic & Flow
-            { label: "If / Else", description: "Branch based on conditions", icon: <GitBranch className="w-3.5 h-3.5 text-white" />, type: "if-else", nodeLabel: "Condition", color: "bg-[#F59E0B]" },
-            { label: "Router", description: "Multi-path semantic routing", icon: <GitBranch className="w-3.5 h-3.5 text-white" />, type: "router", nodeLabel: "Router", color: "bg-[#EA580C]" },
-            { label: "While Loop", description: "Iterate until condition is met", icon: <Repeat className="w-3.5 h-3.5 text-white" />, type: "while", nodeLabel: "Loop", color: "bg-[#EF4444]" },
-            { label: "Guardrails", description: "Input/Output safety filters", icon: <Shield className="w-3.5 h-3.5 text-white" />, type: "guardrails", nodeLabel: "Guardrails", color: "bg-[#F43F5E]" },
-            { label: "Approval", description: "Wait for human verification", icon: <CheckCircle className="w-3.5 h-3.5 text-white" />, type: "user-approval", nodeLabel: "Approval", color: "bg-[#9CA3AF]" },
 
-            // Tools & Integration
-            { label: "Database Query", description: "Query external databases", icon: <Database className="w-3.5 h-3.5 text-white" />, type: "data-query", nodeLabel: "Database", color: "bg-amber-500" },
-            { label: "HTTP Request", description: "Make REST API calls", icon: <Server className="w-3.5 h-3.5 text-white" />, type: "http", nodeLabel: "HTTP", color: "bg-[#9665FF]" },
-            { label: "MCP Tool", description: "Use Model Context Protocol tools", icon: <Plug className="w-3.5 h-3.5 text-white" />, type: "mcp", nodeLabel: "MCP Tool", color: "bg-[#FFDD40]" },
-            { label: "Memory Node", description: "Persistent context storage", icon: <Zap className="w-3.5 h-3.5 text-white" />, type: "memory", nodeLabel: "Memory", color: "bg-purple-500" },
 
-            // Data Processing
-            { label: "Knowledge Retriever", description: "Semantic search in knowledge base", icon: <Brain className="w-3.5 h-3.5 text-white" />, type: "retriever", nodeLabel: "Retriever", color: "bg-[#0EA5E9]" },
-            { label: "Transform", description: "Manipulate data with script", icon: <Braces className="w-3.5 h-3.5 text-white" />, type: "transform", nodeLabel: "Transform", color: "bg-[#8B5CF6]" },
-            { label: "Extract", description: "Extract structured data from text", icon: <Search className="w-3.5 h-3.5 text-white" />, type: "extract", nodeLabel: "Extract", color: "bg-[#EC4899]" },
-            { label: "Set State", description: "Update workflow variables", icon: <Braces className="w-3.5 h-3.5 text-white" />, type: "set-state", nodeLabel: "State", color: "bg-[#10B981]" },
-            
-            // Ending
-            { label: "End Node", description: "Workflow termination point", icon: <StopCircle className="w-3.5 h-3.5 text-white" />, type: "end", nodeLabel: "End", color: "bg-teal-500" },
-          ];
+        {/* Workspace Section - local only */}
+        {(filter === 'all' || filter === 'local') && (
+          <LibrarySection
+            id="workflows"
+            label={`My Workflows (${filteredWorkflows?.length || 0})`}
+            icon={<Globe className="w-6 h-6" />}
+            isOpen={expandedSections.has("workflows")}
+            onToggle={() => toggleSection("workflows")}
+          >
+            <div className="grid grid-cols-1 gap-2 p-2">
+              {filteredWorkflows?.map((wf) => (
+                <LibraryItem
+                  key={wf._id}
+                  label={wf.name}
+                  description={wf.description}
+                  icon={<Globe className="w-3.5 h-3.5 text-primary" />}
+                  onDragStart={(e) => handleDragStart(e, "workflow", wf)}
+                />
+              ))}
+              {filteredWorkflows?.length === 0 && (
+                <p className="text-xs text-black-alpha-32 text-center py-8">No workflows found</p>
+              )}
+            </div>
+          </LibrarySection>
+        )}
 
-          const filteredTools = allTools.filter(tool =>
-            tool.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            tool.description.toLowerCase().includes(searchQuery.toLowerCase())
-          );
+        {/* Knowledge Bases Section - local only */}
+        {(filter === 'all' || filter === 'local') && (
+          <LibrarySection
+            id="namespaces"
+            label={`Knowledge Bases (${filteredNamespaces?.length || 0})`}
+            icon={<Brain className="w-6 h-6" />}
+            isOpen={expandedSections.has("namespaces")}
+            onToggle={() => toggleSection("namespaces")}
+          >
+            <div className="grid grid-cols-1 gap-2 p-2">
+              {filteredNamespaces?.map((ns) => (
+                <LibraryItem
+                  key={ns._id}
+                  label={ns.name}
+                  description={`${ns.documentCount || 0} documents`}
+                  icon={<Brain className="w-3.5 h-3.5 text-purple-500" />}
+                  onDragStart={(e) => handleDragStart(e, "namespace", ns)}
+                />
+              ))}
+              {filteredNamespaces?.length === 0 && (
+                <p className="text-xs text-black-alpha-32 text-center py-8">No knowledge bases found</p>
+              )}
+            </div>
+          </LibrarySection>
+        )}
 
-          if (filteredTools.length === 0 && searchQuery) return null;
+        {/* Templates Section - external only */}
+        {(filter === 'all' || filter === 'templates' || filter === 'external') && (
+          <LibrarySection
+            id="templates"
+            label={`Templates (${filteredTemplates?.length || 0})`}
+            icon={<LayoutTemplate className="w-6 h-6" />}
+            isOpen={expandedSections.has("templates") || filter === 'templates' || filter === 'external'}
+            onToggle={() => toggleSection("templates")}
+          >
+            <div className="grid grid-cols-1 gap-2 p-2">
+              {filteredTemplates?.map((template) => (
+                <LibraryItem
+                  key={template._id}
+                  label={template.name}
+                  description={template.description}
+                  icon={<FileCode className="w-3.5 h-3.5 text-blue-500" />}
+                  onDragStart={(e) => handleDragStart(e, "template", template)}
+                />
+              ))}
+              {filteredTemplates?.length === 0 && (
+                <p className="text-xs text-black-alpha-32 text-center py-8">No templates found</p>
+              )}
+            </div>
+          </LibrarySection>
+        )}
 
-          return (
-            <LibrarySection
-              id="tools"
-              label={`Common Tools (${filteredTools.length})`}
-              icon={<Plus className="w-6 h-6" />}
-              isOpen={expandedSections.has("tools") || (!!searchQuery && filteredTools.length > 0)}
-              onToggle={() => toggleSection("tools")}
-            >
-              <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-                {filteredTools.map((tool) => (
-                  <LibraryItem
-                    key={tool.type}
-                    label={tool.label}
-                    description={tool.description}
-                    icon={tool.icon}
-                    color={tool.color}
-                    onDragStart={(e) => handleDragStandardNode(e, tool.type, tool.nodeLabel)}
-                  />
-                ))}
-              </div>
-            </LibrarySection>
-          );
-        })()}
+        {/* Data Sources Section - external only */}
+        {(filter === 'all' || filter === 'connectors' || filter === 'external') && (
+          <LibrarySection
+            id="connectors"
+            label={`Data Sources (${filteredConnectors?.length || 0})`}
+            icon={<Database className="w-6 h-6" />}
+            isOpen={expandedSections.has("connectors") || filter === 'connectors' || filter === 'external'}
+            onToggle={() => toggleSection("connectors")}
+            action={
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSource?.();
+                }}
+                className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
+                title="Add new data source"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            }
+          >
+            <div className="grid grid-cols-1 gap-2 p-2">
+              {filteredConnectors?.map((connector) => (
+                <LibraryItem
+                  key={connector._id}
+                  label={connector.name}
+                  description={connector.type}
+                  icon={<Globe className="w-3.5 h-3.5 text-green-500" />}
+                  onDragStart={(e) => handleDragStart(e, "connector", connector)}
+                />
+              ))}
+              {filteredConnectors?.length === 0 && (
+                <p className="text-xs text-black-alpha-32 text-center py-8">No data sources found</p>
+              )}
+            </div>
+          </LibrarySection>
+        )}
 
-        {/* Workflows Section */}
-        <LibrarySection
-          id="workflows"
-          label={`My Workflows (${filteredWorkflows?.length || 0})`}
-          icon={<Globe className="w-6 h-6" />}
-          isOpen={expandedSections.has("workflows")}
-          onToggle={() => toggleSection("workflows")}
-        >
-          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-            {filteredWorkflows?.map((wf) => (
-              <LibraryItem
-                key={wf._id}
-                label={wf.name}
-                description={wf.description}
-                icon={<Globe className="w-3.5 h-3.5 text-primary" />}
-                onDragStart={(e) => handleDragStart(e, "workflow", wf)}
-              />
-            ))}
-            {filteredWorkflows?.length === 0 && (
-              <p className="text-xs text-black-alpha-32 text-center py-8">No workflows found</p>
-            )}
-          </div>
-        </LibrarySection>
-
-        {/* Templates Section */}
-        <LibrarySection
-          id="templates"
-          label={`Templates (${filteredTemplates?.length || 0})`}
-          icon={<LayoutTemplate className="w-6 h-6" />}
-          isOpen={expandedSections.has("templates")}
-          onToggle={() => toggleSection("templates")}
-        >
-          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-            {filteredTemplates?.map((template) => (
-              <LibraryItem
-                key={template._id}
-                label={template.name}
-                description={template.description}
-                icon={<FileCode className="w-3.5 h-3.5 text-blue-500" />}
-                onDragStart={(e) => handleDragStart(e, "template", template)}
-              />
-            ))}
-            {filteredTemplates?.length === 0 && (
-              <p className="text-xs text-black-alpha-32 text-center py-8">No templates found</p>
-            )}
-          </div>
-        </LibrarySection>
-
-        {/* Data Sources Section */}
-        <LibrarySection
-          id="connectors"
-          label={`Data Sources (${filteredConnectors?.length || 0})`}
-          icon={<Database className="w-6 h-6" />}
-          isOpen={expandedSections.has("connectors")}
-          onToggle={() => toggleSection("connectors")}
-          action={
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddSource?.();
-              }}
-              className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
-              title="Add new data source"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          }
-        >
-          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-            {filteredConnectors?.map((connector) => (
-              <LibraryItem
-                key={connector._id}
-                label={connector.name}
-                description={connector.type}
-                icon={<Globe className="w-3.5 h-3.5 text-green-500" />}
-                onDragStart={(e) => handleDragStart(e, "connector", connector)}
-              />
-            ))}
-            {filteredConnectors?.length === 0 && (
-              <p className="text-xs text-black-alpha-32 text-center py-8">No data sources found</p>
-            )}
-          </div>
-        </LibrarySection>
-
-        {/* Knowledge Bases Section */}
-        <LibrarySection
-          id="namespaces"
-          label={`Knowledge Bases (${filteredNamespaces?.length || 0})`}
-          icon={<Brain className="w-6 h-6" />}
-          isOpen={expandedSections.has("namespaces")}
-          onToggle={() => toggleSection("namespaces")}
-        >
-          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-            {filteredNamespaces?.map((ns) => (
-              <LibraryItem
-                key={ns._id}
-                label={ns.name}
-                description={`${ns.documentCount || 0} documents`}
-                icon={<Brain className="w-3.5 h-3.5 text-purple-500" />}
-                onDragStart={(e) => handleDragStart(e, "namespace", ns)}
-              />
-            ))}
-            {filteredNamespaces?.length === 0 && (
-              <p className="text-xs text-black-alpha-32 text-center py-8">No knowledge bases found</p>
-            )}
-          </div>
-        </LibrarySection>
-
-        {/* MCP Servers Section */}
-        <LibrarySection
-          id="mcp"
-          label={`MCP Servers (${filteredMCP?.length || 0})`}
-          icon={<Plug className="w-6 h-6" />}
-          isOpen={expandedSections.has("mcp")}
-          onToggle={() => toggleSection("mcp")}
-          action={
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddMCPServer?.();
-              }}
-              className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
-              title="Add new MCP server"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          }
-        >
-          <div className="grid grid-cols-1 gap-2 p-3 pt-0">
-            {filteredMCP?.map((mcp) => (
-              <LibraryItem
-                key={mcp._id}
-                label={mcp.name}
-                description={mcp.category}
-                icon={<Plug className="w-3.5 h-3.5 text-primary" />}
-                onDragStart={(e) => handleDragStart(e, "mcp", mcp)}
-              />
-            ))}
-            {filteredMCP?.length === 0 && (
-              <p className="text-xs text-black-alpha-32 text-center py-8">No MCP servers found</p>
-            )}
-          </div>
-        </LibrarySection>
+        {/* MCP Servers Section - external only */}
+        {(filter === 'all' || filter === 'external') && (
+          <LibrarySection
+            id="mcp"
+            label={`MCP Servers (${filteredMCP?.length || 0})`}
+            icon={<Plug className="w-6 h-6" />}
+            isOpen={expandedSections.has("mcp") || filter === 'external'}
+            onToggle={() => toggleSection("mcp")}
+            action={
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddMCPServer?.();
+                }}
+                className="p-1 hover:bg-black-alpha-8 rounded-md text-primary transition-colors"
+                title="Add new MCP server"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            }
+          >
+            <div className="grid grid-cols-1 gap-2 p-2">
+              {filteredMCP?.map((mcp) => (
+                <LibraryItem
+                  key={mcp._id}
+                  label={mcp.name}
+                  description={mcp.category}
+                  icon={<Plug className="w-3.5 h-3.5 text-primary" />}
+                  onDragStart={(e) => handleDragStart(e, "mcp", mcp)}
+                />
+              ))}
+              {filteredMCP?.length === 0 && (
+                <p className="text-xs text-black-alpha-32 text-center py-8">No MCP servers found</p>
+              )}
+            </div>
+          </LibrarySection>
+        )}
       </div>
 
       {/* Footer Info */}
@@ -349,30 +296,32 @@ function LibrarySection({
 }) {
   return (
     <div className="border-b border-border last:border-b-0">
-      <div className="flex items-center hover:bg-secondary transition-colors">
-        <button
-          onClick={onToggle}
-          className="flex-1 flex items-center p-3 text-left min-w-0"
-        >
+      <div
+        onClick={onToggle}
+        className="flex items-center hover:bg-secondary transition-colors cursor-pointer group"
+      >
+        <div className="flex-1 flex items-center p-3 text-left min-w-0">
           <div className="flex-1 min-w-0 flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
               <div className="text-foreground opacity-60 scale-90 shrink-0">{icon}</div>
               <span className="text-[11px] font-semibold text-foreground truncate">{label}</span>
             </div>
-            {action && (
-              <div className="flex-shrink-0">
-                {action}
+            <div className="flex items-center gap-2">
+              {action && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  {action}
+                </div>
+              )}
+              <div className="flex-shrink-0 ml-1">
+                {isOpen ? (
+                  <ChevronDown className="w-3.5 h-3.5 text-black-alpha-32" />
+                ) : (
+                  <ChevronRight className="w-3.5 h-3.5 text-black-alpha-32" />
+                )}
               </div>
-            )}
+            </div>
           </div>
-          <div className="flex-shrink-0 ml-1">
-            {isOpen ? (
-              <ChevronDown className="w-3.5 h-3.5 text-black-alpha-32" />
-            ) : (
-              <ChevronRight className="w-3.5 h-3.5 text-black-alpha-32" />
-            )}
-          </div>
-        </button>
+        </div>
       </div>
       <AnimatePresence initial={false}>
         {isOpen && (

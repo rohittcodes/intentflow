@@ -58,8 +58,8 @@ export default function WorkflowSettingsPanel({
   setMaxRuntimeSeconds,
 }: WorkflowSettingsPanelProps) {
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar bg-accent-white w-[260px]">
-      <div className="p-3 space-y-4">
+    <div className="flex-1 overflow-y-auto custom-scrollbar bg-accent-white">
+      <div className="p-3 space-y-4 w-full">
 
         {/* Workflow Info Section */}
         <SettingsSection label="Workflow Info" icon={<Info className="w-4 h-4" />}>
@@ -289,7 +289,7 @@ export default function WorkflowSettingsPanel({
         <div className="pt-8">
           <button
             onClick={onOpenGlobalSettings}
-            className="w-full flex items-center justify-between p-4 bg-secondary border border-primary/20 rounded-xl hover:bg-secondary/80 transition-colors group"
+            className="w-full flex items-center justify-between p-4 bg-secondary border border-primary/20 rounded-lg hover:bg-secondary/80 transition-colors group"
           >
             <div className="flex items-center gap-3 text-left">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-heat-100/20">
@@ -316,7 +316,7 @@ function SettingsSection({ label, icon, children }: { label: string; icon: React
         {icon}
         <h4 className="text-[10px] font-bold uppercase tracking-[0.1em]">{label}</h4>
       </div>
-      <div className="p-3 bg-background/50 border border-border rounded-xl space-y-3">
+      <div className="p-3 bg-background/50 border border-border rounded-lg space-y-3">
         {children}
       </div>
     </div>

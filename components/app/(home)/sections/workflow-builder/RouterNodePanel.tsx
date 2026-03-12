@@ -1,8 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowRight } from "lucide-react";
+import { 
+  Plus, 
+  Trash2, 
+  ArrowRight, 
+  Split, 
+  GitBranch, 
+  Zap, 
+  Settings2, 
+  Infinity,
+  Check,
+  ChevronRight,
+  Route
+} from "lucide-react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface RouterNodePanelProps {
   node: any;
@@ -15,28 +35,36 @@ export default function RouterNodePanel({
 }: RouterNodePanelProps) {
   const [routes, setRoutes] = useState<Array<{ id: string; label: string; condition: string }>>(
     node?.data?.routes || [
-      { id: "route-1", label: "Route 1", condition: "" },
-      { id: "route-2", label: "Route 2", condition: "" },
+      { id: "route-1", label: "Success", condition: "true" },
+      { id: "route-2", label: "Failure", condition: "false" },
     ]
   );
 
-  // Sync with node data - stop infinite loop by checking for changes
+  // Sync with node data
   useEffect(() => {
     if (!node?.id) return;
 
     if (JSON.stringify(routes) !== JSON.stringify(node.data?.routes)) {
       updateNodeData(node.id, {
         routes,
+        nodeType: 'router'
       });
     }
   }, [routes, node?.id, node.data?.routes, updateNodeData]);
 
   const addRoute = () => {
-    const newId = `route-${routes.length + 1}-${Math.random().toString(36).substr(2, 4)}`;
+    const newId = `route-${Date.now()}`;
     setRoutes([...routes, { id: newId, label: `Route ${routes.length + 1}`, condition: "" }]);
   };
 
   const removeRoute = (id: string) => {
+    // Protect Success (route-1) and Failure (route-2) routes
+    if (id === "route-1" || id === "route-2") {
+      toast.error("System routes cannot be deleted", {
+        description: "Success and Failure routes are required for flow integrity."
+      });
+      return;
+    }
     if (routes.length <= 1) return;
     setRoutes(routes.filter((r) => r.id !== id));
   };
@@ -46,73 +74,109 @@ export default function RouterNodePanel({
   };
 
   return (
-    <div className="p-2 space-y-2 w-[260px]">
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            Routes & Conditions
-          </label>
-          <button
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 w-full pb-10">
+      {/* Header */}
+      <div className="space-y-3 pt-1 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Router Configuration</Label>
+          <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[9px] font-bold uppercase tracking-widest px-1.5 h-5 rounded-sm">
+            Logical Branching
+          </Badge>
+        </div>
+      </div>
+
+      {/* Routes & Conditions */}
+      <div className="space-y-3 border-t border-border/50 pt-5 max-w-[320px] mx-auto">
+        <div className="flex items-center justify-between">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Routes</Label>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={addRoute}
-            className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-heat-200 transition-colors"
+            className="h-7 px-2.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 transition-all gap-1.5 rounded-md"
           >
-            <Plus className="w-3 h-3" />
-            Add Route
-          </button>
+            <Plus className="h-3 w-3" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Add Route</span>
+          </Button>
         </div>
 
-        <div className="space-y-2">
-          <AnimatePresence initial={false}>
+        <div className="space-y-3">
+          <AnimatePresence initial={false} mode="popLayout">
             {routes.map((route, index) => (
               <motion.div
                 key={route.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="p-2 bg-background border border-border rounded-lg space-y-2"
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-primary">
-                    {index + 1}
-                  </div>
-                  <input
-                    type="text"
-                    value={route.label}
-                    onChange={(e) => updateRoute(route.id, { label: e.target.value })}
-                    placeholder="Route label (e.g. Success)"
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-foreground px-1 focus:ring-0"
-                  />
-                  <button
-                    onClick={() => removeRoute(route.id)}
-                    className="p-1 hover:bg-secondary rounded-4 text-black-alpha-32 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <Card className="bg-muted/10 border-border/50 shadow-none hover:border-primary/20 transition-all rounded-md overflow-hidden group">
+                  <CardContent className="p-3 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-6 w-6 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0 font-mono text-[10px] font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 flex items-center gap-3">
+                        <Input
+                          value={route.label}
+                          onChange={(e) => updateRoute(route.id, { label: e.target.value })}
+                          placeholder="Route Name"
+                          className="h-7 bg-transparent border-none shadow-none text-xs font-bold focus-visible:ring-0 p-0"
+                        />
+                      </div>
+                      {routes.length > 1 && route.id !== "route-1" && route.id !== "route-2" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeRoute(route.id)}
+                          className="h-6 w-6 text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all rounded-md"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
 
-                <div className="flex flex-col gap-1.5 pl-7">
-                  <label className="text-[10px] uppercase tracking-wider font-bold text-black-alpha-24">
-                    Condition
-                  </label>
-                  <textarea
-                    value={route.condition}
-                    onChange={(e) => updateRoute(route.id, { condition: e.target.value })}
-                    placeholder="e.g. {{output.score}} > 0.8"
-                    rows={2}
-                    className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-6 text-xs text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
-                  />
-                </div>
+                    <div className="space-y-2 pt-1">
+                      <Textarea
+                        value={route.condition}
+                        onChange={(e) => updateRoute(route.id, { condition: e.target.value })}
+                        placeholder="e.g. input.score > 0.8"
+                        rows={2}
+                        className="min-h-[50px] bg-slate-950 text-emerald-400 border-border/30 font-mono text-[11px] focus-visible:ring-primary/20 transition-all resize-none leading-relaxed p-4 shadow-inner rounded-sm"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       </div>
 
-      <div className="p-2 bg-secondary rounded-lg border border-border">
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          <ArrowRight className="w-3 h-3 inline mr-1 mb-0.5" />
-          The router will evaluate conditions in order. The first route to match will be followed. Add an "Else" route at the end with <code>true</code> as the condition.
-        </p>
+      {/* Logic Summary */}
+      <Card className="bg-secondary/40 border-border/30 shadow-none rounded-lg max-w-[320px] mx-auto">
+        <CardContent className="p-4 flex gap-3">
+          <Zap className="h-4 w-4 text-primary shrink-0 opacity-60" />
+          <p className="text-[11px] text-muted-foreground leading-relaxed italic font-medium">
+            <strong className="text-foreground font-bold">Execution Order:</strong> Evaluation is sequential. The first truthy condition triggers the route. Use <code className="bg-primary/5 text-primary px-1 rounded-sm font-bold">true</code> for a default "Else" catch-all.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Advanced info */}
+      <div className="space-y-3 border-t border-border/50 pt-6 max-w-[320px] mx-auto">
+        <div className="flex items-center gap-2">
+          <Infinity className="h-3.5 w-3.5 text-muted-foreground/60" />
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Global Scope Registry</Label>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+            {['input', 'state', 'lastOutput'].map((v) => (
+                <div key={v} className="flex items-center gap-2 p-2 rounded-lg bg-muted/5 border border-border/30">
+                    <Check className="h-2.5 w-2.5 text-emerald-500" />
+                    <code className="text-[10px] font-mono text-muted-foreground opacity-70">{v}</code>
+                </div>
+            ))}
+        </div>
       </div>
     </div>
   );

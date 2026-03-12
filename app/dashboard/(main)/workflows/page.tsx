@@ -198,49 +198,49 @@ export default function WorkflowsPage() {
       <PageHeader title="Workflows" />
 
       {!activeProjectId ? (
-        <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed border-border/50 rounded-[32px] bg-muted/10 mt-8">
-          <div className="p-4 rounded-full bg-background border border-border mb-6">
-            <LayoutGrid className="h-8 w-8 text-muted-foreground/30" />
+        <div className="flex flex-col items-center justify-center h-[40vh] text-center border-2 border-dashed border-border/50 rounded-xl bg-muted/10 mt-8">
+          <div className="p-3 rounded-full bg-background border border-border mb-4">
+            <LayoutGrid className="h-6 w-6 text-muted-foreground/30" />
           </div>
-          <h3 className="text-xl font-bold tracking-tight mb-2">Select a Project</h3>
-          <p className="text-xs text-muted-foreground max-w-xs mx-auto font-medium">
+          <h3 className="text-base font-bold tracking-tight mb-1">Select a Project</h3>
+          <p className="text-[11px] text-muted-foreground max-w-xs mx-auto font-medium">
             You need to create a <strong className="font-bold text-foreground">Project</strong> to manage your workflows.
           </p>
         </div>
       ) : loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-[200px] rounded-[32px] animate-pulse bg-muted/50 border border-border/50" />
+            <div key={i} className="h-[140px] rounded-xl animate-pulse bg-muted/50 border border-border/50" />
           ))}
         </div>
       ) : (
         <>
           <section>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold tracking-tight">Quick Actions</h2>
+            <div className="flex items-center justify-between mb-4 mt-2">
+              <h2 className="text-base font-semibold tracking-tight">Quick Actions</h2>
             </div>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
                   <Card
                     className={cn(
-                      "group relative flex flex-col items-center justify-center gap-6 border border-border p-8 h-full min-h-[200px] rounded-[32px] cursor-pointer bg-muted/50"
+                      "group relative flex flex-col items-center justify-center gap-4 border border-border p-5 h-full min-h-[140px] rounded-xl cursor-pointer bg-muted/50 transition-colors hover:bg-muted/80"
                     )}
                   >
                     <div className={cn(
-                      "flex h-16 w-16 items-center justify-center rounded-[24px] shadow-sm bg-background text-foreground"
+                      "flex h-12 w-12 items-center justify-center rounded-xl shadow-sm bg-background text-foreground"
                     )}>
-                      <Plus className="h-8 w-8" />
+                      <Plus className="h-6 w-6" />
                     </div>
-                    <div className="text-center space-y-1.5">
-                      <h3 className="text-xl font-bold tracking-tight">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-base font-bold tracking-tight">
                         Create Workflow
                       </h3>
-                      <p className="text-xs font-medium text-muted-foreground italic">
+                      <p className="text-[10px] font-medium text-muted-foreground">
                         Start building from scratch
                       </p>
                     </div>
-                    <div className="absolute top-4 right-4 text-[10px] font-black tracking-widest text-muted-foreground/30 group-hover:text-primary/50 uppercase">
+                    <div className="absolute top-3 right-3 text-[9px] font-bold text-primary/50 uppercase">
                       New Flow
                     </div>
                   </Card>
@@ -289,11 +289,11 @@ export default function WorkflowsPage() {
 
           {starredWorkflows.length > 0 && (
             <section className="mt-12">
-              <div className="flex items-center gap-3 mb-6">
-                <Star className="h-5 w-5 text-primary fill-primary" />
-                <h2 className="text-lg font-semibold">Starred</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="h-4 w-4 text-primary fill-primary" />
+                <h2 className="text-base font-semibold tracking-tight">Starred</h2>
               </div>
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {starredWorkflows.map((workflow) => (
                   <WorkflowCard
                     key={workflow.id}
@@ -310,47 +310,47 @@ export default function WorkflowsPage() {
             </section>
           )}
 
-          <section className="mt-12">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pt-8 border-t border-border/50">
-              <div className="space-y-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/50">All Workflows</h2>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase">
+          <section className="mt-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-10 border-t border-border/30">
+              <div className="space-y-0.5">
+                <h2 className="text-base font-semibold tracking-tight">All Workflows</h2>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">
                     {filteredAllWorkflows.length} TOTAL FLOW{filteredAllWorkflows.length !== 1 ? "S" : ""}
                   </span>
                 </div>
               </div>
 
-              <div className="relative w-full md:w-80 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary" />
+              <div className="relative w-full md:w-72 group">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                 <Input
                   placeholder="Search workflows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-12 bg-muted/20 border-border/50 focus:border-primary/50 rounded-2xl text-sm"
+                  className="pl-10 h-10 bg-muted/30 border-border/40 focus:border-primary/40 focus:bg-background rounded-lg text-xs transition-all shadow-none"
                 />
                 {searchQuery && (
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-muted"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-muted"
                   >
-                    <X className="h-4 w-4 text-muted-foreground" />
+                    <X className="h-3.5 w-3.5 text-muted-foreground" />
                   </Button>
                 )}
               </div>
             </div>
 
             {filteredAllWorkflows.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-border/50 rounded-[32px] bg-muted/10">
-                <div className="p-4 rounded-full bg-background border border-border mb-6">
-                  <Search className="h-8 w-8 text-muted-foreground/30" />
+              <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border/40 rounded-xl bg-muted/5 mt-2">
+                <div className="p-3 rounded-full bg-background border border-border/60 mb-4">
+                  <Search className="h-6 w-6 text-muted-foreground/30" />
                 </div>
-                <h3 className="text-xl font-bold tracking-tight mb-2">
+                <h3 className="text-base font-semibold tracking-tight mb-1">
                   {searchQuery ? "No workflows found" : "No workflows yet"}
                 </h3>
-                <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-8 font-medium">
+                <p className="text-[11px] text-muted-foreground max-w-xs mx-auto mb-6 font-medium">
                   {searchQuery
                     ? "Try adjusting your search query to find what you're looking for."
                     : starredWorkflows.length > 0
@@ -358,13 +358,13 @@ export default function WorkflowsPage() {
                       : "Start by creating your first workflow to automate your process."}
                 </p>
                 {!searchQuery && (
-                  <Button onClick={handleCreateWorkflow} className="h-9 rounded-full px-8 font-bold shadow-sm">
-                    Create your first workflow
+                  <Button onClick={handleCreateWorkflow} className="h-8 rounded-lg px-6 text-xs font-bold shadow-sm">
+                    Create Workflow
                   </Button>
                 )}
               </div>
             ) : (
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mt-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
                 {filteredAllWorkflows.map((workflow) => (
                   <WorkflowCard
                     key={workflow.id}

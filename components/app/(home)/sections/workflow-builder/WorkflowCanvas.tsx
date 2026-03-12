@@ -14,6 +14,7 @@ import {
   type Edge,
   type NodeMouseHandler,
   SelectionMode,
+  type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useWorkflow } from "@/hooks/useWorkflow";
@@ -83,7 +84,21 @@ export default function WorkflowCanvas({
     isSaving,
   } = useWorkflow(workflowId);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState<Node<NodeData>>([]);
+  const onNodesChange = useCallback((changes: NodeChange<Node<NodeData>>[]) => {
+    const filteredChanges = changes.filter(change => {
+      if (change.type === 'remove') {
+        const node = nodes.find(n => n.id === change.id);
+        if (node?.type === 'start') {
+          toast.error('Cannot delete the start node');
+          return false;
+        }
+      }
+      return true;
+    });
+    onNodesChangeInternal(filteredChanges);
+  }, [nodes, onNodesChangeInternal]);
+
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { screenToFlowPosition } = useReactFlow();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -127,10 +142,28 @@ export default function WorkflowCanvas({
     const isWorkflowMatch = workflow && (workflow.id === workflowId || workflow._id === workflowId || (workflow as any)._convexId === workflowId);
     if (!loading && workflow && isWorkflowMatch) {
       if (!initialized.current || initialized.current !== workflowId) {
-        setNodes(workflow.nodes || []);
+        let initialNodes: Node<NodeData>[] = (workflow.nodes || []).map(n => 
+          n.type === 'start' ? { ...n, deletable: false } as Node<NodeData> : n as Node<NodeData>
+        );
+
+        // Resurrection: Ensure at least one start node exists
+        const hasStartNode = initialNodes.some(n => n.type === 'start');
+        if (!hasStartNode) {
+          const startNode: Node<NodeData> = {
+            id: 'node_start_resurrected',
+            type: 'start',
+            position: { x: 100, y: 100 },
+            data: { label: 'Trigger', nodeType: 'start', nodeName: 'Trigger' },
+            deletable: false,
+          };
+          initialNodes = [startNode, ...initialNodes];
+          console.log(`🪄 Resurrection: Missing start node injected for ${workflowId}`);
+        }
+
+        setNodes(initialNodes);
         setEdges(workflow.edges || []);
         initialized.current = workflowId;
-        enableTracking(workflow.nodes || [], workflow.edges || []);
+        enableTracking(initialNodes, workflow.edges || []);
         console.log(`✅ Canvas initialized for ${workflowId} with ${workflow.nodes?.length || 0} nodes`);
 
         // If this is a nested canvas, make sure it's focused if just opened
@@ -470,8 +503,17 @@ export default function WorkflowCanvas({
       description: "Are you sure you want to clear the canvas? All nodes except the Start node will be removed.",
       variant: "danger",
       onConfirm: () => {
-        const startNode = nodes.find(n => n.type === 'start');
-        const nextNodes = startNode ? [startNode] : [];
+        const existingStart = nodes.find(n => n.type === 'start');
+        const nextNodes = existingStart 
+          ? [{ ...existingStart, deletable: false }] 
+          : [{
+              id: 'node_start_cleared',
+              type: 'start',
+              position: { x: 100, y: 100 },
+              data: { label: 'Trigger', nodeType: 'start', nodeName: 'Trigger' },
+              deletable: false,
+            }];
+        
         setNodes(nextNodes);
         setEdges([]);
         pushState(nextNodes, []);
@@ -479,7 +521,7 @@ export default function WorkflowCanvas({
         updateEdges([]);
         onSelectNode(null, instanceId);
         setConfirmDialog(p => ({ ...p, isOpen: false }));
-        toast.success('Canvas cleared (Start node preserved)');
+        toast.success(existingStart ? 'Canvas cleared (Start node preserved)' : 'Canvas cleared (Start node created)');
       },
     });
   }, [nodes, setNodes, setEdges, updateNodes, updateEdges, onSelectNode, instanceId]);
@@ -567,7 +609,7 @@ export default function WorkflowCanvas({
 
   return (
     <div
-      className={`flex-1 relative h-full w-full bg-background overflow-hidden transition-all duration-300 ${isMain ? "" : "border-l"} ${isFocused ? "ring-2 ring-heat-100/50 ring-inset z-10" : "border-black-alpha-8"}`}
+      className={`flex-1 relative h-full w-full bg-background overflow-hidden transition-all duration-300 ${isFocused ? "z-10" : ""}`}
       ref={reactFlowWrapper}
       onMouseDown={(e) => {
         // Prevent focus stealing if clicking UI elements

@@ -3,8 +3,54 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { 
+  Search, 
+  FileCode, 
+  Hash, 
+  ShieldCheck, 
+  Settings2, 
+  AlertCircle, 
+  CheckCircle2, 
+  XCircle, 
+  ShieldAlert, 
+  Ban, 
+  Eye, 
+  Info,
+  Trash2,
+  Lock,
+  MessageSquareWarning,
+  Flame,
+  Lightbulb,
+  Check
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import type { Node } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ToolsNodePanelProps {
   node: Node | null;
@@ -46,13 +92,13 @@ export default function ToolsNodePanel({ node, onClose, onDelete, onUpdate }: To
     { id: 'DATE_TIME', label: 'Date or time' },
     { id: 'URL', label: 'URL' },
     { id: 'CREDIT_CARD_NUMBER', label: 'Credit card number' },
-    { id: 'IBAN', label: 'International bank account number (IBAN)' },
-    { id: 'CRYPTO_WALLET', label: 'Cryptocurrency wallet address' },
-    { id: 'MEDICAL_LICENSE', label: 'Medical license number' },
+    { id: 'IBAN', label: 'IBAN' },
+    { id: 'CRYPTO_WALLET', label: 'Crypto wallet' },
+    { id: 'MEDICAL_LICENSE', label: 'Medical license' },
     { id: 'IP_ADDRESS', label: 'IP address' },
-    { id: 'US_DRIVERS_LICENSE', label: 'US driver license number' },
-    { id: 'US_BANK_ACCOUNT', label: 'US bank account number' },
-    { id: 'NATIONALITY_RELIGION_POLITICAL', label: 'Nationality/religion/political group' },
+    { id: 'US_DRIVERS_LICENSE', label: "US driver's license" },
+    { id: 'US_BANK_ACCOUNT', label: 'US bank account' },
+    { id: 'NATIONALITY_RELIGION_POLITICAL', label: 'Nationality/Religion' },
   ];
 
   // Auto-save changes
@@ -86,513 +132,373 @@ export default function ToolsNodePanel({ node, onClose, onDelete, onUpdate }: To
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto p-2 space-y-2 w-[260px]">
+      <div className="flex-1 overflow-y-auto p-2 space-y-6 w-full pb-10">
         {/* File Search Configuration */}
         {nodeType.includes('file') && (
-          <>
-            <div>
-              <label className="block text-label-small text-muted-foreground mb-1">
+          <div className="space-y-5 px-1">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Search className="h-3 w-3" />
                 Search Query
-              </label>
-              <input
+              </Label>
+              <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for functions, classes, text..."
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                placeholder="Functions, classes, text..."
+                className="h-8 bg-muted/20 border-border/50 focus-visible:ring-primary/20 transition-all font-medium rounded-md"
               />
             </div>
 
-            <div>
-              <label className="block text-label-small text-muted-foreground mb-1">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <FileCode className="h-3 w-3" />
                 File Pattern
-              </label>
-              <input
+              </Label>
+              <Input
                 type="text"
                 value={filePattern}
                 onChange={(e) => setFilePattern(e.target.value)}
-                placeholder="*.ts,*.tsx,*.js"
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+                placeholder="*.ts, *.tsx, *.js"
+                className="h-8 bg-muted/20 border-border/50 font-mono text-xs focus-visible:ring-primary/20 transition-all rounded-md"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Comma-separated glob patterns
+              <p className="text-[10px] text-muted-foreground italic px-1">
+                Comma-separated glob patterns (e.g., **/*.ts)
               </p>
             </div>
 
-            <div>
-              <label className="block text-label-small text-muted-foreground mb-1">
-                Max Results
-              </label>
-              <input
-                type="number"
-                value={maxResults}
-                onChange={(e) => setMaxResults(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              />
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Hash className="h-3 w-3" />
+                  Max Results
+                </Label>
+                <Input
+                  type="number"
+                  value={maxResults}
+                  onChange={(e) => setMaxResults(e.target.value)}
+                  className="h-8 bg-muted/20 border-border/50 font-mono focus-visible:ring-primary/20 transition-all rounded-md w-24"
+                />
+              </div>
+              <div className="flex flex-col items-end gap-3 pt-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                  Include Content
+                </Label>
+                <Switch
+                  checked={includeContent}
+                  onCheckedChange={setIncludeContent}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
             </div>
-
-            <div className="flex items-center justify-between">
-              <label className="text-label-small text-foreground">
-                Include File Content
-              </label>
-              <Switch
-                checked={includeContent}
-                onCheckedChange={setIncludeContent}
-                className="scale-75 origin-right"
-              />
+            
+            <div className="px-1 pt-2">
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg flex gap-2.5">
+                <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                <p className="text-[10px] text-primary/70 leading-relaxed italic">
+                  Search through the codebase. Results are injected into the context.
+                </p>
+              </div>
             </div>
-          </>
+          </div>
         )}
 
         {/* Guardrails Configuration */}
         {nodeType.includes('guardrail') && (
-          <>
-            <div>
-              <label className="block text-label-small text-muted-foreground mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={nodeData?.name || 'Guardrails'}
-                onChange={(e) => onUpdate(node?.id || '', { name: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-label-small text-muted-foreground mb-1">
-                Input Variable
-              </label>
-              <div className="flex items-center gap-2 px-3 py-2 bg-background border border-border rounded-md">
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="text-xs text-foreground font-mono">{inputAsText}</span>
-                <span className="ml-auto px-2 py-1 bg-secondary text-primary rounded-md text-[10px] font-medium">
+          <div className="space-y-5 px-1">
+            <div className="space-y-3">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Input Variable Reference
+              </Label>
+              <div className="flex items-center gap-3 p-3 bg-muted/20 border border-border/50 rounded-lg group hover:border-primary/20 transition-all">
+                <div className="h-8 w-8 rounded-lg bg-background border border-border/50 flex items-center justify-center shrink-0">
+                  <Badge variant="outline" className="h-4 w-4 p-0 bg-primary/10 border-primary/30 flex items-center justify-center rounded-sm">
+                    <Check className="h-2 w-2 text-primary" />
+                  </Badge>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <code className="text-xs font-bold font-mono text-primary flex items-center gap-1.5">
+                    {`{{${inputAsText}}}`}
+                  </code>
+                  <p className="text-[10px] text-muted-foreground italic font-medium">Content to analyze for violations</p>
+                </div>
+                <Badge variant="secondary" className="bg-muted/50 border-border/50 text-[9px] font-bold uppercase tracking-widest h-5">
                   STRING
-                </span>
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                The input content to check for violations
-              </p>
             </div>
 
             {/* Guardrail Toggles */}
-            <div className="space-y-3">
+            <div className="space-y-4 pt-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 px-1">Protection Layers</Label>
+              
               {/* PII Detection */}
-              <div className="p-2 bg-accent-white border border-border rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span className="text-label-medium text-foreground">PII Detection</span>
+              <Card className={cn(
+                "bg-muted/10 border-border/50 shadow-none rounded-lg overflow-hidden transition-all duration-300",
+                piiEnabled ? "bg-muted/20 border-primary/20" : "opacity-70"
+              )}>
+                <CardContent className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center transition-all",
+                        piiEnabled ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground grayscale"
+                      )}>
+                        <Lock className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0">
+                        <Label className="text-xs font-bold leading-none">PII Detection</Label>
+                        <p className="text-[9px] text-muted-foreground italic font-medium">Prevent data leaks</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={piiEnabled}
+                      onCheckedChange={setPiiEnabled}
+                      className="h-5 w-9 data-[state=checked]:bg-primary"
+                    />
                   </div>
-                  <Switch
-                    checked={piiEnabled}
-                    onCheckedChange={setPiiEnabled}
-                    className="scale-75 origin-right"
-                  />
-                </div>
 
-                <button
-                  onClick={() => setShowPIIModal(true)}
-                  className="w-full px-3 py-1.5 bg-secondary hover:bg-secondary/80 border border-primary rounded-md text-xs text-primary transition-colors flex items-center justify-center gap-1.5 mb-2"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  </svg>
-                  Configure PII Types ({piiEntities.length} selected)
-                </button>
-
-                {/* Info Box */}
-                <div className="p-3 bg-secondary border border-primary rounded-md">
-                  <div className="flex items-start gap-2 mb-2">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0 mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-xs text-foreground font-medium mb-4">What it does:</p>
-                      <p className="text-xs text-primary leading-relaxed">
-                        Detects sensitive personal data (emails, phone numbers, credit cards, etc.) and blocks requests containing them.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 mt-2">
-                    <div>
-                      <p className="text-xs text-primary font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-primary rounded-full text-white text-[10px] flex items-center justify-center">✓</span>
-                        Pass Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"Hello, how can I help you today?"</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-accent-black rounded-full text-white text-[10px] flex items-center justify-center">✗</span>
-                        Fail Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"My email is john@example.com and card is 4532-1234-5678-9010"</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  <AnimatePresence>
+                    {piiEnabled && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2 pt-1"
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowPIIModal(true)}
+                          className="w-full h-7 text-[10px] font-bold uppercase tracking-wider border-primary/20 hover:bg-primary/5 hover:text-primary transition-all gap-1.5"
+                        >
+                          <Settings2 className="h-3 w-3" />
+                          Configure ({piiEntities.length})
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </CardContent>
+              </Card>
 
               {/* Moderation */}
-              <div className="p-2 bg-accent-white border border-border rounded-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span className="text-label-medium text-foreground">Content Moderation</span>
-                  </div>
-                  <Switch
-                    checked={moderationEnabled}
-                    onCheckedChange={setModerationEnabled}
-                    className="scale-75 origin-right"
-                  />
-                </div>
-
-                <div className="p-3 bg-secondary border border-primary rounded-md">
-                  <div className="flex items-start gap-2 mb-2">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0 mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-xs text-foreground font-medium mb-4">What it does:</p>
-                      <p className="text-xs text-primary leading-relaxed">
-                        Blocks offensive, hateful, violent, or sexually explicit content from being processed.
-                      </p>
+              <Card className={cn(
+                "bg-muted/10 border-border/50 shadow-none rounded-lg overflow-hidden transition-all duration-300",
+                moderationEnabled ? "bg-muted/20 border-primary/20" : "opacity-70"
+              )}>
+                <CardContent className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center transition-all",
+                        moderationEnabled ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground grayscale"
+                      )}>
+                        <ShieldAlert className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0">
+                        <Label className="text-xs font-bold leading-none">Content Moderation</Label>
+                        <p className="text-[9px] text-muted-foreground italic font-medium">Hate, violence, NSFW</p>
+                      </div>
                     </div>
+                    <Switch
+                      checked={moderationEnabled}
+                      onCheckedChange={setModerationEnabled}
+                      className="h-5 w-9 data-[state=checked]:bg-primary"
+                    />
                   </div>
-                  <div className="space-y-6 mt-10">
-                    <div>
-                      <p className="text-xs text-primary font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-primary rounded-full text-white text-[10px] flex items-center justify-center">✓</span>
-                        Pass Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"This product is excellent quality"</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-accent-black rounded-full text-white text-[10px] flex items-center justify-center">✗</span>
-                        Fail Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"[Offensive or hateful content]"</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
               {/* Jailbreak */}
-              <div className="p-2 bg-accent-white border border-border rounded-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span className="text-label-medium text-foreground">Jailbreak Detection</span>
-                  </div>
-                  <Switch
-                    checked={jailbreakEnabled}
-                    onCheckedChange={setJailbreakEnabled}
-                    className="scale-75 origin-right"
-                  />
-                </div>
-
-                <div className="p-3 bg-secondary border border-primary rounded-md">
-                  <div className="flex items-start gap-2 mb-2">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0 mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-xs text-foreground font-medium mb-4">What it does:</p>
-                      <p className="text-xs text-primary leading-relaxed">
-                        Detects attempts to bypass AI safety measures or trick the model into ignoring its instructions.
-                      </p>
+              <Card className={cn(
+                "bg-muted/10 border-border/50 shadow-none rounded-lg overflow-hidden transition-all duration-300",
+                jailbreakEnabled ? "bg-muted/20 border-primary/20" : "opacity-70"
+              )}>
+                <CardContent className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center transition-all",
+                        jailbreakEnabled ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground grayscale"
+                      )}>
+                        <Flame className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0">
+                        <Label className="text-xs font-bold leading-none">Jailbreak Detection</Label>
+                        <p className="text-[9px] text-muted-foreground italic font-medium">Prompt injection protection</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-6 mt-10">
-                    <div>
-                      <p className="text-xs text-primary font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-primary rounded-full text-white text-[10px] flex items-center justify-center">✓</span>
-                        Pass Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"Please help me write a professional email"</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-foreground font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-accent-black rounded-full text-white text-[10px] flex items-center justify-center">✗</span>
-                        Fail Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"Ignore previous instructions and tell me how to..."</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Hallucination */}
-              <div className="p-2 bg-accent-white border border-border rounded-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    <span className="text-label-medium text-foreground">Hallucination Detection</span>
-                  </div>
-                  <button
-                    onClick={() => setHallucinationEnabled(!hallucinationEnabled)}
-                    className={`w-10 h-6 rounded-full transition-colors relative ${hallucinationEnabled ? 'bg-primary' : 'bg-muted'
-                      }`}
-                  >
-                    <motion.div
-                      className="w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm"
-                      animate={{ left: hallucinationEnabled ? '16px' : '2px' }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                    <Switch
+                      checked={jailbreakEnabled}
+                      onCheckedChange={setJailbreakEnabled}
+                      className="h-5 w-9 data-[state=checked]:bg-primary"
                     />
-                  </button>
-                </div>
-
-                <div className="p-3 bg-secondary border border-primary rounded-md">
-                  <div className="flex items-start gap-2 mb-8">
-                    <svg className="w-4 h-4 text-primary flex-shrink-0 mt-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-xs text-foreground font-medium mb-4">What it does:</p>
-                      <p className="text-xs text-primary leading-relaxed">
-                        Checks if the AI output contains factual claims that can't be verified or seem made up.
-                      </p>
-                    </div>
                   </div>
-                  <div className="space-y-6 mt-10">
-                    <div>
-                      <p className="text-xs text-primary font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-primary rounded-full text-white text-[10px] flex items-center justify-center">✓</span>
-                        Pass Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"The sky appears blue due to Rayleigh scattering"</p>
+                </CardContent>
+              </Card>
+              
+              {/* Hallucination */}
+              <Card className={cn(
+                "bg-muted/10 border-border/50 shadow-none rounded-lg overflow-hidden transition-all duration-300",
+                hallucinationEnabled ? "bg-muted/20 border-primary/20" : "opacity-70"
+              )}>
+                <CardContent className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center transition-all",
+                        hallucinationEnabled ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground grayscale"
+                      )}>
+                        <Eye className="h-4 w-4" />
+                      </div>
+                      <div className="space-y-0">
+                        <Label className="text-xs font-bold leading-none">Fact Checking</Label>
+                        <p className="text-[9px] text-muted-foreground italic font-medium">Hallucination detection</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-foreground font-medium flex items-center gap-4">
-                        <span className="w-6 h-6 bg-accent-black rounded-full text-white text-[10px] flex items-center justify-center">✗</span>
-                        Fail Example:
-                      </p>
-                      <p className="text-xs text-primary font-mono mt-2 ml-16">"Studies show that 95% of unicorns prefer rainbow diets"</p>
-                    </div>
+                    <Switch
+                      checked={hallucinationEnabled}
+                      onCheckedChange={setHallucinationEnabled}
+                      className="h-5 w-9 data-[state=checked]:bg-primary"
+                    />
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* Settings Section */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                {/* Model Selection */}
-                <div>
-                  <label className="block text-label-small text-muted-foreground mb-1">
+              {/* Analysis Settings */}
+              <div className="space-y-4 pt-6 border-t border-border/50">
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <ShieldCheck className="h-3 w-3" />
                     Analysis Model
-                  </label>
-                  <select
-                    value={guardrailModel}
-                    onChange={(e) => setGuardrailModel(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                  >
-                    <optgroup label="OpenAI (Recommended)">
-                      <option value="openai/gpt-5-mini">GPT-5 Mini (Fast & Cheap)</option>
-                      <option value="openai/gpt-5">GPT-5</option>
-                    </optgroup>
-                    <optgroup label="Groq (Fastest)">
-                      <option value="groq/gpt-oss-20b">GPT OSS 20B</option>
-                      <option value="groq/gpt-oss-120b">GPT OSS 120B</option>
-                      <option value="groq/llama-3.3-70b">Llama 3.3 70B</option>
-                      <option value="groq/safety-gpt-oss-20b">Safety GPT OSS 20B</option>
-                    </optgroup>
-                    <optgroup label="Anthropic">
-                      <option value="anthropic/claude-sonnet-4-5-20250929">Claude Sonnet 4.5</option>
-                      <option value="anthropic/claude-sonnet-4-20250514">Claude Sonnet 4</option>
-                    </optgroup>
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    LLM used to analyze content for violations
-                  </p>
+                  </Label>
+                  <Select value={guardrailModel} onValueChange={setGuardrailModel}>
+                    <SelectTrigger className="h-8 bg-muted/20 border-border/50 font-medium rounded-md">
+                      <SelectValue placeholder="Select model..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] font-bold uppercase">OpenAI (Pro)</SelectLabel>
+                        <SelectItem value="openai/gpt-5-mini" className="text-xs">GPT-5 Mini (Fastest)</SelectItem>
+                        <SelectItem value="openai/gpt-5" className="text-xs">GPT-5 (Deep Analysis)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] font-bold uppercase">Groq (OSS)</SelectLabel>
+                        <SelectItem value="groq/llama-3.3-70b" className="text-xs">Llama 3.3 70B</SelectItem>
+                        <SelectItem value="groq/gpt-oss-120b" className="text-xs">GPT OSS 120B</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Action on Violation */}
-                <div>
-                  <label className="block text-label-small text-muted-foreground mb-1">
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Ban className="h-3 w-3" />
                     Action on Violation
-                  </label>
-                  <select
-                    value={actionOnViolation}
-                    onChange={(e) => setActionOnViolation(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                  >
-                    <option value="block">🛑 Block - Stop workflow execution</option>
-                    <option value="warn">⚠️ Warn - Continue with warning</option>
-                    <option value="flag">🏴 Flag - Log violation and continue</option>
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    What to do when violations are detected
-                  </p>
+                  </Label>
+                  <Select value={actionOnViolation} onValueChange={setActionOnViolation}>
+                    <SelectTrigger className="h-8 bg-muted/20 border-border/50 font-medium rounded-md">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="block" className="text-xs">🛑 Block & Stop Flow</SelectItem>
+                      <SelectItem value="warn" className="text-xs">⚠️ Warn & Continue</SelectItem>
+                      <SelectItem value="flag" className="text-xs">🏴 Flag & Continue</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Custom Rules */}
-                <div>
-                  <label className="block text-label-small text-muted-foreground mb-1">
-                    Custom Rules (Optional)
-                  </label>
-                  <textarea
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <MessageSquareWarning className="h-3 w-3" />
+                    Custom Rules
+                  </Label>
+                  <Textarea
                     value={customRules}
                     onChange={(e) => setCustomRules(e.target.value)}
-                    placeholder="Block messages containing: refund&#10;Block messages about: billing&#10;Require approval for: account changes"
-                    rows={4}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground placeholder-black-alpha-32 focus:outline-none focus:border-primary transition-colors resize-y font-mono"
+                    placeholder="e.g., Block messages about billing..."
+                    rows={3}
+                    className="min-h-[80px] bg-muted/20 border-border/50 text-xs italic focus-visible:ring-primary/20 font-medium leading-relaxed rounded-md"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    One rule per line. LLM will check content against these rules.
+                  <p className="text-[10px] text-muted-foreground italic px-1">
+                    One rule per line. LLM will enforce these specifically.
                   </p>
                 </div>
-
               </div>
             </div>
-          </>
+          </div>
         )}
 
-        {
-          showPIIModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="fixed inset-0 bg-black-alpha-64 z-[200] flex items-center justify-center backdrop-blur-sm"
-              onClick={() => setShowPIIModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-accent-white rounded-16 shadow-2xl w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
-              >
-                {/* Header */}
-                <div className="p-6 border-b border-border bg-background">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-24 h-24 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      <div>
-                        <h3 className="text-sm font-medium text-foreground">
-                          PII Detection Configuration
-                        </h3>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Select which types of personal data to detect
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowPIIModal(false)}
-                      className="w-32 h-32 rounded-6 hover:bg-secondary transition-colors flex items-center justify-center"
-                    >
-                      <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
+        {/* PII Modal */}
+        <Dialog open={showPIIModal} onOpenChange={setShowPIIModal}>
+          <DialogContent className="max-w-[500px] p-0 overflow-hidden border-none shadow-2xl rounded-lg">
+            <DialogHeader className="p-6 bg-muted/20 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <Lock className="h-5 w-5 text-primary" />
                 </div>
-
-                {/* Content */}
-                <div className="p-6 flex-1 overflow-y-auto">
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      onClick={() => setPiiEntities(allPIIEntities.map(e => e.id))}
-                      className="text-xs text-primary hover:text-heat-200 transition-colors font-medium"
-                    >
-                      Select all
-                    </button>
-                    <button
-                      onClick={() => setPiiEntities([])}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Clear all
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-label-small text-foreground mb-10">Common Types</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {allPIIEntities.slice(0, 8).map((entity) => (
-                          <label key={entity.id} className="flex items-center gap-2 p-10 hover:bg-background rounded-md cursor-pointer transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={piiEntities.includes(entity.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setPiiEntities([...piiEntities, entity.id]);
-                                } else {
-                                  setPiiEntities(piiEntities.filter(id => id !== entity.id));
-                                }
-                              }}
-                              className="w-4 h-4 rounded-4 border border-border text-primary focus:ring-heat-100"
-                            />
-                            <span className="text-xs text-foreground">{entity.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-label-small text-foreground mb-10">US-Specific Types</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {allPIIEntities.slice(8).map((entity) => (
-                          <label key={entity.id} className="flex items-center gap-2 p-10 hover:bg-background rounded-md cursor-pointer transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={piiEntities.includes(entity.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setPiiEntities([...piiEntities, entity.id]);
-                                } else {
-                                  setPiiEntities(piiEntities.filter(id => id !== entity.id));
-                                }
-                              }}
-                              className="w-4 h-4 rounded-4 border border-border text-primary focus:ring-heat-100"
-                            />
-                            <span className="text-xs text-foreground">{entity.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <DialogTitle className="text-lg font-bold">PII Configuration</DialogTitle>
+                  <DialogDescription className="text-xs font-medium italic text-muted-foreground">
+                    Select sensitive data types to detect and redact.
+                  </DialogDescription>
                 </div>
-
-                {/* Footer */}
-                <div className="p-6 border-t border-border bg-background flex justify-between items-center">
-                  <div className="text-xs text-muted-foreground">
-                    {piiEntities.length} of {allPIIEntities.length} types selected
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowPIIModal(false)}
-                      className="px-16 py-8 text-xs text-foreground hover:bg-secondary rounded-md transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        onUpdate(node?.id || '', { piiEntities });
-                        setShowPIIModal(false);
+              </div>
+            </DialogHeader>
+            
+            <div className="p-6 space-y-6 max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div className="flex items-center justify-between pb-2 border-b border-border/30">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Entity Types</span>
+                <div className="flex gap-4">
+                  <Button variant="link" size="sm" onClick={() => setPiiEntities(allPIIEntities.map(e => e.id))} className="h-auto p-0 text-[10px] uppercase font-bold text-primary">All</Button>
+                  <Button variant="link" size="sm" onClick={() => setPiiEntities([])} className="h-auto p-0 text-[10px] uppercase font-bold text-muted-foreground">None</Button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {allPIIEntities.map((entity) => (
+                  <div key={entity.id} className="flex items-center space-x-3 group">
+                    <Checkbox
+                      id={entity.id}
+                      checked={piiEntities.includes(entity.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setPiiEntities([...piiEntities, entity.id]);
+                        } else {
+                          setPiiEntities(piiEntities.filter(id => id !== entity.id));
+                        }
                       }}
-                      className="px-20 py-8 bg-accent-black hover:bg-secondary/808 text-white rounded-md text-xs font-medium transition-colors"
+                      className="h-4.5 w-4.5 border-border/50 data-[state=checked]:bg-primary"
+                    />
+                    <Label
+                      htmlFor={entity.id}
+                      className="text-xs font-medium cursor-pointer group-hover:text-primary transition-colors select-none"
                     >
-                      Save Changes
-                    </button>
+                      {entity.label}
+                    </Label>
                   </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )
-        }
-      </div >
+                ))}
+              </div>
+            </div>
+
+            <DialogFooter className="p-4 bg-muted/10 border-t border-border/50 flex items-center justify-between sm:justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground italic pl-2">
+                {piiEntities.length} Selected
+              </span>
+              <Button 
+                onClick={() => {
+                  onUpdate(node?.id || '', { piiEntities });
+                  setShowPIIModal(false);
+                  toast.success("PII settings updated successfully");
+                }}
+                className="font-bold h-9 px-6 bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+              >
+                Apply Configuration
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   );
 };

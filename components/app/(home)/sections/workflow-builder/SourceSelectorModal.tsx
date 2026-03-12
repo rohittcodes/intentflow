@@ -123,26 +123,26 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden border-border bg-background shadow-2xl">
-        <DialogHeader className="px-6 py-4 border-b border-border bg-muted/30 flex-row items-center justify-between space-y-0">
+        <DialogHeader className="px-5 py-3 border-b border-border bg-muted/20 flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-3">
             {step === "config" && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="h-8 w-8 text-muted-foreground transition-all hover:bg-muted"
+                className="h-7 w-7 text-muted-foreground transition-all hover:bg-secondary rounded-md"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5" />
               </Button>
             )}
-            <div className="space-y-0.5 text-left">
-              <DialogTitle className="text-sm font-bold text-foreground">
+            <div className="space-y-0.5">
+              <DialogTitle className="text-xs font-bold text-foreground">
                 {step === "select" ? "Add Data Source" : `Configure ${selectedType?.name}`}
               </DialogTitle>
-              <DialogDescription className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+              <DialogDescription className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                 {step === "select"
-                  ? "Select a service to connect to your Knowledge Base"
-                  : `Set up the connection parameters for ${selectedType?.name}`}
+                  ? "Select integration"
+                  : `Connection parameters`}
               </DialogDescription>
             </div>
           </div>
@@ -154,20 +154,20 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
               {step === "select" ? (
                 <motion.div
                   key="select"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.15 }}
-                  className="space-y-6"
+                  className="space-y-5"
                 >
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                  <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
                     <Input
                       type="text"
                       placeholder="Search integrations..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 py-2 bg-background border-border text-xs"
+                      className="w-full pl-9 h-9 bg-background border-border text-[11px] focus:ring-1 focus:ring-primary/20 transition-all"
                     />
                   </div>
 
@@ -184,19 +184,19 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                               <Badge variant="secondary" className="text-[9px] font-bold uppercase py-0 px-1.5 h-4">Presets</Badge>
                             )}
                           </h3>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             {sources.map(source => (
                               <button
                                 key={source.id}
                                 onClick={() => handleSelect(source)}
-                                className="flex items-start gap-3 p-3 bg-card border border-border/50 rounded-lg hover:border-primary/40 hover:bg-accent/30 hover:shadow-sm transition-all group text-left"
+                                className="flex items-center gap-3 p-2.5 bg-background border border-border/60 rounded-lg hover:border-primary/40 hover:bg-secondary/50 hover:shadow-xs transition-all group text-left"
                               >
-                                <div className={`p-2 rounded-md bg-muted/50 ${source.color} group-hover:scale-110 transition-transform brightness-110 group-hover:brightness-125 flex items-center justify-center`}>
-                                  {React.cloneElement(source.icon as React.ReactElement<any>, { className: "w-4 h-4 text-primary" })}
+                                <div className={`p-2 rounded-md bg-secondary shadow-sm ${source.color} group-hover:scale-105 transition-transform flex items-center justify-center shrink-0`}>
+                                  {React.cloneElement(source.icon as React.ReactElement<any>, { className: "w-3.5 h-3.5" })}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-xs font-bold text-foreground truncate">{source.name}</h4>
-                                  <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1 opacity-70">{source.description}</p>
+                                  <h4 className="text-[11px] font-bold text-foreground truncate">{source.name}</h4>
+                                  <p className="text-[10px] text-muted-foreground truncate opacity-70 group-hover:opacity-100 transition-opacity">{source.description}</p>
                                 </div>
                               </button>
                             ))}
@@ -209,20 +209,20 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
               ) : (
                 <motion.div
                   key="config"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, scale: 1.02 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
                   transition={{ duration: 0.15 }}
-                  className="space-y-6"
+                  className="space-y-4"
                 >
-                  <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-lg flex items-start gap-3">
-                    <div className="p-2 bg-amber-500/10 rounded-md text-amber-600">
-                      <Shield className="w-4 h-4" />
+                  <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg flex items-start gap-3">
+                    <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+                      <Shield className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-amber-900">Secure Connection</h4>
-                      <p className="text-[11px] text-amber-800/70 mt-1 leading-relaxed">
-                        We use industry-standard encryption to protect your credentials. Your data is indexed securely and stays within your workspace.
+                      <h4 className="text-[11px] font-bold text-foreground">Secure Connection</h4>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                        Industry-standard encryption protects your credentials. Your data stays in your workspace.
                       </p>
                     </div>
                   </div>
@@ -237,7 +237,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={`My ${selectedType?.name} Source`}
-                        className="text-xs"
+                        className="h-8 text-[11px]"
                       />
                     </div>
 
@@ -251,7 +251,7 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                           onChange={(e) => setUrl(e.target.value)}
                           placeholder="postgresql://user:password@localhost:5432/dbname"
                           rows={2}
-                          className="w-full px-3 py-2 bg-background border border-border rounded-md text-[11px] text-foreground font-mono outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                          className="w-full px-3 py-2 bg-background border border-border rounded-md text-[11px] text-foreground font-mono outline-none focus:ring-1 focus:ring-primary/20 transition-all resize-none"
                         />
                       </div>
                     )}
@@ -266,20 +266,22 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
                           value={url}
                           onChange={(e) => setUrl(e.target.value)}
                           placeholder={selectedType?.id === "sitemap" ? "https://example.com/sitemap.xml" : "https://api.service.com/v1"}
-                          className="text-xs"
+                          className="h-8 text-[11px]"
                         />
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-between p-2.5 bg-secondary border border-border/50 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                        <div className="p-1.5 bg-background rounded-md border border-border shadow-sm">
+                          <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                        </div>
                         <div className="space-y-0.5">
-                          <p className="text-xs font-bold text-foreground">Auto-Sync</p>
-                          <p className="text-[11px] text-muted-foreground font-medium">Keep indexed data fresh automatically</p>
+                          <p className="text-[11px] font-bold text-foreground">Auto-Sync</p>
+                          <p className="text-[10px] text-muted-foreground">Keep indexed data fresh automatically</p>
                         </div>
                       </div>
-                      <Switch checked={true} />
+                      <Switch checked={true} className="scale-75" />
                     </div>
                   </div>
                 </motion.div>
@@ -288,18 +290,18 @@ export default function SourceSelectorModal({ isOpen, onClose, onSelect }: Sourc
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-border bg-muted/30 flex items-center justify-end gap-3">
+        <div className="px-5 py-3 border-t border-border bg-muted/20 flex items-center justify-end gap-3">
           <Button
             variant="ghost"
             onClick={onClose}
-            className="text-xs font-bold text-muted-foreground hover:text-foreground h-9"
+            className="text-[11px] font-bold text-muted-foreground hover:text-foreground h-8"
           >
             Cancel
           </Button>
           <Button
             onClick={handleCreate}
             disabled={step === "select" || !name || (step === "config" && !url)}
-            className="h-9 px-4 font-bold text-xs flex items-center gap-2"
+            className="h-8 px-4 font-bold text-[11px] flex items-center gap-2"
           >
             {step === "select" ? "Continue" : "Create Integration"}
             <ChevronRight className="w-3.5 h-3.5" />

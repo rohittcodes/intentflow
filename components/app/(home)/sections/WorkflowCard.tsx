@@ -105,9 +105,9 @@ export default function WorkflowCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => !isEditingTitle && !isEditingDescription && router.push(`/dashboard/workflow/${workflow.id}`)}
-      className="group relative flex flex-col h-full min-h-[180px] cursor-pointer hover:border-primary/50 rounded-[32px] border-border overflow-hidden bg-background"
+      className="group relative flex flex-col h-full min-h-[140px] cursor-pointer hover:border-primary/50 rounded-xl border-border overflow-hidden bg-background"
     >
-      <CardHeader className="p-8 pb-3">
+      <CardHeader className="p-5 pb-2">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             {isEditingTitle ? (
@@ -120,116 +120,117 @@ export default function WorkflowCard({
                     if (e.key === "Enter") handleSaveTitle();
                     if (e.key === "Escape") handleCancelTitle(e as any);
                   }}
-                  className="flex-1 px-3 py-1.5 bg-muted/50 border border-primary rounded-xl text-lg font-bold focus:outline-none ring-2 ring-primary/20 transition-all"
+                  className="flex-1 px-2 py-1 bg-muted/50 border border-primary rounded-lg text-base font-bold focus:outline-none ring-1 ring-primary/20 transition-all"
                   autoFocus
                 />
-                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-primary/10" onClick={handleSaveTitle}>
-                  <Check className="h-4 w-4 text-primary" />
+                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full hover:bg-primary/10" onClick={handleSaveTitle}>
+                  <Check className="h-3.5 w-3.5 text-primary" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-muted" onClick={handleCancelTitle}>
-                  <X className="h-4 w-4 text-muted-foreground" />
+                <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full hover:bg-muted" onClick={handleCancelTitle}>
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 group/title">
-                <h3 className="text-xl font-bold tracking-tight transition-colors group-hover:text-primary line-clamp-1">
+              <div className="flex items-center gap-2 group/title">
+                <h3 className="text-base font-bold tracking-tight transition-colors group-hover:text-primary line-clamp-1">
                   {workflow.title}
                 </h3>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 opacity-0 group-hover/title:opacity-100 rounded-full hover:bg-muted"
+                  className="h-6 w-6 opacity-0 group-hover/title:opacity-100 rounded-full hover:bg-muted"
                   onClick={handleTitleClick}
                 >
-                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Edit2 className="h-3 w-3 text-muted-foreground" />
                 </Button>
               </div>
             )}
           </div>
           {workflow.isStarred && (
-            <div className="p-1.5 bg-primary/10 rounded-full flex-shrink-0">
-              <Star className="h-4 w-4 text-primary fill-primary" />
+            <div className="p-1 bg-primary/10 rounded-full flex-shrink-0">
+              <Star className="h-3 w-3 text-primary fill-primary" />
             </div>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="px-8 pb-4 pt-0 flex-1">
+      <CardContent className="px-5 pb-3 pt-0 flex-1">
         {isEditingDescription ? (
-          <div className="flex flex-col gap-3 mt-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
             <textarea
               value={editedDescription}
               onChange={(e) => setEditedDescription(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Escape") handleCancelDescription(e as any);
               }}
-              className="w-full px-3 py-2 bg-muted/50 border border-primary rounded-xl text-xs font-medium focus:outline-none ring-2 ring-primary/20 resize-none transition-all"
-              rows={3}
+              className="w-full px-2 py-1.5 bg-muted/50 border border-primary rounded-lg text-xs font-medium focus:outline-none ring-1 ring-primary/20 resize-none transition-all"
+              rows={2}
               autoFocus
             />
             <div className="flex items-center gap-2 justify-end">
-              <Button size="sm" variant="ghost" className="h-8 text-[10px] font-bold rounded-lg" onClick={handleCancelDescription}>
+              <Button size="sm" variant="ghost" className="h-7 text-[10px] font-bold rounded-md" onClick={handleCancelDescription}>
                 Cancel
               </Button>
-              <Button size="sm" className="h-8 text-[10px] font-bold rounded-lg px-4" onClick={handleSaveDescription}>
+              <Button size="sm" className="h-7 text-[10px] font-bold rounded-md px-3" onClick={handleSaveDescription}>
                 Save Changes
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-4 group/desc mt-2">
-            <p className="text-xs font-medium text-muted-foreground/80 leading-relaxed line-clamp-2 min-h-[2.5rem] flex-1">
+          <div className="flex items-start gap-2 group/desc mt-1">
+            <p className="text-[11px] font-medium text-muted-foreground/80 leading-relaxed line-clamp-2 min-h-[2rem] flex-1">
               {workflow.description || "No description provided."}
             </p>
             <Button
               size="icon"
               variant="ghost"
-              className="h-7 w-7 opacity-0 group-hover/desc:opacity-100 rounded-full hover:bg-muted"
+              className="h-6 w-6 opacity-0 group-hover/desc:opacity-100 rounded-full hover:bg-muted"
               onClick={handleDescriptionClick}
             >
-              <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+              <Edit2 className="h-3 w-3 text-muted-foreground" />
             </Button>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="px-8 pb-8 pt-4 border-t border-border/30 flex items-center justify-between mt-auto">
-        <div className="flex items-center gap-4">
+      <CardFooter className="px-5 pb-5 pt-3 border-t border-border/10 flex items-center justify-between mt-auto">
+        <div className="flex items-center gap-3">
           {workflow.nodeCount !== undefined && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground font-bold text-[9px] tracking-widest uppercase">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-bold text-[8px] tracking-wider uppercase">
               {workflow.nodeCount} NODES
             </div>
           )}
-          <span className="text-[9px] font-black text-muted-foreground/50 tracking-widest uppercase">
+          <span className="text-[8px] font-bold text-muted-foreground/40 tracking-wider uppercase">
             {workflow.createdAt}
           </span>
         </div>
 
-        {isHovered && !isEditingTitle && !isEditingDescription && (
-          <div className="flex gap-2">
+        {!isEditingTitle && !isEditingDescription && (
+          <div className="flex gap-1.5">
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 rounded-full hover:bg-primary/10"
+              className="h-7 w-7 rounded-full hover:bg-primary/10"
               onClick={handleStar}
             >
               {workflow.isStarred ? (
-                <Star className="h-4 w-4 text-primary fill-primary" />
+                <Star className="h-3.5 w-3.5 text-primary fill-primary" />
               ) : (
-                <Star className="h-4 w-4 text-muted-foreground/50" />
+                <Star className="h-3.5 w-3.5 text-muted-foreground/50" />
               )}
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 rounded-full hover:text-destructive hover:bg-destructive/10"
+              className="h-7 w-7 rounded-full hover:text-destructive hover:bg-destructive/10"
               onClick={handleDelete}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
       </CardFooter>
+
     </Card>
   );
 }

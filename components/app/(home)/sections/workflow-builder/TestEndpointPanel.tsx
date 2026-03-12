@@ -4,7 +4,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Workflow } from "@/lib/workflow/types";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -64,6 +64,7 @@ export default function TestEndpointPanel({ workflowId, workflow, environment, o
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState("curl");
 
   // Update input when workflow changes
   useEffect(() => {
@@ -245,19 +246,11 @@ with requests.post(
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-accent-white w-[260px] overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-accent-white w-full max-w-[340px] overflow-x-hidden">
       {/* Header */}
-      <div className="px-2 py-1.5 border-b border-border flex-shrink-0">
+      <div className="p-3 px-4 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between">
           <h2 className="text-[11px] font-bold text-foreground font-medium uppercase tracking-wider">Endpoint</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="w-6 h-6 rounded-md hover:bg-secondary transition-colors"
-          >
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
-          </Button>
         </div>
         <p className="text-[10px] text-muted-foreground">
           Test your workflow API endpoint
@@ -265,7 +258,7 @@ with requests.post(
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2 w-full max-w-[340px]">
         {/* API Key Generation Section */}
         <div className="bg-background">
           <h3 className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">API Access</h3>
@@ -284,7 +277,7 @@ with requests.post(
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-foreground uppercase tracking-wider block">API Key</label>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 px-3 py-1.5 bg-white border border-border rounded-md text-xs font-mono text-foreground break-all">
+                      <code className="flex-1 px-3 py-2 bg-white border border-border rounded-md text-sm font-mono text-foreground break-all">
                         {generatedDetails.key}
                       </code>
                       <Button
@@ -316,19 +309,17 @@ with requests.post(
                   placeholder="Key Name (e.g. Production App)"
                   value={newKeyName}
                   onChange={(e) => setNewKeyName(e.target.value)}
-                  className="flex-1 h-8 bg-white border border-border text-xs text-foreground placeholder:text-black-alpha-32 focus-visible:ring-1 focus-visible:ring-accent-black transition-colors"
+                  className="flex-1 h-10 bg-white border border-border text-xs text-foreground placeholder:text-black-alpha-32 focus-visible:ring-1 focus-visible:ring-accent-black transition-colors"
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerateKey()}
                 />
                 <Button
                   size="sm"
                   onClick={handleGenerateKey}
                   disabled={isGenerating || !newKeyName.trim()}
-                  className="h-8 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-10 bg-primary hover:bg-primary/90 text-white rounded-md text-xs font-medium transition-all active:scale-[0.98] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isGenerating ? (
+                  {isGenerating && (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Plus className="w-3.5 h-3.5" />
                   )}
                   Generate Key
                 </Button>
@@ -348,7 +339,7 @@ with requests.post(
           <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
             Endpoint URL
           </label>
-          <div className="px-1.5 py-1 bg-background border border-border rounded-md text-[11px] text-foreground font-mono overflow-x-auto truncate">
+          <div className="px-1.5 py-1 bg-background border border-border rounded-md text-[12px] text-foreground font-mono break-all whitespace-normal">
             {endpointUrl}
           </div>
         </div>
@@ -424,78 +415,47 @@ with requests.post(
             </div>
           )}
 
-          <Tabs defaultValue="curl" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-2 bg-background border border-border rounded-md">
-              <TabsTrigger value="curl">cURL</TabsTrigger>
-              <TabsTrigger value="curl-stream">Streaming cURL</TabsTrigger>
-              <TabsTrigger value="ts">TypeScript</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-            </TabsList>
-            <TabsContent value="curl">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy('curl', curlStandard)}
-                  className="absolute top-2 right-2 h-7 px-2 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-[10px] text-foreground transition-colors shadow-sm gap-1.5"
-                >
-                  <Copy className="w-3 h-3" />
-                  {copiedKey === 'curl' ? 'Copied' : 'Copy'}
-                </Button>
-                <pre className="px-1.5 py-1 bg-background text-foreground rounded-md text-[11px] font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[160px] border border-border">
-                  {curlStandard}
-                </pre>
-              </div>
-            </TabsContent>
-            <TabsContent value="curl-stream">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy('curl-stream', curlStreaming)}
-                  className="absolute top-2 right-2 h-7 px-2 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-[10px] text-foreground transition-colors shadow-sm gap-1.5"
-                >
-                  <Copy className="w-3 h-3" />
-                  {copiedKey === 'curl-stream' ? 'Copied' : 'Copy'}
-                </Button>
-                <pre className="px-2 py-1.5 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] border border-border">
-                  {curlStreaming}
-                </pre>
-              </div>
-            </TabsContent>
-            <TabsContent value="ts">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy('ts', tsExample)}
-                  className="absolute top-2 right-2 h-7 px-2 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-[10px] text-foreground transition-colors shadow-sm gap-1.5"
-                >
-                  <Copy className="w-3 h-3" />
-                  {copiedKey === 'ts' ? 'Copied' : 'Copy'}
-                </Button>
-                <pre className="px-2 py-1.5 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] border border-border">
-                  {tsExample}
-                </pre>
-              </div>
-            </TabsContent>
-            <TabsContent value="python">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopy('python', pythonExample)}
-                  className="absolute top-2 right-2 h-7 px-2 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-[10px] text-foreground transition-colors shadow-sm gap-1.5"
-                >
-                  <Copy className="w-3 h-3" />
-                  {copiedKey === 'python' ? 'Copied' : 'Copy'}
-                </Button>
-                <pre className="px-2 py-1.5 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[200px] border border-border">
-                  {pythonExample}
-                </pre>
-              </div>
-            </TabsContent>
-          </Tabs>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Example Code</label>
+              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                <SelectTrigger className="w-[140px] h-8 text-[11px] bg-background border-border">
+                  <SelectValue placeholder="Select Language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="curl" className="text-[11px]">cURL</SelectItem>
+                  <SelectItem value="curl-stream" className="text-[11px]">Streaming cURL</SelectItem>
+                  <SelectItem value="ts" className="text-[11px]">TypeScript</SelectItem>
+                  <SelectItem value="python" className="text-[11px]">Python</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative group">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const val = selectedLanguage === 'curl' ? curlStandard
+                    : selectedLanguage === 'curl-stream' ? curlStreaming
+                      : selectedLanguage === 'ts' ? tsExample // Changed from tsCode to tsExample based on original content
+                        : pythonExample; // Changed from pythonCode to pythonExample based on original content
+                  handleCopy(selectedLanguage, val);
+                }}
+                className="absolute top-2 right-2 h-7 px-2 bg-accent-white hover:bg-[#f4f4f5] border border-border rounded-md text-[10px] text-foreground transition-all shadow-sm gap-1.5 opacity-0 group-hover:opacity-100 z-10"
+              >
+                <Copy className="w-3 h-3" />
+                {copiedKey === selectedLanguage ? 'Copied' : 'Copy'}
+              </Button>
+              <pre className="px-3 py-2.5 bg-background text-foreground rounded-md text-xs font-mono whitespace-pre overflow-x-auto max-h-[320px] border border-border">
+                {selectedLanguage === 'curl' ? curlStandard
+                  : selectedLanguage === 'curl-stream' ? curlStreaming
+                    : selectedLanguage === 'ts' ? tsExample // Changed from tsCode to tsExample
+                      : pythonExample} {/* Changed from pythonCode to pythonExample */}
+              </pre>
+            </div>
+          </div>
         </div>
 
         {/* Response */}
@@ -514,7 +474,7 @@ with requests.post(
               Response
             </label>
             <div className="p-2 bg-gray-900 rounded-md border border-border">
-              <pre className="text-xs text-white font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[300px]">
+              <pre className="text-[10px] text-white font-mono whitespace-pre-wrap break-all overflow-y-auto max-h-[300px]">
                 {JSON.stringify(response, null, 2)}
               </pre>
             </div>

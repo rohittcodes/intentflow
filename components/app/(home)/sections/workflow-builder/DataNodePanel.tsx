@@ -6,8 +6,40 @@ import type { Node } from "@xyflow/react";
 import { toast } from "sonner";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Database, Code2, Globe } from "lucide-react";
+import { 
+  Database, 
+  Code2, 
+  Globe, 
+  Terminal, 
+  Settings2, 
+  ArrowRight, 
+  Variable, 
+  Zap, 
+  Info,
+  Layers,
+  Sparkles,
+  Search,
+  Check,
+  Plus,
+  Box,
+  Cpu,
+  AlertCircle
+} from "lucide-react";
 import VariableReferencePicker from "./VariableReferencePicker";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface DataNodePanelProps {
   node: Node | null;
@@ -64,11 +96,11 @@ return result;`,
         transformScript !== node.data?.transformScript ||
         stateKey !== node.data?.stateKey ||
         stateValue !== node.data?.stateValue ||
-        valueType !== node.data?.valueType;
-
-      if (hasChanged ||
+        valueType !== node.data?.valueType ||
         sqlQuery !== node.data?.sqlQuery ||
-        selectedConnectorId !== node.data?.connectorId) {
+        selectedConnectorId !== node.data?.connectorId;
+
+      if (hasChanged) {
         onUpdate(node.id, {
           transformScript,
           stateKey,
@@ -98,53 +130,54 @@ return result;`,
     switch (valueType) {
       case "boolean":
         return (
-          <select
-            value={stateValue}
-            onChange={(e) => setStateValue(e.target.value)}
-            className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-          >
-            <option value="true">true</option>
-            <option value="false">false</option>
-          </select>
+          <Select value={stateValue} onValueChange={setStateValue}>
+            <SelectTrigger className="h-8 bg-muted/20 border-border/50 font-bold focus:ring-primary/20 rounded-md text-[10px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true" className="text-[10px] font-bold text-green-600 uppercase tracking-widest">true</SelectItem>
+              <SelectItem value="false" className="text-[10px] font-bold text-red-600 uppercase tracking-widest">false</SelectItem>
+            </SelectContent>
+          </Select>
         );
       case "number":
         return (
-          <input
+          <Input
             type="text"
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
             placeholder="42 or {{lastOutput.count}}"
-            className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors"
+            className="h-8 bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all rounded-md"
           />
         );
       case "json":
         return (
-          <textarea
+          <Textarea
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
-            rows={2}
+            rows={4}
             placeholder='{"key": "value"} or {{lastOutput}}'
-            className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
+            className="min-h-[100px] bg-slate-950 text-sky-400 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all resize-none leading-relaxed shadow-inner rounded-md p-4"
           />
         );
       case "expression":
         return (
-          <textarea
+          <Textarea
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
-            rows={2}
+            rows={4}
             placeholder="input.price * 1.1"
-            className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary transition-colors resize-none"
+            className="min-h-[100px] bg-muted/20 border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 transition-all resize-none rounded-md p-4"
           />
         );
       default:
         return (
-          <input
+          <Input
             type="text"
             value={stateValue}
             onChange={(e) => setStateValue(e.target.value)}
             placeholder="Hello {{input.name}}"
-            className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+            className="h-8 bg-muted/20 border-border/50 text-[11px] focus-visible:ring-primary/20 transition-all rounded-md"
           />
         );
     }
@@ -153,24 +186,24 @@ return result;`,
   if (!node) return null;
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 space-y-3 w-[260px]">
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 w-full pb-10">
       {/* Transform Node - Code Editor */}
       {nodeType.includes("transform") && (
-        <>
-          <div>
-            <h3 className="text-sm font-medium text-foreground mb-3">
-              Transform Code (TypeScript)
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Write TypeScript code to transform data. Runs securely in E2B sandbox.
-            </p>
+        <div className="space-y-4 max-w-[320px] mx-auto">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-4 w-4 text-primary/60" />
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Transform Code</Label>
+              </div>
+              <Badge variant="outline" className="text-[9px] font-mono bg-background border-border/50 text-muted-foreground lowercase">
+                typescript
+              </Badge>
+            </div>
 
-            {/* Code Editor */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm text-foreground">
-                  TypeScript Code
-                </label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Script Editor</Label>
                 <VariableReferencePicker
                   nodes={nodes}
                   currentNodeId={node?.id || ''}
@@ -179,173 +212,140 @@ return result;`,
                   }}
                 />
               </div>
-              <textarea
-                value={transformScript}
-                onChange={(e) => setTransformScript(e.target.value)}
-                rows={12}
-                className="w-full px-3 py-2 bg-[#1e1e1e] text-[#d4d4d4] border border-border rounded-md text-sm font-mono focus:outline-none focus:border-primary transition-colors resize-none"
-                placeholder="// Transform the input data using TypeScript"
-                spellCheck={false}
-              />
-              <div className="mt-2 text-xs text-muted-foreground space-y-2">
-                <p>Available variables:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li><code className="px-1 py-0.5 bg-background rounded text-primary font-mono text-[10px]">input</code> - Current input data</li>
-                  <li><code className="px-1 py-0.5 bg-background rounded text-primary font-mono text-[10px]">lastOutput</code> - Output from previous node</li>
-                  <li><code className="px-1 py-0.5 bg-background rounded text-primary font-mono text-[10px]">state</code> - Workflow state with variables</li>
-                </ul>
-                <p className="mt-2">Your function should return an object with the transformed data.</p>
+              <div className="relative group">
+                <Textarea
+                  value={transformScript}
+                  onChange={(e) => setTransformScript(e.target.value)}
+                  className="min-h-[250px] bg-[#1e1e1e] text-[#d4d4d4] border-border/30 font-mono text-[11px] focus-visible:ring-primary/20 transition-all resize-none leading-relaxed shadow-2xl custom-scrollbar rounded-md p-4"
+                  placeholder="// Transform the input data using TypeScript"
+                  spellCheck={false}
+                />
               </div>
             </div>
+
+            <Card className="bg-primary/5 border-primary/10 shadow-none rounded-lg overflow-hidden">
+              <CardContent className="p-3 space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: 'input', label: 'In' },
+                    { key: 'lastOutput', label: 'Prev' },
+                    { key: 'state', label: 'Global' }
+                  ].map((item) => (
+                    <div key={item.key} className="flex flex-col items-center">
+                      <code className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">{item.key}</code>
+                      <p className="text-[8px] text-muted-foreground font-medium opacity-60 uppercase tracking-tighter mt-0.5">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Set State Node - Separate from Transform */}
+      {/* Set State Node */}
       {nodeType.includes("state") && !nodeType.includes("transform") && (
-        <>
-          <div>
-            <h3 className="text-sm font-medium text-foreground mb-3">
-              Set global variables
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Assign values to workflow's state variables
-            </p>
+        <div className="space-y-4 max-w-[320px] mx-auto">
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-2">
+              <Variable className="h-4 w-4 text-primary/60" />
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Global State Registry</Label>
+            </div>
 
-            {/* State Assignments */}
-            <div className="space-y-3">
-              <div className="p-3 bg-background rounded-lg border border-border">
-                <div className="space-y-3">
-                  {/* Variable Name */}
-                  <div>
-                    <label className="block text-sm text-foreground mb-1">
-                      Variable Name
-                    </label>
-                    <input
-                      type="text"
-                      value={stateKey}
-                      onChange={(e) => setStateKey(e.target.value)}
-                      placeholder="myVariable"
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground font-mono focus:outline-none focus:border-primary"
-                    />
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Access later with <code className="px-4 py-1 bg-background rounded text-primary font-mono text-xs">{`{{state.${stateKey}}}`}</code>
-                    </p>
-                  </div>
-
-                  {/* Value Type */}
-                  <div>
-                    <label className="block text-sm text-foreground mb-1">
-                      Value Type
-                    </label>
-                    <select
-                      value={valueType}
-                      onChange={(e) => setValueType(e.target.value as any)}
-                      className="w-full px-3 py-1.5 bg-accent-white border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
-                    >
-                      <option value="string">String</option>
-                      <option value="number">Number</option>
-                      <option value="boolean">Boolean</option>
-                      <option value="json">JSON Object</option>
-                      <option value="expression">JavaScript Expression</option>
-                    </select>
-                  </div>
-
-                  {/* Value Input */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm text-foreground">
-                        Value
-                      </label>
-                      <VariableReferencePicker
-                        nodes={nodes}
-                        currentNodeId={node?.id || ''}
-                        onSelect={(varPath) => setStateValue(prev => prev + `{{${varPath}}}`)}
-                      />
-                    </div>
-                    {renderValueInput()}
-                    <p className="text-xs text-muted-foreground mt-4">
-                      {valueType === 'string' && 'Use {{variables}} to reference other data'}
-                      {valueType === 'number' && 'Can use {{lastOutput.price}} to reference numbers'}
-                      {valueType === 'boolean' && 'true or false'}
-                      {valueType === 'json' && 'Valid JSON object or array'}
-                      {valueType === 'expression' && 'JavaScript expression like: input.x + lastOutput.y'}
+            <Card className="bg-muted/10 border-border/50 shadow-none rounded-lg group hover:border-primary/20 transition-all overflow-hidden">
+              <CardContent className="p-4 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Key identifier</Label>
+                  <Input
+                    type="text"
+                    value={stateKey}
+                    onChange={(e) => setStateKey(e.target.value)}
+                    placeholder="e.g., userProfile"
+                    className="h-8 bg-background border-border/50 font-mono text-[11px] focus-visible:ring-primary/20 rounded-md"
+                  />
+                  <div className="flex items-center gap-2 opacity-60">
+                    <p className="text-[10px] text-muted-foreground font-bold italic truncate">
+                      Access: <span className="text-primary font-mono">{`{{state.${stateKey || '...'}}}`}</span>
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Add Assignment Button */}
-              <button
-                onClick={() => {
-                  toast.info('Multiple state assignments coming soon!', {
-                    description: 'Currently you can set one variable per node. Add another Set State node for more variables.'
-                  });
-                }}
-                className="px-3 py-1.5 bg-background hover:bg-secondary border border-border rounded-md text-sm text-foreground transition-colors flex items-center gap-6"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add
-              </button>
-            </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Value representation</Label>
+                  <Select value={valueType} onValueChange={(v: any) => setValueType(v)}>
+                    <SelectTrigger className="h-8 bg-background border-border/50 font-bold text-[11px] rounded-md">
+                      <SelectValue placeholder="Select type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="string" className="text-[10px] font-bold uppercase tracking-widest">Plain String</SelectItem>
+                      <SelectItem value="number" className="text-[10px] font-bold uppercase tracking-widest">Numeric Value</SelectItem>
+                      <SelectItem value="boolean" className="text-[10px] font-bold uppercase tracking-widest">Boolean Toggle</SelectItem>
+                      <SelectItem value="json" className="text-[10px] font-bold uppercase tracking-widest">JSON Structure</SelectItem>
+                      <SelectItem value="expression" className="text-[10px] font-bold uppercase tracking-widest">JS Expression</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Content payload</Label>
+                    <VariableReferencePicker
+                      nodes={nodes}
+                      currentNodeId={node?.id || ''}
+                      onSelect={(varPath) => setStateValue(prev => prev + `{{${varPath}}}`)}
+                    />
+                  </div>
+                  {renderValueInput()}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast.info('Sequence logic preserved.', {
+                  description: 'Add consecutive state nodes to build complex global contexts.'
+                });
+              }}
+              className="w-full h-8 border-dashed border-border/50 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all font-bold uppercase tracking-widest text-[10px] gap-2 rounded-md"
+            >
+              <Plus className="h-3 w-3" />
+              Build batch state
+            </Button>
           </div>
-        </>
+        </div>
       )}
+
       {/* Database Query Node */}
       {nodeType.includes("query") && (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <Database className="w-4 h-4 text-amber-500" />
-              Database Query
-            </h3>
-            <p className="text-[13px] text-muted-foreground mb-4">
-              Execute a SQL query against your connected database.
-            </p>
+        <div className="space-y-4 max-w-[320px] mx-auto">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4 text-amber-500/80" />
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Database Engine</Label>
+            </div>
 
-            <div className="space-y-4">
-              {/* Connector Selection */}
-              <div>
-                <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest mb-1">
-                  Data Source
-                </label>
-                <select
-                  value={selectedConnectorId}
-                  onChange={(e) => setSelectedConnectorId(e.target.value)}
-                  className="w-full px-3 py-2 bg-accent-white border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary transition-colors cursor-pointer appearance-none"
-                >
-                  <option value="">Select a Data Source</option>
-                  {connectors?.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} ({c.type})
-                    </option>
-                  ))}
-                </select>
-                {connectors && connectors.length === 0 && (
-                  <p className="mt-8 text-xs text-red-500">
-                    No data sources found. Add one in the Library or Settings.
-                  </p>
-                )}
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Source connector</Label>
+                <Select value={selectedConnectorId} onValueChange={setSelectedConnectorId}>
+                  <SelectTrigger className="h-8 bg-muted/20 border-border/50 font-bold text-[11px] rounded-md">
+                    <SelectValue placeholder="Select an active source..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {connectors?.map((c) => (
+                      <SelectItem key={c._id} value={c._id} className="text-[10px] font-bold uppercase tracking-widest">
+                        {c.name} <span className="opacity-50 text-[10px]">({c.type})</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* SQL Editor */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-black-alpha-40 uppercase tracking-widest">
-                    SQL Query
-                  </label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Query script</Label>
                   <VariableReferencePicker
                     nodes={nodes}
                     currentNodeId={node?.id || ''}
@@ -355,26 +355,35 @@ return result;`,
                   />
                 </div>
                 <div className="relative group">
-                  <div className="absolute top-3 left-12 text-black-alpha-24 pointer-events-none">
-                    <Code2 className="w-4 h-4" />
-                  </div>
-                  <textarea
+                  <Textarea
                     value={sqlQuery}
                     onChange={(e) => setSqlQuery(e.target.value)}
-                    rows={8}
-                    className="w-full px-3 py-2 bg-secondary text-foreground border border-border rounded-xl text-sm font-mono focus:outline-none focus:border-amber-500 transition-all resize-none"
+                    className="min-h-[160px] bg-slate-900 text-amber-500 border-border/30 font-mono text-[11px] focus-visible:ring-amber-500/20 transition-all resize-none leading-relaxed shadow-lg p-3 rounded-md"
                     placeholder="SELECT * FROM table_name WHERE id = {{state.user_id}}"
                     spellCheck={false}
                   />
                 </div>
-                <p className="mt-2 text-xs text-black-alpha-40 leading-relaxed">
-                  Use <code className="text-amber-600 font-mono">{"{{variable}}"}</code> syntax to inject dynamic values into your query.
-                </p>
+                <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg flex items-start gap-3">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-600 mt-0.5" />
+                  <p className="text-[10px] text-amber-700/80 italic leading-tight font-medium">
+                    Use <strong className="text-amber-800 font-bold">{"{{variable}}"}</strong> to inject dynamic values safely into the SQL engine.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Info Box for overall node */}
+      <Card className="bg-secondary/40 border-border/30 shadow-none rounded-lg max-w-[320px] mx-auto">
+        <CardContent className="p-4 flex gap-3">
+          <Layers className="h-4 w-4 text-primary shrink-0 opacity-60" />
+          <p className="text-[11px] text-muted-foreground leading-relaxed italic font-medium">
+            <strong className="text-foreground font-bold">Data Management:</strong> Process, store, and retrieve data across the workflow lifecycle using enterprise data sources.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
