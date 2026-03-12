@@ -145,7 +145,7 @@ export default function LogsPage() {
                 >
                   {/* Workflow name */}
                   <div className="font-medium text-sm truncate">
-                    {"workflowName" in exec ? String(exec.workflowName) : String(exec.workflowId)}
+                    {exec.workflowName}
                   </div>
 
                   {/* Status */}

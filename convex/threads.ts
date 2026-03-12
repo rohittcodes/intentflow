@@ -17,22 +17,20 @@ export const listThreads = query({
       .order("desc")
       .collect();
 
-    // Map threads and resolve workflow names
-    const result = [];
-    for (const thread of threads) {
-      let workflowName = "Standard Chat";
-      if (thread.workflowId) {
-        const workflow = await ctx.db.get(thread.workflowId);
-        if (workflow) workflowName = workflow.name;
-      }
-
-      result.push({
-        ...thread,
-        workflowName
-      });
-    }
-
-    return result;
+    // Map threads and resolve workflow names in parallel
+    return await Promise.all(
+      threads.map(async (thread) => {
+        let workflowName = "Standard Chat";
+        if (thread.workflowId) {
+          const workflow = await ctx.db.get(thread.workflowId);
+          if (workflow) workflowName = workflow.name;
+        }
+        return {
+          ...thread,
+          workflowName,
+        };
+      })
+    );
   },
 });
 
