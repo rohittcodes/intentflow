@@ -5,6 +5,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -196,18 +197,34 @@ export default function WorkflowCanvas({
     }));
   }, [activeNodeId, nodeResults, setNodes]);
 
-  // Sync edges with global edge style
+  // Sync edges with global edge style and execution state
   useEffect(() => {
-    setEdges((eds) => eds.map((edge) => ({
-      ...edge,
-      type: edgeStyle === 'default' ? undefined : edgeStyle,
-    })));
-  }, [edgeStyle, setEdges]);
+    setEdges((eds) => eds.map((edge) => {
+      const isSourceActive = activeNodeId === edge.source;
+      const isTargetActive = activeNodeId === edge.target;
+      const isExecutingPath = isSourceActive || isTargetActive;
+
+      return {
+        ...edge,
+        type: edgeStyle === 'default' ? 'smoothstep' : edgeStyle,
+        animated: isExecutingPath,
+        style: { 
+          strokeWidth: isExecutingPath ? 3 : 2,
+          stroke: isExecutingPath ? '#3b82f6' : undefined,
+          transition: 'all 0.3s ease'
+        }
+      };
+    }));
+  }, [edgeStyle, setEdges, activeNodeId]);
 
   // Handle connection
   const onConnect: OnConnect = useCallback((params) => {
     onFocus?.(instanceId);
-    const newEdges = addEdge({ ...params, type: edgeStyle === 'default' ? undefined : edgeStyle, style: { strokeWidth: 2 } }, edges);
+    const newEdges = addEdge({ 
+      ...params, 
+      type: edgeStyle === 'default' ? 'smoothstep' : edgeStyle,
+      style: { strokeWidth: 2 } 
+    }, edges);
     setEdges(newEdges);
     pushState(nodes, newEdges);
     updateEdges(newEdges as any);
@@ -685,7 +702,24 @@ export default function WorkflowCanvas({
             size={gridStyle === 'dots' ? 2 : 1}
           />
         )}
-        <Controls className="!bg-accent-white !border-black-alpha-8 !fill-black-alpha-56 !shadow-md react-flow-controls" position="bottom-right" showInteractive={false} />
+        <Controls 
+          className="!bg-accent-white/80 !backdrop-blur-xl !border-black-alpha-8 !fill-black-alpha-56 !shadow-2xl !rounded-xl overflow-hidden mb-4" 
+          position="bottom-left" 
+          showInteractive={false} 
+        />
+        <MiniMap 
+          className="!bg-accent-white/40 !backdrop-blur-2xl !border-black-alpha-8 !shadow-2xl !rounded-2xl overflow-hidden !m-4" 
+          maskColor="rgba(255, 255, 255, 0.1)"
+          nodeColor={(n) => {
+            if (n.type === 'start') return '#10b981';
+            if (n.type === 'end') return '#f43f5e';
+            return '#3b82f6';
+          }}
+          nodeStrokeWidth={3}
+          zoomable
+          pannable
+          position="bottom-right"
+        />
       </ReactFlow>
 
       {contextMenu && (

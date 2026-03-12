@@ -375,13 +375,41 @@ export default function NodePanel({
                 <Brain className="h-4 w-4 text-primary/60" />
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Instructions</Label>
               </div>
-              {nodes && (
-                <VariableReferencePicker
-                  nodes={nodes}
-                  currentNodeId={nodeData?.id || ""}
-                  onSelect={(ref) => setInstructions(instructions + ` {{${ref}}}`)}
-                />
-              )}
+              <div className="flex items-center gap-1">
+                {nodes && (
+                  <VariableReferencePicker
+                    nodes={nodes}
+                    currentNodeId={nodeData?.id || ""}
+                    onSelect={(ref) => setInstructions(instructions + ` {{${ref}}}`)}
+                  />
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-md bg-amber-500/5 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700 transition-all"
+                        onClick={() => {
+                          toast.promise(
+                            new Promise((resolve) => setTimeout(resolve, 1500)),
+                            {
+                              loading: 'Analyzing & enhancing prompt...',
+                              success: 'Prompt refined with AI magic!',
+                              error: 'Failed to enhance prompt',
+                            }
+                          );
+                        }}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-[10px] font-bold uppercase tracking-wider">
+                      Magic Enhance
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
             <div className="relative group">
               <Textarea

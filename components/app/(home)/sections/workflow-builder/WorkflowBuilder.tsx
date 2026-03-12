@@ -85,6 +85,7 @@ import SaveAsTemplateModal from "./SaveAsTemplateModal";
 import LibraryPanel from "./LibraryPanel";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
 import AddMCPModal from "./AddMCPModal";
+import HelpPanel from "./HelpPanel";
 
 import { toast } from "sonner";
 import { useIsMutating } from "@tanstack/react-query";
@@ -354,6 +355,8 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
   const [maxRuntimeSeconds, setMaxRuntimeSeconds] = useState(0);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [showAddMCPModal, setShowAddMCPModal] = useState(false);
+  const [showHelpPanel, setShowHelpPanel] = useState(false);
+
 
 
   // Multi-canvas state
@@ -711,7 +714,7 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                 )}
               </Badge>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium">
+            <div className="flex px-3 items-center gap-2 text-[10px] text-muted-foreground font-medium">
               <div className={`h-1.5 w-1.5 rounded-full ${showSaving ? 'bg-amber-500 animate-pulse' : (!convexId ? 'bg-muted-foreground/30' : 'bg-green-500')}`} />
               {showSaving ? 'Saving' : (!convexId ? 'Unsaved' : 'Saved')}
             </div>
@@ -1025,15 +1028,29 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
                           onAddMCPServer={() => setShowAddMCPModal(true)}
                         />
 
-                        
+
                         <div className="p-4 border-t border-border bg-muted/20">
                           <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1 mb-3">Resources & Support</h4>
                           <div className="grid grid-cols-1 gap-2">
                             {[
-                              { label: 'Documentation', desc: 'Node reference & guides', icon: HelpCircle },
-                              { label: 'Discord', desc: 'Join our community', icon: Shield },
+                              {
+                                label: 'Documentation',
+                                desc: 'Node reference & guides',
+                                icon: HelpCircle,
+                                onClick: () => setShowHelpPanel(true)
+                              },
+                              {
+                                label: 'Discord',
+                                desc: 'Join our community',
+                                icon: Shield,
+                                onClick: () => window.open('https://discord.gg/intentflow', '_blank')
+                              },
                             ].map((item, i) => (
-                              <button key={i} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all text-left group">
+                              <button
+                                key={i}
+                                onClick={item.onClick}
+                                className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/50 hover:border-primary/50 hover:bg-accent/50 transition-all text-left group"
+                              >
                                 <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                                   <item.icon className="h-4 w-4 text-primary" />
                                 </div>
@@ -1130,6 +1147,12 @@ function WorkflowBuilderInner({ onBack, initialWorkflowId, initialTemplateId }: 
               </div>
             )}
           </div>
+
+          <AnimatePresence>
+            {showHelpPanel && (
+              <HelpPanel onClose={() => setShowHelpPanel(false)} />
+            )}
+          </AnimatePresence>
         </motion.main>
 
         {/* Unified Inspector */}
